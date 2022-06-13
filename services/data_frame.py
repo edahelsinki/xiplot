@@ -36,7 +36,7 @@ def run_pca(df):
 
     # Create a DataFrame object of the data that has been calculated with PCA
     pal_df = pd.DataFrame(data=principalComponens, columns=[
-                               "principal component 1", "principal component 2"])
+        "principal component 1", "principal component 2"])
 
     # Concatenate
     final_df = pd.concat(
