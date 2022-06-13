@@ -35,13 +35,22 @@ def start():
         elif user_command == "scatter":
             try:
                 show_columns(df)
-                show_scatter(df, get_xaxis(), get_yaxis())
+                xaxis = get_xaxis()
+                yaxis = get_yaxis()
+                try:
+                    show_scatter(df, xaxis, yaxis)
+                except ValueError:
+                    invalid_column_name(xaxis, yaxis)
             except UnboundLocalError:
                 file_not_given()
         elif user_command == "histogram":
             try:
                 show_columns(df)
-                show_histogram(df, get_xaxis())
+                xaxis = get_xaxis()
+                try:
+                    show_histogram(df, xaxis)
+                except ValueError:
+                    invalid_column_name(xaxis)
             except UnboundLocalError:
                 file_not_given()
         elif user_command == "exit":

@@ -65,3 +65,14 @@ def file_not_given():
     print("""
         Pick first a data file
     """)
+
+
+def invalid_column_name(xaxis, yaxis=None):
+    if not yaxis:
+        print(f"""
+        Invalid column name "{xaxis}"    
+    """)
+    else:
+        print(f"""
+        Invalid column name "{xaxis}" or "{yaxis}"
+    """)
