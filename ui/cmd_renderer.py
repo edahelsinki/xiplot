@@ -13,6 +13,8 @@ def show_help():
         scatter: Show a scatter giving a xaxis and yaxis
 
         histogram: Show a histogram giving a xaxis
+
+        exit: exit from the app
     """)
 
 
