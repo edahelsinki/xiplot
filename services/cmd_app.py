@@ -1,7 +1,7 @@
 from fileinput import fileno
 from matplotlib.style import use
 from sqlalchemy import true
-from app import modify_column_names, read_data_file, show_scatter
+
 from ui.cmd_renderer import *
 from services.data_frame import *
 from ui.cmd_renderer import *
