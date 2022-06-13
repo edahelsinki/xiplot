@@ -9,7 +9,9 @@ def show_help():
 
         pca: Execute given data with PCA
 
-        scatter: Show a scatter
+        scatter: Show a scatter giving a xaxis and yaxis
+
+        histogram: Show a histogram giving a xaxis
     """)
 
 def show_scatter(df, xaxis, yaxis):
