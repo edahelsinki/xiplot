@@ -44,11 +44,7 @@ def start():
                 show_histogram(df, get_xaxis())
             except UnboundLocalError:
                 file_not_given()
+        elif user_command == "exit":
+            break
         else:
             show_help()
-    dataframes = [f for f in os.listdir(
-        "data") if os.path.isfile(os.path.join("data", f))]
-    df = read_data_file()
-    df = modify_column_names(df)
-    df = run_pca(df)
-    show_scatter(df)
