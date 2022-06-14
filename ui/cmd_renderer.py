@@ -64,12 +64,15 @@ def get_yaxis():
 
 
 def get_coordinates():
-    x_min = int(input("Set smaller x value: "))
-    x_max = int(input("Set greater x value: "))
-    y_min = int(input("Set smaller y value: "))
-    y_max = int(input("Set greater y value: "))
-    if x_min < x_max and y_min < y_max:
-        return (x_min, x_max, y_min, y_max)
+    try:
+        x_min = int(input("Set smaller x value: "))
+        x_max = int(input("Set greater x value: "))
+        y_min = int(input("Set smaller y value: "))
+        y_max = int(input("Set greater y value: "))
+        if x_min < x_max and y_min < y_max:
+            return (x_min, x_max, y_min, y_max)
+    except ValueError:
+        return
 
 
 def file_not_found(filename):
