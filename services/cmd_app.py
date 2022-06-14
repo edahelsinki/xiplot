@@ -1,11 +1,5 @@
-from fileinput import fileno
-from matplotlib.style import use
-from sqlalchemy import true
-
 from ui.cmd_renderer import *
 from services.data_frame import *
-from ui.cmd_renderer import *
-import os
 
 
 def start():
