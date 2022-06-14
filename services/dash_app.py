@@ -2,7 +2,7 @@ from dash import Dash, html, dcc, Output, Input, State
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import os
-from services.data_frame import load_auto_mpg
+from services.data_frame import load_auto_mpg, read_data_file
 
 
 data_files = [f for f in os.listdir(
@@ -35,7 +35,7 @@ app.layout = html.Div(children=[
     prevent_initial_call=True,
 )
 def choose_data_file(n_clicks, filename):
-    df = load_auto_mpg(filename)
+    df = read_data_file(filename)
     columns = df.columns.tolist()
     return f"Data file: {filename}", columns, columns
 
@@ -47,11 +47,11 @@ def choose_data_file(n_clicks, filename):
     prevent_initial_call=True
 )
 def render_scatter(x_axis, y_axis, filename):
-    df = load_auto_mpg(filename)
+    df = read_data_file(filename)
     fig = px.scatter(df, x=x_axis, y=y_axis)
     return fig
 
 
 def start():
     # if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server()
