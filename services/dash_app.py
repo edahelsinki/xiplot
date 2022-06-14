@@ -1,6 +1,3 @@
-from distutils.log import debug
-
-from click import style
 from dash import Dash, html, dcc, Output, Input, State
 import dash_bootstrap_components as dbc
 import plotly.express as px
@@ -21,13 +18,20 @@ app.layout = html.Div(children=[
     html.H3(id="chosen_data_file"),
     html.Div([
         html.Div([
-            html.H3(children="x axis"),
-            dcc.Dropdown(id="x_axis", clearable=False), ], style={"width": "48%", "display": "inline-block", "margin": 10}),
+            html.H3(children="x axis (scatter)"),
+            dcc.Dropdown(id="x_axis", clearable=False), ], style={"width": "48%", "display": "inline-block", "margin": 10}
+        ),
         html.Div([
-            html.H3(children="y axis"),
-            dcc.Dropdown(id="y_axis", clearable=False), ], style={"width": "48%", "display": "inline-block", "margin": 10})
+            html.H3(children="y axis (scatter)"),
+            dcc.Dropdown(id="y_axis", clearable=False), ], style={"width": "48%", "display": "inline-block", "margin": 10}
+        ),
     ]),
     dcc.Graph(id="scatter-plot"),
+    html.Div([
+        html.H3(children="x axis (histogram)"),
+        dcc.Dropdown(id="x_axis_histo", clearable=False)
+    ], style={"margin": 10}),
+    dcc.Graph(id="histogram"),
 ])
 
 
@@ -35,6 +39,7 @@ app.layout = html.Div(children=[
     Output("chosen_data_file", "children"),
     Output("x_axis", "options"),
     Output("y_axis", "options"),
+    Output("x_axis_histo", "options"),
     Input("submit-button", "n_clicks"),
     State("data_files", "value"),
     prevent_initial_call=True,
@@ -42,7 +47,7 @@ app.layout = html.Div(children=[
 def choose_data_file(n_clicks, filename):
     df = read_data_file(filename)
     columns = df.columns.tolist()
-    return f"Data file: {filename}", columns, columns
+    return f"Data file: {filename}", columns, columns, columns
 
 
 @app.callback(
@@ -54,6 +59,18 @@ def choose_data_file(n_clicks, filename):
 def render_scatter(x_axis, y_axis, filename):
     df = read_data_file(filename)
     fig = px.scatter(df, x=x_axis, y=y_axis)
+    return fig
+
+
+@app.callback(
+    Output("histogram", "figure"),
+    Input("x_axis_histo", "value"),
+    State("data_files", "value"),
+    prevent_initial_call=True,
+)
+def render_histogram(x_axis, filename):
+    df = read_data_file(filename)
+    fig = px.histogram(df, x=x_axis)
     return fig
 
 
