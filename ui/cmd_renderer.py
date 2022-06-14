@@ -8,6 +8,8 @@ def show_help():
 
         file: Give a filename in the directory "data"
 
+        columns: Show all the columns of the data frame
+
         pca: Execute given data with PCA
 
         scatter: Show a scatter giving a xaxis and yaxis
