@@ -53,6 +53,20 @@ def start():
                     invalid_column_name(xaxis)
             except UnboundLocalError:
                 file_not_given()
+        elif user_command == "select":
+            try:
+                show_columns(df)
+                xaxis = get_xaxis()
+                yaxis = get_yaxis()
+                coordinates = get_coordinates()
+                if not coordinates:
+                    invalid_input()
+                try:
+                    show_selected_scatter(df, xaxis, yaxis, coordinates)
+                except ValueError:
+                    invalid_column_name(xaxis, yaxis)
+            except UnboundLocalError:
+                file_not_given()
         elif user_command == "exit":
             break
         else:
