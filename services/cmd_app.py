@@ -7,10 +7,6 @@ from services.data_frame import *
 from ui.cmd_renderer import *
 import os
 
-from ui.cmd_renderer import show_columns
-from ui.cmd_renderer import file_not_found
-from ui.cmd_renderer import file_not_given
-
 
 def start():
     show_start_screen()
