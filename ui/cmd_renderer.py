@@ -51,6 +51,10 @@ def get_user_command():
     return input("Select a command: ")
 
 
+def get_app_selection():
+    return input('Select the version to execute ("1": Dash, "2": Commandline): ')
+
+
 def get_user_file():
     return input("Pick a data file: ")
 
