@@ -42,3 +42,13 @@ def run_pca(df):
     final_df = pd.concat(
         [pal_df, df], axis=1)
     return final_df
+
+
+def load_auto_mpg(filename):
+    widths = [7, 4, 10, 10, 11, 7, 4, 4, 30]
+    data = pd.read_fwf(f"data/{filename}", widths=widths,
+                       header=None, na_values=["?"])
+    df = pd.DataFrame(data)
+    df.columns = pd.array(["mpg", "cylinders", "displacement", "horsepower", "weight", "acceleration",
+                           "model-year", "origin", "car-name"], dtype="U23")
+    return df
