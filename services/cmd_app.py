@@ -61,6 +61,7 @@ def start():
                 coordinates = get_coordinates()
                 if not coordinates:
                     invalid_input()
+                    continue
                 try:
                     show_selected_scatter(df, xaxis, yaxis, coordinates)
                 except ValueError:
