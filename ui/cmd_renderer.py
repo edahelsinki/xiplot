@@ -1,7 +1,12 @@
+from typing import Tuple
 import plotly.express as px
 
 
 def show_help():
+    """
+        Shows valid user commands.
+    """
+
     print("""
         Commands
         --------
@@ -23,17 +28,44 @@ def show_help():
 
 
 def show_scatter(df, xaxis, yaxis):
+    """
+        Renders a scatter plot.
+
+        Args
+        ----
+            df: Data frame
+            xaxis: Unit(Column) of x axis
+            yaxis: -"- y axis
+    """
     fig = px.scatter(data_frame=df, x=xaxis,
                      y=yaxis)
     fig.show()
 
 
 def show_histogram(df, xaxis):
+    """
+        Renders a histogram.
+
+        Args
+        ----
+            df: Data frame
+            xaxis: Unit(Columns) of x axis
+    """
     fig = px.histogram(df, xaxis)
     fig.show()
 
 
-def show_selected_scatter(df, xaxis, yaxis, cdnts):
+def show_selected_scatter(df, xaxis, yaxis, cdnts: Tuple):
+    """
+        Renders a subset of a scatter plot.
+
+        Args
+        ----
+            df: Data frame
+            xaxis: Unit(Column) of x axis
+            yaxis: -"- y axis
+            cdnts: x and y ranges of the subset of the scatter plot
+    """
     fig = px.scatter(df, xaxis, yaxis, range_x=[
                      cdnts[0], cdnts[1]], range_y=[cdnts[2], cdnts[3]])
     fig.show()
