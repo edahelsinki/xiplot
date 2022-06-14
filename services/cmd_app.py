@@ -9,7 +9,7 @@ def start():
         if user_command == "file":
             filename = get_user_file()
             try:
-                df = read_data_file(filename)
+                df = load_auto_mpg(filename)
             except FileNotFoundError:
                 file_not_found(filename)
         elif user_command == "columns":
