@@ -1,9 +1,12 @@
+from distutils.log import debug
+
+from click import style
 from dash import Dash, html, dcc, Output, Input, State
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import os
 from services.data_frame import load_auto_mpg, read_data_file
-
+#from data_frame import load_auto_mpg, read_data_file
 
 data_files = [f for f in os.listdir(
     "data") if os.path.isfile(os.path.join("data", f))]
@@ -17,10 +20,12 @@ app.layout = html.Div(children=[
                 n_clicks=0, className="btn btn-primary"),
     html.H3(id="chosen_data_file"),
     html.Div([
-        html.H3(children="x axis"),
-        dcc.Dropdown(id="x_axis", clearable=False),
-        html.H3(children="y axis"),
-        dcc.Dropdown(id="y_axis", clearable=False),
+        html.Div([
+            html.H3(children="x axis"),
+            dcc.Dropdown(id="x_axis", clearable=False), ], style={"width": "48%", "display": "inline-block", "margin": 10}),
+        html.Div([
+            html.H3(children="y axis"),
+            dcc.Dropdown(id="y_axis", clearable=False), ], style={"width": "48%", "display": "inline-block", "margin": 10})
     ]),
     dcc.Graph(id="scatter-plot"),
 ])
