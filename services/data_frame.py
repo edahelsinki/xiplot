@@ -2,14 +2,19 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
+from os.path import splitext
 
 
 def read_data_file(filename):
-    widths = [7, 4, 10, 10, 11, 7, 4, 4, 30]
-    data = pd.read_fwf(f"data/{filename}", widths=widths,
-                       header=None, na_values=["?"])
+    file_extension = splitext(filename)[1]
+    if file_extension == ".csv":
+        data = pd.read_csv(f"data/{filename}")
+    elif file_extension == ".json":
+        data = pd.read_json(f"data/{filename}")
+    else:
+        return
     df = pd.DataFrame(data)
-    return modify_column_names(df)
+    return df
 
 
 def modify_column_names(df: pd):
