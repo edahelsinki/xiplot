@@ -2,7 +2,7 @@ from dash import Dash, html, dcc, Output, Input, State
 import dash_bootstrap_components as dbc
 import plotly.express as px
 import os
-from data_frame import load_auto_mpg
+from services.data_frame import load_auto_mpg
 
 
 data_files = [f for f in os.listdir(
@@ -52,6 +52,6 @@ def render_scatter(x_axis, y_axis, filename):
     return fig
 
 
-# def start():
-if __name__ == "__main__":
+def start():
+    # if __name__ == "__main__":
     app.run_server(debug=True)
