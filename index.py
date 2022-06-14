@@ -4,7 +4,8 @@ import services.dash_app as dash_app
 from ui.cmd_renderer import get_user_command
 
 if __name__ == "__main__":
-    if get_user_command == "1":
+    app_selection = get_user_command()
+    if app_selection == "1":
         dash_app.start()
     else:
         cmd_app.start()
