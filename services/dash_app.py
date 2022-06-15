@@ -13,6 +13,9 @@ data_files = [f for f in os.listdir(
 app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 app.layout = html.Div(children=[
+    html.Div([
+        html.H1("Dash App 2022")
+    ], style={"text-align": "center"}),
     html.H3(children="Choose a data file"),
     dcc.Dropdown(data_files, id="data_files", clearable=False),
     html.Button("Load the data file", id="submit-button",
