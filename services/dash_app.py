@@ -20,25 +20,32 @@ app.layout = html.Div(children=[
     html.H3(id="chosen_data_file"),
     html.Div([
         html.Div([
-            html.H3(children="x axis (scatter)"),
-            dcc.Dropdown(id="x_axis", clearable=False), ], style={"width": "45%", "display": "inline-block", "margin": 10}
+            html.H5(children="x axis (scatter)"),
+            dcc.Dropdown(id="x_axis", clearable=False), ],
+            style={"width": "45%", "display": "inline-block", "margin": 10}
         ),
         html.Div([
-            html.H3(children="y axis (scatter)"),
-            dcc.Dropdown(id="y_axis", clearable=False), ], style={"width": "45%", "display": "inline-block", "margin": 10}
+            html.H5(children="y axis (scatter)"),
+            dcc.Dropdown(id="y_axis", clearable=False), ],
+            style={"width": "45%", "display": "inline-block", "margin": 10}
         ),
         dcc.Graph(id="scatter-plot"),
-    ], style={"width": "48%", "display": "inline-block"}),
+    ], style={"width": "30%", "display": "inline-block", "float": "left"}),
     html.Div([
         html.Div([
-            html.H3(children="x axis (histogram)"),
+            html.H5(children="x axis (histogram)"),
             dcc.Dropdown(id="x_axis_histo", clearable=False)
         ], style={"margin": 10}),
         dcc.Graph(id="histogram"),
-    ], style={"width": "48%", "display": "inline-block"}),
+    ], style={"width": "30%", "display": "inline-block", "float": "left"}),
     html.Div([
-        html.P(id="selected")
-    ])
+        html.Div([
+            html.P(id="selected"),
+        ], style={"display": "flex", "padding-left": "10px", "padding-top": "4px"}),
+    ], style={
+        "width": "30%", "display": "inline-block",
+        "margin": 10, "float": "left", "background-color": "#dffcde",
+        "height": "800px", "border-radius": "8px"})
 ])
 
 
@@ -101,11 +108,12 @@ def render_histogram(x_axis, filename):
 
 @app.callback(
     Output("selected", "children"),
-    Input("scatter-plot", "selectedData")
+    Input("scatter-plot", "selectedData"),
+    prevent_initial_call=True
 )
 def selected_data(data):
-    print(data)
-    return str(data)
+    points = [point["pointIndex"] for point in data["points"]]
+    return str(points)
 
 
 def start():
