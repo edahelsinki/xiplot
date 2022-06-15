@@ -3,6 +3,9 @@ from services.data_frame import *
 
 
 def start():
+    """
+        Main function of the commandline app
+    """
     show_start_screen()
     while True:
         user_command = get_user_command()

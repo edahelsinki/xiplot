@@ -5,6 +5,8 @@ import os
 from services.data_frame import load_auto_mpg, read_data_file
 #from data_frame import load_auto_mpg, read_data_file
 
+
+# List of all the files in the directory "data"
 data_files = [f for f in os.listdir(
     "data") if os.path.isfile(os.path.join("data", f))]
 
@@ -45,6 +47,12 @@ app.layout = html.Div(children=[
     prevent_initial_call=True,
 )
 def choose_data_file(n_clicks, filename):
+    """
+        User chooses a data file to load. Column names are sent to show a histogram and a scatter. 
+
+        Returns:
+            File name as a string and all the columns' names
+    """
     df = read_data_file(filename)
     columns = df.columns.tolist()
     return f"Data file: {filename}", columns, columns, columns
@@ -57,6 +65,12 @@ def choose_data_file(n_clicks, filename):
     prevent_initial_call=True
 )
 def render_scatter(x_axis, y_axis, filename):
+    """
+        Returns a plotly's scatter object with axes given by the user.
+
+        Returns:
+            Scatter object
+    """
     df = read_data_file(filename)
     fig = px.scatter(df, x=x_axis, y=y_axis)
     return fig
@@ -69,6 +83,12 @@ def render_scatter(x_axis, y_axis, filename):
     prevent_initial_call=True,
 )
 def render_histogram(x_axis, filename):
+    """
+        Returns a plotly's histogram object with a x axis given by the user
+
+        Returns:
+            Histogram object
+    """
     df = read_data_file(filename)
     fig = px.histogram(df, x=x_axis)
     return fig
