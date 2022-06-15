@@ -95,7 +95,8 @@ def get_user_command():
     """
         Returns a command input from the user
 
-        Returns:
+        Returns
+        -------
             input(): User input as a string
 
     """
@@ -106,7 +107,8 @@ def get_app_selection():
     """
         Returns an input from the user, whether the user wants to use Dash or commandline version
 
-        Returns:
+        Returns
+        -------
             input(): User input as a string
     """
     return input('Select the version to execute ("1": Dash, "2": Commandline): ')
@@ -116,7 +118,8 @@ def get_user_file():
     """
         Returns the name of a data file
 
-        Returns:
+        Returns
+        -------
             input(): File name as a string
 
     """
@@ -127,7 +130,8 @@ def get_xaxis():
     """
         Returns an unit of the x axis of a histogram or a scatter
 
-        Returns:
+        Returns
+        -------
             input(): Unit as a string
     """
     return input("Choose x axis: ")
@@ -137,7 +141,8 @@ def get_yaxis():
     """
         Returns an unit of the y axis of a scatter
 
-        Returns:
+        Returns
+        -------
             input(): Unit as a string 
     """
     return input("Choose y axis: ")
@@ -147,7 +152,8 @@ def get_coordinates():
     """
         Returns a tuple of ranges of the x and y axis to create a subset of a scatter
 
-        Returns:
+        Returns
+        -------
             (x_min, x_max, y_min, y_max): Coordinates of the range of the x and y axis as a tuple
             None: If invalid input
     """
@@ -165,6 +171,10 @@ def get_coordinates():
 def file_not_found(filename):
     """
         Shows an error message that the given file was not found in the directory "data".
+
+        Parameters
+        ----------
+            filename: file name as a string
     """
     print(f"""
         File "{filename}" was not found in the directory "data"
@@ -183,6 +193,11 @@ def file_not_given():
 def invalid_column_name(xaxis, yaxis=None):
     """
         Shows an error message that the given name of x or y axis is not in the columns of the dataset.
+
+        Parameters
+        ----------
+            xaxis: Name given as an input to the xaxis
+            yaxis: -"-, None, if not given anything
     """
     if not yaxis:
         print(f"""
@@ -197,6 +212,10 @@ def invalid_column_name(xaxis, yaxis=None):
 def invalid_input(user_input=""):
     """
         Shows an error message that the given input was invaid
+
+        Parameters
+        ----------
+            user_input: User input as a string
     """
     print(f"""
         Invalid input {user_input}

@@ -6,6 +6,17 @@ from os.path import splitext
 
 
 def read_data_file(filename):
+    """
+        Read the given data file and convert it to a pandas data frame
+
+        Parameters
+        ----------
+            filename: File name as a string
+
+        Returns
+        -------
+            df: Pandas data frame 
+    """
     file_extension = splitext(filename)[1]
     if file_extension == ".csv":
         data = pd.read_csv(f"data/{filename}")
@@ -18,12 +29,18 @@ def read_data_file(filename):
 
 
 def modify_column_names(df: pd):
+    """
+        For now this function is unused.
+    """
     df.columns = pd.array(["mpg", "cylinders", "displacement", "horsepower", "weight", "acceleration",
                            "model-year", "origin", "car-name"], dtype="U23")
     return df
 
 
 def run_pca(df):
+    """
+        For now this function is unused.
+    """
     features = pd.array(["mpg", "cylinders", "displacement", "horsepower", "weight", "acceleration",
                          "model-year", "origin"], dtype="U23")
     x = df.loc[:, features].values
@@ -50,6 +67,9 @@ def run_pca(df):
 
 
 def load_auto_mpg(filename):
+    """
+        Function to read the file auto-mpg.data
+    """
     widths = [7, 4, 10, 10, 11, 7, 4, 4, 30]
     data = pd.read_fwf(f"data/{filename}", widths=widths,
                        header=None, na_values=["?"])
