@@ -54,11 +54,14 @@ app.layout = html.Div(children=[
             html.Div([
                 html.Button("Load the data file", id="submit-button",
                             n_clicks=0, className="btn btn-primary"),
-            ], style={"padding-top": 4, "padding-right": "2%", "float": "right"}),
-        ], style={"padding-left": 10}),
+            ], style={"padding-top": "2%", }),
+        ], style={"padding-left": "2%"}),
         html.Div([
-            html.P(id="selected"),
-        ], style={"display": "flex", "padding-left": "2%", "padding-top": "4px"}),
+            html.H5(children="Select data from the scatter plot"),
+            html.Div([
+                html.P("Selected 0 points", id="selected"),
+            ],),
+        ], style={"padding-top": "4%", "padding-left": "2%"}),
     ], style={
         "width": "32%", "display": "inline-block",
         "margin": 10, "float": "left", "background-color": "#dffcde",
@@ -129,7 +132,8 @@ def render_histogram(x_axis, filename):
 )
 def selected_data(data):
     points = [point["pointIndex"] for point in data["points"]]
-    return str(points)
+    print(points)
+    return f"Selected {len(points)} points"
 
 
 def start():
