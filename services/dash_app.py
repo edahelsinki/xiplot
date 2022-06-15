@@ -21,19 +21,24 @@ app.layout = html.Div(children=[
     html.Div([
         html.Div([
             html.H3(children="x axis (scatter)"),
-            dcc.Dropdown(id="x_axis", clearable=False), ], style={"width": "48%", "display": "inline-block", "margin": 10}
+            dcc.Dropdown(id="x_axis", clearable=False), ], style={"width": "45%", "display": "inline-block", "margin": 10}
         ),
         html.Div([
             html.H3(children="y axis (scatter)"),
-            dcc.Dropdown(id="y_axis", clearable=False), ], style={"width": "48%", "display": "inline-block", "margin": 10}
+            dcc.Dropdown(id="y_axis", clearable=False), ], style={"width": "45%", "display": "inline-block", "margin": 10}
         ),
-    ]),
-    dcc.Graph(id="scatter-plot"),
+        dcc.Graph(id="scatter-plot"),
+    ], style={"width": "48%", "display": "inline-block"}),
     html.Div([
-        html.H3(children="x axis (histogram)"),
-        dcc.Dropdown(id="x_axis_histo", clearable=False)
-    ], style={"margin": 10}),
-    dcc.Graph(id="histogram"),
+        html.Div([
+            html.H3(children="x axis (histogram)"),
+            dcc.Dropdown(id="x_axis_histo", clearable=False)
+        ], style={"margin": 10}),
+        dcc.Graph(id="histogram"),
+    ], style={"width": "48%", "display": "inline-block"}),
+    html.Div([
+        html.P(id="selected")
+    ])
 ])
 
 
@@ -92,6 +97,15 @@ def render_histogram(x_axis, filename):
     df = read_data_file(filename)
     fig = px.histogram(df, x=x_axis)
     return fig
+
+
+@app.callback(
+    Output("selected", "children"),
+    Input("scatter-plot", "selectedData")
+)
+def selected_data(data):
+    print(data)
+    return str(data)
 
 
 def start():
