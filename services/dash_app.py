@@ -22,26 +22,27 @@ app.layout = html.Div(children=[
                 html.H5(children="x axis (scatter)"),
             ], style={"padding-top": 8}),
             dcc.Dropdown(id="x_axis", clearable=False), ],
-            style={"width": "45%", "display": "inline-block", "margin": 10}
+            style={"width": "40%", "display": "inline-block",
+                   "margin-left": "10%"}
         ),
         html.Div([
             html.Div([
                 html.H5(children="y axis (scatter)"),
             ], style={"padding-top": 8}),
             dcc.Dropdown(id="y_axis", clearable=False), ],
-            style={"width": "45%", "display": "inline-block", "margin": 10}
+            style={"width": "40%", "display": "inline-block", "margin": 10}
         ),
         dcc.Graph(id="scatter-plot"),
-    ], style={"width": "30%", "display": "inline-block", "float": "left"}),
+    ], style={"width": "33%", "display": "inline-block", "float": "left"}),
     html.Div([
         html.Div([
             html.Div([
                 html.H5(children="x axis (histogram)"),
             ], style={"padding-top": 8}),
             dcc.Dropdown(id="x_axis_histo", clearable=False)
-        ], style={"margin": 10}),
+        ], style={"margin-top": 10, "margin-left": "10%", "width": "82%"}),
         dcc.Graph(id="histogram"),
-    ], style={"width": "30%", "display": "inline-block", "float": "left"}),
+    ], style={"width": "33%", "display": "inline-block", "float": "left"}),
     html.Div([
         html.Div([
             html.Div([
@@ -49,23 +50,23 @@ app.layout = html.Div(children=[
             ], style={"margin-top": 8}),
             html.Div([
                 dcc.Dropdown(data_files, id="data_files", clearable=False),
-            ], style={"width": "95%", }),
-            html.Button("Load the data file", id="submit-button",
-                        n_clicks=0, className="btn btn-primary"),
-            html.H3(id="chosen_data_file"),
+            ], style={"width": "98%", }),
+            html.Div([
+                html.Button("Load the data file", id="submit-button",
+                            n_clicks=0, className="btn btn-primary"),
+            ], style={"padding-top": 4, "padding-right": "2%", "float": "right"}),
         ], style={"padding-left": 10}),
         html.Div([
             html.P(id="selected"),
-        ], style={"display": "flex", "padding-left": "10px", "padding-top": "4px"}),
+        ], style={"display": "flex", "padding-left": "2%", "padding-top": "4px"}),
     ], style={
-        "width": "30%", "display": "inline-block",
+        "width": "32%", "display": "inline-block",
         "margin": 10, "float": "left", "background-color": "#dffcde",
         "height": "800px", "border-radius": "8px"})
 ])
 
 
 @app.callback(
-    Output("chosen_data_file", "children"),
     Output("x_axis", "options"),
     Output("y_axis", "options"),
     Output("x_axis_histo", "options"),
@@ -82,7 +83,7 @@ def choose_data_file(n_clicks, filename):
     """
     df = read_data_file(filename)
     columns = df.columns.tolist()
-    return f"Data file: {filename}", columns, columns, columns
+    return columns, columns, columns
 
 
 @app.callback(
