@@ -15,20 +15,19 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 app.layout = html.Div(children=[
     html.Div([
         html.H1("Dash App 2022")
-    ], style={"text-align": "center"}),
-    html.H3(children="Choose a data file"),
-    dcc.Dropdown(data_files, id="data_files", clearable=False),
-    html.Button("Load the data file", id="submit-button",
-                n_clicks=0, className="btn btn-primary"),
-    html.H3(id="chosen_data_file"),
+    ], style={"text-align": "center", "margin": 20}),
     html.Div([
         html.Div([
-            html.H5(children="x axis (scatter)"),
+            html.Div([
+                html.H5(children="x axis (scatter)"),
+            ], style={"padding-top": 8}),
             dcc.Dropdown(id="x_axis", clearable=False), ],
             style={"width": "45%", "display": "inline-block", "margin": 10}
         ),
         html.Div([
-            html.H5(children="y axis (scatter)"),
+            html.Div([
+                html.H5(children="y axis (scatter)"),
+            ], style={"padding-top": 8}),
             dcc.Dropdown(id="y_axis", clearable=False), ],
             style={"width": "45%", "display": "inline-block", "margin": 10}
         ),
@@ -36,12 +35,25 @@ app.layout = html.Div(children=[
     ], style={"width": "30%", "display": "inline-block", "float": "left"}),
     html.Div([
         html.Div([
-            html.H5(children="x axis (histogram)"),
+            html.Div([
+                html.H5(children="x axis (histogram)"),
+            ], style={"padding-top": 8}),
             dcc.Dropdown(id="x_axis_histo", clearable=False)
         ], style={"margin": 10}),
         dcc.Graph(id="histogram"),
     ], style={"width": "30%", "display": "inline-block", "float": "left"}),
     html.Div([
+        html.Div([
+            html.Div([
+                html.H5(children="Choose a data file"),
+            ], style={"margin-top": 8}),
+            html.Div([
+                dcc.Dropdown(data_files, id="data_files", clearable=False),
+            ], style={"width": "95%", }),
+            html.Button("Load the data file", id="submit-button",
+                        n_clicks=0, className="btn btn-primary"),
+            html.H3(id="chosen_data_file"),
+        ], style={"padding-left": 10}),
         html.Div([
             html.P(id="selected"),
         ], style={"display": "flex", "padding-left": "10px", "padding-top": "4px"}),
