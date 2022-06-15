@@ -81,7 +81,21 @@ app.layout = html.Div(children=[
     ], style={
         "width": "32%", "display": "inline-block",
         "margin": 10, "float": "left", "background-color": "#dffcde",
-        "height": "800px", "border-radius": "8px"})
+        "height": "800px", "border-radius": "8px"}),
+    html.Div([
+        html.Div([
+            html.Div([
+                html.H5(children="x axis (histogram by selected points)")
+            ]),
+            html.Div([
+                dcc.Dropdown(id="selected_histogram_column")
+            ])
+        ], style={"width": "40%", "display": "inline-block",
+                  "margin-left": "10%"}),
+        html.Div([
+            dcc.Graph(id="selected_histogram")
+        ])
+    ], style={"width": "33%", "display": "inline-block", "float": "left"})
 ])
 
 
@@ -90,6 +104,7 @@ app.layout = html.Div(children=[
     Output("y_axis", "options"),
     Output("x_axis_histo", "options"),
     Output("selected_data_column", "options"),
+    Output("selected_histogram_column", "options"),
     Input("submit-button", "n_clicks"),
     State("data_files", "value"),
     prevent_initial_call=True,
@@ -103,7 +118,7 @@ def choose_data_file(n_clicks, filename):
     """
     df = read_data_file(filename)
     columns = df.columns.tolist()
-    return columns, columns, columns, columns
+    return columns, columns, columns, columns, columns
 
 
 @app.callback(
@@ -149,8 +164,22 @@ def render_histogram(x_axis, filename):
 )
 def selected_data(data):
     points = [point["pointIndex"] for point in data["points"]]
-    print(points)
     return f"Selected {len(points)} points"
+
+
+@app.callback(
+    Output("selected_histogram", "figure"),
+    Input("scatter-plot", "selectedData"),
+    State("selected_histogram_column", "value"),
+    State("data_files", "value"),
+    prevent_initial_call=True
+)
+def render_histogram_by_selected_points(data, x_axis, filename):
+    df = read_data_file(filename)
+    points = [point["pointIndex"] for point in data["points"]]
+    selected_df = df.loc[df.index.isin(points)]
+    fig = px.histogram(selected_df, x_axis)
+    return fig
 
 
 def start():
