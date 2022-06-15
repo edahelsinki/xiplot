@@ -61,6 +61,22 @@ app.layout = html.Div(children=[
             html.Div([
                 html.P("Selected 0 points", id="selected"),
             ],),
+            html.Div([
+                html.Div([
+                    html.H6("Operation")
+                ]),
+                html.Div([
+                    dcc.Dropdown(id="selected_data_operation")
+                ], style={"width": "98%"}),
+            ], style={"width": "49%", "display": "inline-block"}),
+            html.Div([
+                html.Div([
+                    html.H6("Column")
+                ]),
+                html.Div([
+                    dcc.Dropdown(id="selected_data_column")
+                ], style={"width": "98%"})
+            ], style={"width": "49%", "display": "inline-block", "margin": "1%"})
         ], style={"padding-top": "4%", "padding-left": "2%"}),
     ], style={
         "width": "32%", "display": "inline-block",
@@ -73,6 +89,7 @@ app.layout = html.Div(children=[
     Output("x_axis", "options"),
     Output("y_axis", "options"),
     Output("x_axis_histo", "options"),
+    Output("selected_data_column", "options"),
     Input("submit-button", "n_clicks"),
     State("data_files", "value"),
     prevent_initial_call=True,
@@ -86,7 +103,7 @@ def choose_data_file(n_clicks, filename):
     """
     df = read_data_file(filename)
     columns = df.columns.tolist()
-    return columns, columns, columns
+    return columns, columns, columns, columns
 
 
 @app.callback(
