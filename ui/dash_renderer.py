@@ -7,7 +7,7 @@ from rdkit.Chem import Draw
 
 def render_smiles(smiles):
     m = [Chem.MolFromSmiles(smiles)]
-    img = Draw.MolsToGridImage(m, legends=["C05343294 1"])
+    img = Draw.MolsToGridImage(m)
     buffered = io.BytesIO()
     img.save(buffered, format="JPEG")
     encoded_image = base64.b64encode(buffered.getvalue()).decode()
