@@ -202,7 +202,14 @@ def render_mol_image(hover_data, filename):
     point = hover_data["points"][0]["pointIndex"]
     smiles_str = df.loc[point]["SMILES"]
     im = render_smiles(smiles_str)
-    return im
+
+    children = [
+        html.Img(
+            src=im,
+        ),
+        html.P(smiles_str)
+    ]
+    return children
 
 
 def start():
