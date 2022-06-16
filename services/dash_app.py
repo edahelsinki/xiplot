@@ -4,6 +4,7 @@ import plotly.express as px
 import os
 from services.data_frame import load_auto_mpg, read_data_file
 #from data_frame import load_auto_mpg, read_data_file
+from ui.dash_renderer import render_smiles
 
 
 # List of all the files in the directory "data"
@@ -88,14 +89,17 @@ app.layout = html.Div(children=[
                 html.H5(children="x axis (histogram by selected points)")
             ]),
             html.Div([
-                dcc.Dropdown(id="selected_histogram_column")
+                dcc.Dropdown(id="selected_histogram_column", clearable=False)
             ])
         ], style={"width": "40%", "display": "inline-block",
                   "margin-left": "10%"}),
         html.Div([
             dcc.Graph(id="selected_histogram")
         ])
-    ], style={"width": "33%", "display": "inline-block", "float": "left"})
+    ], style={"width": "33%", "display": "inline-block", "float": "left"}),
+    html.Div([
+        html.Img(id="smiles_image")
+    ])
 ])
 
 
@@ -187,6 +191,20 @@ def render_histogram_by_selected_points(data, x_axis, filename):
     return fig
 
 
+@app.callback(
+    Output("smiles_image", "src"),
+    Input("scatter-plot", "hoverData"),
+    State("data_files", "value"),
+    prevent_initial_call=True
+)
+def render_mol_image(hover_data, filename):
+    df = read_data_file(filename)
+    point = hover_data["points"][0]["pointIndex"]
+    smiles_str = df.loc[point]["SMILES"]
+    im = render_smiles(smiles_str)
+    return im
+
+
 def start():
-    # if __name__ == "__main__":
+#if __name__ == "__main__":
     app.run_server()
