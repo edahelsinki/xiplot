@@ -74,7 +74,7 @@ app.layout = html.Div(children=[
                     html.H6("Column")
                 ]),
                 html.Div([
-                    dcc.Dropdown(id="selected_data_column")
+                    dcc.Dropdown(id="selected_data_column", clearable=False)
                 ], style={"width": "98%"})
             ], style={"width": "49%", "display": "inline-block", "margin": "1%"})
         ], style={"padding-top": "4%", "padding-left": "2%"}),
