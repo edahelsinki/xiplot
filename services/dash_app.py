@@ -105,6 +105,11 @@ app.layout = html.Div(children=[
     Output("x_axis_histo", "options"),
     Output("selected_data_column", "options"),
     Output("selected_histogram_column", "options"),
+    Output("x_axis", "value"),
+    Output("y_axis", "value"),
+    Output("x_axis_histo", "value"),
+    Output("selected_data_column", "value"),
+    Output("selected_histogram_column", "value"),
     Input("submit-button", "n_clicks"),
     State("data_files", "value"),
     prevent_initial_call=True,
@@ -118,7 +123,7 @@ def choose_data_file(n_clicks, filename):
     """
     df = read_data_file(filename)
     columns = df.columns.tolist()
-    return columns, columns, columns, columns, columns
+    return columns, columns, columns, columns, columns, columns[0], columns[1], columns[0], columns[0], columns[0]
 
 
 @app.callback(
