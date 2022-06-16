@@ -179,7 +179,7 @@ def selected_data(data):
 @app.callback(
     Output("selected_histogram", "figure"),
     Input("scatter-plot", "selectedData"),
-    State("selected_histogram_column", "value"),
+    Input("selected_histogram_column", "value"),
     State("data_files", "value"),
     prevent_initial_call=True
 )
@@ -192,7 +192,7 @@ def render_histogram_by_selected_points(data, x_axis, filename):
 
 
 @app.callback(
-    Output("smiles_image", "src"),
+    Output("smiles_image", "children"),
     Input("scatter-plot", "hoverData"),
     State("data_files", "value"),
     prevent_initial_call=True
