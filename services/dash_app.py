@@ -82,7 +82,7 @@ app.layout = html.Div(children=[
     ], style={
         "width": "32%", "display": "inline-block",
         "margin": 10, "float": "left", "background-color": "#dffcde",
-        "height": "800px", "border-radius": "8px"}),
+        "height": "600px", "border-radius": "8px"}),
     html.Div([
         html.Div([
             html.Div([
@@ -98,8 +98,8 @@ app.layout = html.Div(children=[
         ])
     ], style={"width": "33%", "display": "inline-block", "float": "left"}),
     html.Div([
-        html.Img(id="smiles_image")
-    ])
+        html.Div(id="smiles_image")
+    ], style={"float": "left"})
 ])
 
 
