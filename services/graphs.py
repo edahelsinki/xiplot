@@ -1,15 +1,16 @@
+from re import sub
 from dash import html, dcc
 import plotly.express as px
 import services.dash_layouts as dash_layouts
 
 
 class Scatterplot:
-    def __init__(self, df):
+    def __init__(self, df, x_axis=None, y_axis=None, color=None, subset_points=None):
         self.__df = df
-        self.__x_axis = None
-        self.__y_axis = None
-        self.__color = None
-        self.__subset_points = None
+        self.__x_axis = x_axis
+        self.__y_axis = y_axis
+        self.__color = color
+        self.__subset_points = subset_points
 
     def set_axes(self, x_axis, y_axis):
         self.__x_axis = x_axis
@@ -35,12 +36,13 @@ class Scatterplot:
 
 
 class Histogram:
-    def __init__(self, df):
+    def __init__(self, df, x_axis=None, y_axis=None, color=None, barmode=None, subset_points=None):
         self.__df = df
-        self.__x_axis = None
-        self.__y_axis = None
-        self.__color = None
-        self.__subset_points = None
+        self.__x_axis = x_axis
+        self.__y_axis = y_axis
+        self.__color = color
+        self.__barmode = barmode
+        self.__subset_points = subset_points
 
     def set_axes(self, x_axis, y_axis=None):
         self.__x_axis = x_axis
@@ -54,7 +56,7 @@ class Histogram:
 
     def create_plot(self):
         fig = px.histogram(self.__df, self.__x_axis,
-                           self.__y_axis, self.__color)
+                           self.__y_axis, self.__color, self.__barmode)
         return fig
 
     def render(self):
