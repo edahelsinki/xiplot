@@ -1,8 +1,11 @@
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from sklearn.impute import SimpleImputer
-from os.path import splitext
+import os
+
+
+def get_data_files():
+    data_files = [f for f in os.listdir(
+        "data") if os.path.isfile(os.path.join("data", f))]
+    return data_files
 
 
 def read_data_file(filename):
@@ -17,7 +20,7 @@ def read_data_file(filename):
         -------
             df: Pandas data frame 
     """
-    file_extension = splitext(filename)[1]
+    file_extension = os.path.splitext(filename)[1]
     if file_extension == ".csv":
         data = pd.read_csv(f"data/{filename}")
     elif file_extension == ".json":
@@ -28,19 +31,13 @@ def read_data_file(filename):
     return df
 
 
-def modify_column_names(df: pd):
-    """
-        For now this function is unused.
-    """
+"""def modify_column_names(df: pd):
     df.columns = pd.array(["mpg", "cylinders", "displacement", "horsepower", "weight", "acceleration",
                            "model-year", "origin", "car-name"], dtype="U23")
     return df
 
 
 def run_pca(df):
-    """
-        For now this function is unused.
-    """
     features = pd.array(["mpg", "cylinders", "displacement", "horsepower", "weight", "acceleration",
                          "model-year", "origin"], dtype="U23")
     x = df.loc[:, features].values
@@ -67,9 +64,6 @@ def run_pca(df):
 
 
 def load_auto_mpg(filename):
-    """
-        Function to read the file auto-mpg.data
-    """
     widths = [7, 4, 10, 10, 11, 7, 4, 4, 30]
     data = pd.read_fwf(f"data/{filename}", widths=widths,
                        header=None, na_values=["?"])
@@ -77,3 +71,4 @@ def load_auto_mpg(filename):
     df.columns = pd.array(["mpg", "cylinders", "displacement", "horsepower", "weight", "acceleration",
                            "model-year", "origin", "car-name"], dtype="U23")
     return df
+"""
