@@ -2,6 +2,8 @@ from dash import Output, Input, State, html
 from services.data_frame import read_data_file
 from services.graphs import *
 from ui.dash_renderer import render_smiles
+import pandas as pd
+import numpy as np
 
 
 class Callbacks:

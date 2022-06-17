@@ -36,12 +36,12 @@ class Scatterplot:
 
 
 class Histogram:
-    def __init__(self, df, x_axis=None, y_axis=None, color=None, barmode=None, subset_points=None):
+    def __init__(self, df, x_axis=None, y_axis=None, color=None, color_dicrete_sequence=None, subset_points=None):
         self.__df = df
         self.__x_axis = x_axis
         self.__y_axis = y_axis
         self.__color = color
-        self.__barmode = barmode
+        self.__color_discrete_sequence = color_dicrete_sequence
         self.__subset_points = subset_points
 
     def set_axes(self, x_axis, y_axis=None):
@@ -56,8 +56,11 @@ class Histogram:
 
     def create_plot(self):
         fig = px.histogram(self.__df, self.__x_axis,
-                           self.__y_axis, self.__color, self.__barmode)
+                           self.__y_axis, self.__color, color_discrete_sequence=self.__color_discrete_sequence)
         return fig
+
+    def add_trace(self, fig, fig_2):
+        fig.add_trace(fig_2)
 
     def render(self):
         fig = self.create_plot()
