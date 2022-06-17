@@ -58,9 +58,10 @@ class Callbacks:
             Output("histo_mean", "children"),
             Output("histo_deviation", "children"),
             Input("x_axis_histo", "value"),
+            State("scatter-plot", "selectedData"),
             prevent_initial_call=True,
         )
-        def render_histogram(x_axis):
+        def render_histogram(x_axis, selected_data):
             """
                 Returns a plotly's histogram object with a x axis given by the user
 
@@ -69,9 +70,23 @@ class Callbacks:
             """
             fig = Histogram(self.__df)
             fig.set_axes(x_axis)
+
+            if selected_data:
+                points = [point["pointIndex"]
+                          for point in selected_data["points"]]
+                selected_df = self.__df.loc[self.__df.index.isin(points)]
+                fig_2 = Histogram(selected_df)
+                fig_2.set_axes(x_axis)
+                fig_2.set_color_discrete_sequence(px.colors.qualitative.Dark2)
+                fig_2 = fig_2.create_plot().data[0]
+
+                fig = fig.add_trace(fig.create_plot(), fig_2)
+
+            else:
+                fig = fig.create_plot()
             mean = self.__df[x_axis].mean()
             deviation = self.__df[x_axis].std()
-            return fig.create_plot(), f"Mean: {mean}", f"Deviation: {deviation}"
+            return fig, f"Mean: {mean}", f"Deviation: {deviation}"
 
         @app.callback(
             Output("selected", "children"),
