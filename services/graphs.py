@@ -21,8 +21,12 @@ class Scatterplot:
     def set_subset_points(self, subset_points):
         self.__subset_points = subset_points
 
-    def render(self):
+    def create_plot(self):
         fig = px.scatter(self.__df, self.__x_axis, self.__y_axis, self.__color)
+        return fig
+
+    def render(self):
+        fig = self.create_plot()
         fig.show()
 
     def get_layout(self):
@@ -48,9 +52,13 @@ class Histogram:
     def set_subset_points(self, subset_points):
         self.__subset_points = subset_points
 
-    def render(self):
+    def create_plot(self):
         fig = px.histogram(self.__df, self.__x_axis,
                            self.__y_axis, self.__color)
+        return fig
+
+    def render(self):
+        fig = self.create_plot()
         fig.show()
 
     def get_layout(self):
