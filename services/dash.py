@@ -22,4 +22,4 @@ class DashApp:
         cb = Callbacks()
         cb.get_callbacks(app)
 
-        app.run_server()
+        app.run_server(debug=True)
