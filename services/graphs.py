@@ -6,11 +6,12 @@ import services.dash_layouts as dash_layouts
 
 
 class Scatterplot:
-    def __init__(self, df, x_axis=None, y_axis=None, color=None, subset_points=None):
+    def __init__(self, df, x_axis=None, y_axis=None, color=None, symbol=None, subset_points=None):
         self.__df = df
         self.__x_axis = x_axis
         self.__y_axis = y_axis
         self.__color = color
+        self.__symbol = symbol
         self.__subset_points = subset_points
 
     def set_axes(self, x_axis, y_axis):
@@ -23,8 +24,12 @@ class Scatterplot:
     def set_subset_points(self, subset_points):
         self.__subset_points = subset_points
 
+    def set_symbol(self, variable):
+        self.__symbol = variable
+
     def create_plot(self):
-        fig = px.scatter(self.__df, self.__x_axis, self.__y_axis, self.__color)
+        fig = px.scatter(self.__df, self.__x_axis,
+                         self.__y_axis, self.__color, self.__symbol)
         return fig
 
     def render(self):

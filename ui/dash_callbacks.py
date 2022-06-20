@@ -1,5 +1,5 @@
 from dash import Output, Input, State, html
-from services.data_frame import read_data_file
+from services.data_frame import read_data_file, get_kmean
 from services.graphs import *
 from ui.dash_renderer import render_smiles
 import pandas as pd
@@ -43,6 +43,7 @@ class Callbacks:
             Output("scatterplot", "figure"),
             Input("x_axis", "value"), Input("y_axis", "value"),
             Input("scatter_target", "value"),
+            #Input("scatter_cluster", "value"),
             prevent_initial_call=True
         )
         def render_scatter(x_axis, y_axis, color):
@@ -52,8 +53,11 @@ class Callbacks:
                 Returns:
                     Scatter object
             """
-            fig = Scatterplot(self.__df, color=color)
+            df = get_kmean(self.__df, 5, x_axis, y_axis)
+            fig = Scatterplot(df)
             fig.set_axes(x_axis, y_axis)
+            fig.set_color(color)
+            fig.set_symbol("Clusters")
             return fig.create_plot()
 
         @ app.callback(

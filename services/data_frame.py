@@ -1,8 +1,10 @@
 import pandas as pd
 import os
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler, StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
+from sklearn.cluster import KMeans
+from sklearn import preprocessing
 
 
 def get_data_files():
@@ -67,6 +69,17 @@ def read_auto_mpg_file(filename):
     final_df = pd.concat(
         [pal_df, df], axis=1)
     return final_df
+
+
+def get_kmean(df, k: int, x_axis, y_axis):
+    scaler = MinMaxScaler()
+    scale = scaler.fit_transform(df[[x_axis, y_axis]])
+    df_scale = pd.DataFrame(scale, columns=[x_axis, y_axis])
+    km = KMeans(n_clusters=k)
+    y_predicted = km.fit_predict(df[[x_axis, y_axis]])
+    df["Clusters"] = km.labels_
+
+    return df
 
 
 """def modify_column_names(df: pd):
