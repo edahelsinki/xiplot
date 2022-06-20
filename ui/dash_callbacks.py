@@ -17,11 +17,13 @@ class Callbacks:
             Output("x_axis_histo", "options"),
             Output("selected_data_column", "options"),
             Output("selected_histogram_column", "options"),
+            Output("scatter_target", "options"),
             Output("x_axis", "value"),
             Output("y_axis", "value"),
             Output("x_axis_histo", "value"),
             Output("selected_data_column", "value"),
             Output("selected_histogram_column", "value"),
+            Output("scatter_target", "value"),
             Input("submit-button", "n_clicks"),
             State("data_files", "value"),
             prevent_initial_call=True,
@@ -35,30 +37,31 @@ class Callbacks:
             """
             self.__df = read_data_file(filename)
             columns = self.__df.columns.tolist()
-            return columns, columns, columns, columns, columns, columns[0], columns[1], columns[0], columns[0], columns[0]
+            return columns, columns, columns, columns, columns, columns, columns[0], columns[1], columns[0], columns[0], columns[0], columns[0]
 
         @app.callback(
-            Output("scatter-plot", "figure"),
+            Output("scatterplot", "figure"),
             Input("x_axis", "value"), Input("y_axis", "value"),
+            Input("scatter_target", "value"),
             prevent_initial_call=True
         )
-        def render_scatter(x_axis, y_axis):
+        def render_scatter(x_axis, y_axis, color):
             """
                 Returns a plotly's scatter object with axes given by the user.
 
                 Returns:
                     Scatter object
             """
-            fig = Scatterplot(self.__df)
+            fig = Scatterplot(self.__df, color=color)
             fig.set_axes(x_axis, y_axis)
             return fig.create_plot()
 
-        @app.callback(
+        @ app.callback(
             Output("histogram", "figure"),
             Output("histo_mean", "children"),
             Output("histo_deviation", "children"),
             Input("x_axis_histo", "value"),
-            State("scatter-plot", "selectedData"),
+            Input("scatterplot", "selectedData"),
             prevent_initial_call=True,
         )
         def render_histogram(x_axis, selected_data):
@@ -90,7 +93,7 @@ class Callbacks:
 
         @app.callback(
             Output("selected", "children"),
-            Input("scatter-plot", "selectedData"),
+            Input("scatterplot", "selectedData"),
             prevent_initial_call=True
         )
         def selected_data(data):
@@ -101,7 +104,7 @@ class Callbacks:
             Output("selected_histogram", "figure"),
             Output("selected_mean", "children"),
             Output("selected_deviation", "children"),
-            Input("scatter-plot", "selectedData"),
+            Input("scatterplot", "selectedData"),
             Input("selected_histogram_column", "value"),
             State("data_files", "value"),
             prevent_initial_call=True
@@ -117,20 +120,23 @@ class Callbacks:
 
         @app.callback(
             Output("smiles_image", "children"),
-            Input("scatter-plot", "hoverData"),
+            Input("scatterplot", "hoverData"),
             State("data_files", "value"),
             prevent_initial_call=True
         )
         def render_mol_image(hover_data, filename):
             df = read_data_file(filename)
             point = hover_data["points"][0]["pointIndex"]
-            smiles_str = df.loc[point]["SMILES"]
-            im = render_smiles(smiles_str)
+            try:
+                smiles_str = df.loc[point]["SMILES"]
+                im = render_smiles(smiles_str)
 
-            children = [
-                html.Img(
-                    src=im,
-                ),
-                html.P(smiles_str)
-            ]
-            return children
+                children = [
+                    html.Img(
+                        src=im,
+                    ),
+                    html.P(smiles_str)
+                ]
+                return children
+            except KeyError:
+                return
