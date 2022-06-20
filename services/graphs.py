@@ -51,6 +51,9 @@ class Histogram:
     def set_color(self, variable):
         self.__color = variable
 
+    def set_color_discrete_sequence(self, value):
+        self.__color_discrete_sequence = value
+
     def set_subset_points(self, subset_points):
         self.__subset_points = subset_points
 
@@ -61,6 +64,11 @@ class Histogram:
 
     def add_trace(self, fig, fig_2):
         fig.add_trace(fig_2)
+
+        #px.histogram(data_frame=selected_df, x=x_axis, color_discrete_sequence=px.colors.qualitative.Dark2).data[0]
+        # fig.show()
+
+        return fig
 
     def render(self):
         fig = self.create_plot()
