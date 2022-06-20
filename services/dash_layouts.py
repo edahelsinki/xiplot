@@ -61,7 +61,7 @@ def scatterplot():
                 html.H5(children="x axis (scatter)"),
             ], style={"padding-top": 8}),
             dcc.Dropdown(id="x_axis", clearable=False), ],
-            style={"width": "40%", "display": "inline-block",
+            style={"width": "27%", "display": "inline-block",
                    "margin-left": "10%"}
         ),
         html.Div([
@@ -69,9 +69,15 @@ def scatterplot():
                 html.H5(children="y axis (scatter)"),
             ], style={"padding-top": 8}),
             dcc.Dropdown(id="y_axis", clearable=False), ],
-            style={"width": "40%", "display": "inline-block", "margin": 10}
+            style={"width": "27%", "display": "inline-block", "margin": 10}
         ),
-        dcc.Graph(id="scatter-plot"),
+        html.Div([
+            html.Div([
+                html.H5(children="target (color)"),
+            ], style={"padding-top": 8}),
+            dcc.Dropdown(id="scatter_target")
+        ], style={"width": "27%", "display": "inline-block", }),
+        dcc.Graph(id="scatterplot"),
     ], style={"width": "33%", "display": "inline-block", "float": "left"})
 
     return layout
