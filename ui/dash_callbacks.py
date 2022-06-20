@@ -82,7 +82,7 @@ class Callbacks:
                 fig_2.set_axes(x_axis)
                 fig_2.set_color_discrete_sequence(px.colors.qualitative.Dark2)
                 fig_2 = fig_2.create_plot().data[0]
-
+                fig.set_barmode("overlay")
                 fig = fig.add_trace(fig.create_plot(), fig_2)
 
             else:
