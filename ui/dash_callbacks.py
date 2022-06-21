@@ -124,24 +124,6 @@ class Callbacks:
             return f"Selected {len(points)} points"
 
         @app.callback(
-            Output("selected_histogram", "figure"),
-            Output("selected_mean", "children"),
-            Output("selected_deviation", "children"),
-            Input("scatterplot", "selectedData"),
-            Input("selected_histogram_column", "value"),
-            State("data_files", "value"),
-            prevent_initial_call=True
-        )
-        def render_histogram_by_selected_points(data, x_axis, filename):
-            points = [point["pointIndex"] for point in data["points"]]
-            selected_df = self.__df.loc[self.__df.index.isin(points)]
-            fig = Histogram(selected_df)
-            fig.set_axes(x_axis)
-            mean = selected_df[x_axis].mean()
-            deviation = selected_df[x_axis].std()
-            return fig.create_plot(), f"Mean: {mean}", f"Deviation: {deviation}"
-
-        @app.callback(
             Output("smiles_image", "children"),
             Input("scatterplot", "hoverData"),
             State("data_files", "value"),
