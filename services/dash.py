@@ -13,9 +13,8 @@ class DashApp:
         app.layout = html.Div([
             dash_layouts.app_logo(),
             dash_layouts.scatterplot(),
-            dash_layouts.histogram(),
             dash_layouts.control(),
-            dash_layouts.selected_histogram(),
+            dash_layouts.histogram(),
             dash_layouts.smiles()
         ])
 

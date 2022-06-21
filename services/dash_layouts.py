@@ -25,6 +25,38 @@ def control():
             ], style={"padding-top": "2%", }),
         ], style={"padding-left": "2%"}),
         html.Div([
+            html.Div([
+                html.H4("Scatterplot"),
+            ]),
+            html.Div([
+                html.H5(children="x axis"),
+                dcc.Dropdown(id="x_axis", clearable=False), ],
+                style={"width": "23%",
+                       "display": "inline-block", "margin-right": "2%"}
+            ),
+            html.Div([
+                html.Div([
+                    html.H5(children="y axis"),
+                ]),
+                dcc.Dropdown(id="y_axis", clearable=False), ],
+                style={"width": "23%", "display": "inline-block",
+                       "margin-right": "2%"}
+            ),
+            html.Div([
+                html.Div([
+                    html.H5(children="target (color)"),
+                ],),
+                dcc.Dropdown(id="scatter_target")
+            ], style={"width": "23%", "display": "inline-block", "margin-right": "2%"}),
+            html.Div([
+                html.Div([
+                    html.H5("amount of clusters"),
+                ]),
+                dcc.Dropdown(options=[i for i in range(2, 11)],
+                             id="scatter_cluster")
+            ], style={"width": "23%", "display": "inline-block"}),
+        ], style={"padding-left": "2%"}),
+        html.Div([
             html.H5(children="Select data from the scatter plot"),
             html.Div([
                 html.P("Selected 0 points", id="selected"),
@@ -56,29 +88,8 @@ def control():
 
 def scatterplot():
     layout = html.Div([
-        html.Div([
-            html.Div([
-                html.H5(children="x axis (scatter)"),
-            ], style={"padding-top": 8}),
-            dcc.Dropdown(id="x_axis", clearable=False), ],
-            style={"width": "27%", "display": "inline-block",
-                   "margin-left": "10%"}
-        ),
-        html.Div([
-            html.Div([
-                html.H5(children="y axis (scatter)"),
-            ], style={"padding-top": 8}),
-            dcc.Dropdown(id="y_axis", clearable=False), ],
-            style={"width": "27%", "display": "inline-block", "margin": 10}
-        ),
-        html.Div([
-            html.Div([
-                html.H5(children="target (color)"),
-            ], style={"padding-top": 8}),
-            dcc.Dropdown(id="scatter_target")
-        ], style={"width": "27%", "display": "inline-block", }),
         dcc.Graph(id="scatterplot"),
-    ], style={"width": "33%", "display": "inline-block", "float": "left"})
+    ], style={"width": "60%", "display": "inline-block", "float": "left"})
 
     return layout
 
@@ -94,27 +105,6 @@ def histogram():
         dcc.Graph(id="histogram"),
         html.Div([html.P(id="histo_mean"), html.P(
             id="histo_deviation")], style={"textAlign": "center"})
-    ], style={"width": "33%", "display": "inline-block", "float": "left"})
-
-    return layout
-
-
-def selected_histogram():
-    layout = html.Div([
-        html.Div([
-            html.Div([
-                html.H5(children="x axis (histogram by selected points)")
-            ]),
-            html.Div([
-                dcc.Dropdown(id="selected_histogram_column", clearable=False)
-            ])
-        ], style={"width": "40%", "display": "inline-block",
-                  "margin-left": "10%"}),
-        html.Div([
-            dcc.Graph(id="selected_histogram"),
-            html.Div([html.P(id="selected_mean"), html.P(
-                id="selected_deviation")], style={"textAlign": "center"})
-        ])
     ], style={"width": "33%", "display": "inline-block", "float": "left"})
 
     return layout
