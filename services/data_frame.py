@@ -63,7 +63,7 @@ def read_auto_mpg_file(filename):
 
     # Create a DataFrame object of the data that has been calculated with PCA
     pal_df = pd.DataFrame(data=principalComponens, columns=[
-        "principal component 1", "principal component 2"])
+        "PCA 1", "PCA 2"])
 
     # Concatenate
     final_df = pd.concat(
