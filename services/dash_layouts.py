@@ -26,7 +26,7 @@ def control():
         ], style={"padding-left": "2%"}),
         html.Div([
             html.Div([
-                html.H4("Scatterplot"),
+                html.H4("Scatter plot"),
             ]),
             html.Div([
                 dcc.RadioItems(
