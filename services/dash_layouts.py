@@ -48,6 +48,18 @@ def control():
                 dcc.Dropdown(options=[i for i in range(2, 11)],
                              id="scatter_cluster")
             ], style={"width": "23%", "display": "inline-block"}),
+            html.Div([
+                html.Div([
+                    html.H5("jitter (float)")
+                ]),
+                dcc.Input(id="jitter-input"),
+                html.Div([
+                    html.Button(
+                        id="jitter-button",
+                        children="Enter"
+                    )
+                ])
+            ],),
         ], style={"padding-left": "2%"}),
         html.Div([
             html.H5(children="Select data from the scatter plot"),

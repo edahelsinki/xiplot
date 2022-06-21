@@ -4,6 +4,7 @@ from services.graphs import *
 from ui.dash_renderer import render_smiles
 import pandas as pd
 import numpy as np
+import copy
 
 
 class Callbacks:
@@ -44,9 +45,11 @@ class Callbacks:
             Input("algorythm", "value"),
             Input("scatter_target", "value"),
             Input("scatter_cluster", "value"),
+            Input("jitter-button", "n_clicks"),
+            State("jitter-input", "value"),
             prevent_initial_call=True
         )
-        def render_scatter(algorythm, color, n_clusters):
+        def render_scatter(algorythm, color, n_clusters, n_clicks, jitter):
             """
                 Returns a plotly's scatter object with axes given by the user.
 
@@ -55,12 +58,25 @@ class Callbacks:
             """
             x_axis = algorythm + " 1"
             y_axis = algorythm + " 2"
+            if jitter is not None:
+                try:
+                    jitter = float(jitter)
+                except ValueError:
+                    raise "Invalid input"
+            df = copy.deepcopy(self.__df)
+            if type(jitter) == float:
+                if jitter > 0:
+                    Z = df[[x_axis, y_axis]].to_numpy("float64")
+                    Z = np.random.normal(Z, jitter)
+                    jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
+                    df[[x_axis, y_axis]] = jitter_df[[x_axis, y_axis]]
+
             if n_clusters:
-                df = get_kmean(self.__df, int(n_clusters), x_axis, y_axis)
+                df = get_kmean(df, int(n_clusters), x_axis, y_axis)
                 fig = Scatterplot(df)
                 fig.set_symbol("Clusters")
             else:
-                fig = Scatterplot(self.__df)
+                fig = Scatterplot(df)
             fig.set_axes(x_axis, y_axis)
             fig.set_color(color)
             fig = fig.create_plot()
