@@ -13,7 +13,7 @@ def control():
     layout = html.Div([
         html.Div([
             html.Div([
-                html.H5(children="Choose a data file"),
+                html.H4(children="Choose a data file"),
             ], style={"margin-top": 8}),
             html.Div([
                 dcc.Dropdown(get_data_files(),
