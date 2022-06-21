@@ -12,17 +12,17 @@ class Callbacks:
 
     def get_callbacks(self, app):
         @app.callback(
-            Output("x_axis", "options"),
-            Output("y_axis", "options"),
+            #Output("x_axis", "options"),
+            #Output("y_axis", "options"),
             Output("x_axis_histo", "options"),
             Output("selected_data_column", "options"),
-            Output("selected_histogram_column", "options"),
+            #Output("selected_histogram_column", "options"),
             Output("scatter_target", "options"),
-            Output("x_axis", "value"),
-            Output("y_axis", "value"),
+            #Output("x_axis", "value"),
+            #Output("y_axis", "value"),
             Output("x_axis_histo", "value"),
             Output("selected_data_column", "value"),
-            Output("selected_histogram_column", "value"),
+            #Output("selected_histogram_column", "value"),
             Output("scatter_target", "value"),
             Input("submit-button", "n_clicks"),
             State("data_files", "value"),

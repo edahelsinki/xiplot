@@ -29,19 +29,12 @@ def control():
                 html.H4("Scatterplot"),
             ]),
             html.Div([
-                html.H5(children="x axis"),
-                dcc.Dropdown(id="x_axis", clearable=False), ],
-                style={"width": "23%",
-                       "display": "inline-block", "margin-right": "2%"}
-            ),
-            html.Div([
-                html.Div([
-                    html.H5(children="y axis"),
-                ]),
-                dcc.Dropdown(id="y_axis", clearable=False), ],
-                style={"width": "23%", "display": "inline-block",
-                       "margin-right": "2%"}
-            ),
+                dcc.RadioItems(
+                    id="algorythm",
+                    value="PCA",
+                    options=["PCA", "Slisemap"]
+                )
+            ]),
             html.Div([
                 html.Div([
                     html.H5(children="target (color)"),
