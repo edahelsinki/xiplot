@@ -37,28 +37,42 @@ class Callbacks:
             """
             self.__df = read_data_file(filename)
             columns = self.__df.columns.tolist()
-            return columns, columns, columns, columns, columns, columns, columns[0], columns[1], columns[0], columns[0], columns[0], columns[0]
+            return columns, columns, columns, columns[0], columns[0], columns[0]
 
         @app.callback(
             Output("scatterplot", "figure"),
-            Input("x_axis", "value"), Input("y_axis", "value"),
+            Input("algorythm", "value"),
             Input("scatter_target", "value"),
-            #Input("scatter_cluster", "value"),
+            Input("scatter_cluster", "value"),
             prevent_initial_call=True
         )
-        def render_scatter(x_axis, y_axis, color):
+        def render_scatter(algorythm, color, n_clusters):
             """
                 Returns a plotly's scatter object with axes given by the user.
 
                 Returns:
                     Scatter object
             """
-            df = get_kmean(self.__df, 5, x_axis, y_axis)
-            fig = Scatterplot(df)
+            x_axis = algorythm + " 1"
+            y_axis = algorythm + " 2"
+            if n_clusters:
+                df = get_kmean(self.__df, int(n_clusters), x_axis, y_axis)
+                fig = Scatterplot(df)
+                fig.set_symbol("Clusters")
+            else:
+                fig = Scatterplot(self.__df)
             fig.set_axes(x_axis, y_axis)
             fig.set_color(color)
-            fig.set_symbol("Clusters")
-            return fig.create_plot()
+            fig = fig.create_plot()
+            if n_clusters:
+                fig.update_layout(legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1
+                ))
+            return fig
 
         @ app.callback(
             Output("histogram", "figure"),
