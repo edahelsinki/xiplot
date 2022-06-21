@@ -103,10 +103,15 @@ class Callbacks:
                 fig.set_barmode("overlay")
                 fig = fig.add_trace(fig.create_plot(), fig_2)
 
-            else:
-                fig = fig.create_plot()
-            mean = self.__df[x_axis].mean()
-            deviation = self.__df[x_axis].std()
+                mean = round(self.__df[x_axis].mean(), 3)
+                deviation = round(self.__df[x_axis].std(), 3)
+                selected_mean = round(selected_df[x_axis].mean(), 3)
+                selected_deviation = round(selected_df[x_axis].std(), 3)
+                return fig, f"Full mean: {mean}, Selected mean: {selected_mean}", f"Full deviation: {deviation}, Selected deviation: {selected_deviation}"
+
+            fig = fig.create_plot()
+            mean = round(self.__df[x_axis].mean(), 3)
+            deviation = round(self.__df[x_axis].std(), 3)
             return fig, f"Mean: {mean}", f"Deviation: {deviation}"
 
         @app.callback(
