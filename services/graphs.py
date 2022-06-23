@@ -6,13 +6,21 @@ import services.dash_layouts as dash_layouts
 
 
 class Scatterplot:
-    def __init__(self, df, x_axis=None, y_axis=None, color=None, symbol=None, subset_points=None):
+    def __init__(self, df, x_axis=None, y_axis=None, color=None, symbol=None, clusters=0, jitter=0, subset_points=None):
         self.__df = df
         self.__x_axis = x_axis
         self.__y_axis = y_axis
         self.__color = color
         self.__symbol = symbol
+        self.__clusters = clusters
+        self.__jitter = jitter
         self.__subset_points = subset_points
+        self.style = {"width": "65%",
+                      "display": "inline-block", "float": "left"}
+
+    @property
+    def inputs(self):
+        return {"embedding": self.__x_axis.split(" ")[0], "color": self.__color, "symbol": self.__symbol}
 
     def set_axes(self, x_axis, y_axis):
         self.__x_axis = x_axis
@@ -100,6 +108,8 @@ class Histogram:
         self.__color_discrete_sequence = color_dicrete_sequence
         self.__barmode = barmode
         self.__subset_points = subset_points
+        self.style = {"width": "65%",
+                      "display": "inline-block", "float": "left"}
 
     def set_axes(self, x_axis, y_axis=None):
         self.__x_axis = x_axis
