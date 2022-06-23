@@ -79,7 +79,8 @@ def control_scatterplot_content(user_inputs):
                 html.Div([
                     html.H5("jitter (float)")
                 ]),
-                dcc.Input(id="jitter-input"),
+                dcc.Slider(id="jitter-slider", min=0, max=1, marks=None,
+                           tooltip={"placement": "bottom", "always_visible": True}),
             ])
         ]),
     ], style={"padding-left": "2%"})

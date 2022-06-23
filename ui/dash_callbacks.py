@@ -59,7 +59,7 @@ class Callbacks:
             Input("algorythm", "value"),
             Input("scatter_target", "value"),
             Input("scatter_target_symbol", "value"),
-            Input("jitter-input", "value"),
+            Input("jitter-slider", "value"),
             prevent_initial_call=True,
         )
         def render_scatterplot(data, embedding, target, symbol, jitter):
