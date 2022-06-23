@@ -7,17 +7,17 @@ from ui.dash_callbacks import Callbacks
 
 class DashApp:
     def __init__(self) -> None:
-        pass
-
-    def start(self):
         app.layout = html.Div([
-            dash_layouts.app_logo(),
-            dash_layouts.scatterplot(),
             dash_layouts.control(),
+            dash_layouts.scatterplot(),
             dash_layouts.histogram(),
-            dash_layouts.smiles()
+
+            dcc.Store(id="data_frame_store"),
+            dcc.Store(id="data_file_store"),
+            dcc.Store(id="scatterplot_store")
         ])
 
+    def start(self):
         cb = Callbacks()
         cb.get_callbacks(app)
 
