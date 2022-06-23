@@ -32,6 +32,8 @@ def read_data_file(filename):
         data = pd.read_csv(f"data/{filename}")
     elif file_extension == ".json":
         data = pd.read_json(f"data/{filename}")
+    elif file_extension == ".pkl":
+        data = pd.read_pickle(f"data/{filename}")
     else:
         return
     df = pd.DataFrame(data)
