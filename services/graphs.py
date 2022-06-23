@@ -36,8 +36,58 @@ class Scatterplot:
         fig = self.create_plot()
         fig.show()
 
-    def get_layout(self):
+    def get_layout(self, app):
         layout = dash_layouts.scatterplot()
+
+        """@app.callback(
+            Output("scatterplot", "figure"),
+            Input("algorythm", "value"),
+            Input("scatter_target", "value"),
+            Input("scatter_cluster", "value"),
+            Input("jitter-button", "n_clicks"),
+            State("jitter-input", "value"),
+            prevent_initial_call=True
+        )
+        def render_scatter(algorythm, color, n_clusters, n_clicks, jitter):
+            
+                Returns a plotly's scatter object with axes given by the user.
+
+                Returns:
+                    Scatter object
+            
+            x_axis = algorythm + " 1"
+            y_axis = algorythm + " 2"
+            if jitter is not None:
+                try:
+                    jitter = float(jitter)
+                except ValueError:
+                    raise "Invalid input"
+            df = copy.deepcopy(self.__df)
+            if type(jitter) == float:
+                if jitter > 0:
+                    Z = df[[x_axis, y_axis]].to_numpy("float64")
+                    Z = np.random.normal(Z, jitter)
+                    jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
+                    df[[x_axis, y_axis]] = jitter_df[[x_axis, y_axis]]
+
+            if n_clusters:
+                df = get_kmean(df, int(n_clusters), x_axis, y_axis)
+                fig = Scatterplot(df)
+                fig.set_symbol("Clusters")
+            else:
+                fig = Scatterplot(df)
+            fig.set_axes(x_axis, y_axis)
+            fig.set_color(color)
+            fig = fig.create_plot()
+            if n_clusters:
+                fig.update_layout(legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=1.02,
+                    xanchor="right",
+                    x=1
+                ))
+            return fig"""
         return layout
 
 
