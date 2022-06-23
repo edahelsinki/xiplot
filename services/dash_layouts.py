@@ -179,13 +179,15 @@ def control_clusters_content():
         "margin": 10, "float": "left", "background-color": "#dffcde",
         "height": "600px", "border-radius": "8px"})
 
-    return layout
+    return layout"""
 
 
 def scatterplot():
-    layout = html.Div([
-        dcc.Graph(id="scatterplot"),
-    ], style={"width": "60%", "display": "inline-block", "float": "left"})
+    layout = html.Div(
+        id="scatterplot-container",
+        children=[dcc.Graph(id="scatterplot")],
+        style={"display": "none"}
+    )
 
     return layout
 
@@ -201,7 +203,7 @@ def histogram():
         dcc.Graph(id="histogram"),
         html.Div([html.P(id="histo_mean"), html.P(
             id="histo_deviation")], style={"textAlign": "center"})
-    ], style={"width": "33%", "display": "inline-block", "float": "left"})
+    ], id="histogram-container", style={"width": "65%", "display": "none", "float": "left"})
 
     return layout
 
