@@ -94,8 +94,17 @@ def control_clusters_content():
                 html.H5("amount of clusters"),
             ]),
             dcc.Dropdown(options=[i for i in range(2, 11)],
-                         id="scatter_cluster")
-        ], style={"display": "inline-block", "padding-left": "2%"})
+                         id="cluster_amount")
+        ], style={"width": "23%", "display": "inline-block", "padding-left": "2%"}),
+        html.Div([
+            html.Div([
+                html.H5("features"),
+            ]),
+            dcc.Dropdown(id="cluster_feature")
+        ], style={"width": "23%", "display": "inline-block", "padding-left": "2%"}),
+        html.Div([
+            html.Button("Run", id="cluster_button")
+        ], style={"padding-left": "2%", "padding-top": "2%"})
     ])
 
     return layout
