@@ -135,9 +135,6 @@ class Histogram:
     def add_trace(self, fig, fig_2):
         fig.add_trace(fig_2)
 
-        #px.histogram(data_frame=selected_df, x=x_axis, color_discrete_sequence=px.colors.qualitative.Dark2).data[0]
-        # fig.show()
-
         return fig
 
     def render(self):
