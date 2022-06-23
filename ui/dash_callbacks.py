@@ -16,7 +16,7 @@ class Callbacks:
             Output("x_axis_histo", "options"),
             Output("selected_data_column", "options"),
             Output("scatter_target", "options"),
-            Output("x_axis_histo", "value"),
+            #Output("x_axis_histo", "value"),
             Output("selected_data_column", "value"),
             Output("scatter_target", "value"),
             Input("submit-button", "n_clicks"),
@@ -32,7 +32,7 @@ class Callbacks:
             """
             self.__df = read_data_file(filename)
             columns = self.__df.columns.tolist()
-            return columns, columns, columns, columns[0], columns[0], columns[0]
+            return columns, columns, columns, columns[0], columns[0]
 
         @app.callback(
             Output("scatterplot", "figure"),
