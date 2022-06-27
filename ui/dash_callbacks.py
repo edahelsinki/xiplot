@@ -55,6 +55,7 @@ class Callbacks:
             Output("scatterplot", "figure"),
             Output("scatterplot-container", "style"),
             Output("scatterplot_store", "data"),
+            Output("jitter-slider", "max"),
             Input("control-tabs", "value"),
             Input("algorythm", "value"),
             Input("scatter_target", "value"),
@@ -62,9 +63,12 @@ class Callbacks:
             Input("jitter-slider", "value"),
             prevent_initial_call=True,
         )
-        def render_scatterplot(data, embedding, target, symbol, jitter):
+        def render_scatterplot(tab, embedding, target, symbol, jitter):
             x_axis = embedding + " 1"
             y_axis = embedding + " 2"
+
+            jitter_max = (self.__df[x_axis].max()-self.__df[x_axis].min())*0.05
+
             if jitter:
                 jitter = float(jitter)
             df = copy.deepcopy(self.__df)
@@ -76,7 +80,7 @@ class Callbacks:
                     df[[x_axis, y_axis]] = jitter_df[[x_axis, y_axis]]
             fig = Scatterplot(
                 df=df, x_axis=x_axis, y_axis=y_axis, color=target, symbol=symbol)
-            return fig.create_plot(), fig.style, fig.inputs
+            return fig.create_plot(), fig.style, fig.inputs, jitter_max
 
         @app.callback(
             Output("histogram", "figure"),
