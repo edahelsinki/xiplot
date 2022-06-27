@@ -1,4 +1,4 @@
-from dash import Output, Input, State, html
+from dash import Output, Input, State, ctx
 from services.data_frame import read_data_file, get_kmean
 from services.graphs import *
 from services.dash_layouts import control_data_content, control_scatterplot_content, control_clusters_content
@@ -37,6 +37,7 @@ class Callbacks:
             prevent_initial_call=True
         )
         def choose_file(n_clicks, filename):
+            print(ctx.triggered_id)
             self.__df = read_data_file(filename)
             file_style = {"display": "inline"}
             file_message = f"Data file {filename} loaded successfully!"
@@ -122,3 +123,15 @@ class Callbacks:
             selected_mean = round(selected_df[x_axis].mean(), 3)
             selected_deviation = round(selected_df[x_axis].std(), 3)
             return fig, f"Full mean: {mean}, Selected mean: {selected_mean}", f"Full deviation: {deviation}, Selected deviation: {selected_deviation}", style
+
+        """@app.callback(
+            Output("data_frame_store", "data"),
+            Input("cluster_button", "n_clicks"),
+            State("cluster_amount", "value"),
+            State("cluster_feature", "value"),
+            State("data_frame_store", "data"),
+        )
+        def compute_clusters(n_clicks, n_clusters, features, df):
+            kmean_df = get_kmean(df, int(n_clusters), features)
+            print(kmean_df)
+            return kmean_df"""
