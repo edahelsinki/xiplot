@@ -103,8 +103,8 @@ def control_clusters_content():
             html.Div([
                 html.H5("features"),
             ]),
-            dcc.Dropdown(id="cluster_feature")
-        ], style={"width": "23%", "display": "inline-block", "padding-left": "2%"}),
+            dcc.Dropdown(id="cluster_feature", multi=True)
+        ], style={"width": "50%", "display": "inline-block", "padding-left": "2%"}),
         html.Div([
             html.Button("Run", id="cluster_button")
         ], style={"padding-left": "2%", "padding-top": "2%"})
