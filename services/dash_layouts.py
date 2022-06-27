@@ -42,6 +42,9 @@ def control_data_content(filename=None):
             html.Button("Load the data file", id="submit-button",
                         n_clicks=0, className="btn btn-primary"),
         ], style={"padding-top": "2%", }),
+        html.Div([
+            html.H4(id="data_file_load_message")
+        ], id="data_file_load_message-container", style={"display": "none"})
     ], style={"padding-left": "2%"})
 
     return layout

@@ -30,26 +30,31 @@ class Callbacks:
         @app.callback(
             Output("data_frame_store", "data"),
             Output("data_file_store", "data"),
+            Output("data_file_load_message-container", "style"),
+            Output("data_file_load_message", "children"),
             Input("submit-button", "n_clicks"),
             State("data_files", "value"),
             prevent_initial_call=True
         )
         def choose_file(n_clicks, filename):
             self.__df = read_data_file(filename)
-            return self.__df.to_json(date_format="iso", orient="split"), filename
+            file_style = {"display": "inline"}
+            file_message = f"Data file {filename} loaded succefully!"
+            return self.__df.to_json(date_format="iso", orient="split"), filename, file_style, file_message
 
         @app.callback(
             Output("scatter_target", "options"),
             Output("scatter_target_symbol", "options"),
             Output("x_axis_histo", "options"),
             Output("x_axis_histo", "value"),
+            Output("cluster_feature", "options"),
             Input("control-tabs", "value"),
             State("data_frame_store", "data"),
         )
         def target(tab, data):
             df = pd.read_json(data, orient="split")
             columns = self.__df.columns.to_list()
-            return columns, columns, columns, columns[0]
+            return columns, columns, columns, columns[0], columns
 
         @app.callback(
             Output("scatterplot", "figure"),
