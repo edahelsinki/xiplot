@@ -39,7 +39,7 @@ class Callbacks:
         def choose_file(n_clicks, filename):
             self.__df = read_data_file(filename)
             file_style = {"display": "inline"}
-            file_message = f"Data file {filename} loaded succefully!"
+            file_message = f"Data file {filename} loaded successfully!"
             return self.__df.to_json(date_format="iso", orient="split"), filename, file_style, file_message
 
         @app.callback(
