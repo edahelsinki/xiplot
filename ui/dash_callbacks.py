@@ -47,28 +47,36 @@ class Callbacks:
             Output("scatter_target_symbol", "options"),
             Output("x_axis_histo", "options"),
             Output("x_axis_histo", "value"),
-            Output("cluster_feature", "options"),
             Input("control-tabs", "value"),
             State("data_frame_store", "data"),
         )
         def target(tab, data):
             df = pd.read_json(data, orient="split")
-            columns = self.__df.columns.to_list()
-            return columns, columns, columns, columns[0], columns
+            columns = df.columns.to_list()
+            return columns, columns, columns, columns[0]
+
+        @app.callback(
+            Output("cluster_feature", "options"),
+            Input("control-tabs", "value"),
+            State("data_frame_store", "data")
+        )
+        def cluster_feature(tab, data):
+            df = pd.read_json(data, orient="split")
+            columns = df.columns.to_list()
+            return columns
 
         @app.callback(
             Output("scatterplot", "figure"),
             Output("scatterplot-container", "style"),
             Output("scatterplot_store", "data"),
             Output("jitter-slider", "max"),
-            Input("control-tabs", "value"),
             Input("algorythm", "value"),
             Input("scatter_target", "value"),
             Input("scatter_target_symbol", "value"),
             Input("jitter-slider", "value"),
             prevent_initial_call=True,
         )
-        def render_scatterplot(tab, embedding, target, symbol, jitter):
+        def render_scatterplot(embedding, target, symbol, jitter):
             x_axis = embedding + " 1"
             y_axis = embedding + " 2"
 
