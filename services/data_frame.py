@@ -73,13 +73,13 @@ def read_auto_mpg_file(filename):
     return final_df
 
 
-def get_kmean(df, k: int, x_axis, y_axis):
+def get_kmean(df, k: int, features):
     scaler = MinMaxScaler()
-    scale = scaler.fit_transform(df[[x_axis, y_axis]])
-    df_scale = pd.DataFrame(scale, columns=[x_axis, y_axis])
-    km = KMeans(n_clusters=k)
-    y_predicted = km.fit_predict(df[[x_axis, y_axis]])
-    df["Clusters"] = km.labels_
+    scale = scaler.fit_transform(df[features])
+    #df_scale = pd.DataFrame(scale, columns=[x_axis, y_axis])
+    km = KMeans(n_clusters=k).fit_predict(scale)
+    #y_predicted = km.fit_predict(df[[x_axis, y_axis]])
+    df["Clusters"] = km
 
     return df
 

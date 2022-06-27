@@ -37,7 +37,6 @@ class Callbacks:
             prevent_initial_call=True
         )
         def choose_file(n_clicks, filename):
-            print(ctx.triggered_id)
             self.__df = read_data_file(filename)
             file_style = {"display": "inline"}
             file_message = f"Data file {filename} loaded successfully!"
@@ -53,7 +52,7 @@ class Callbacks:
         )
         def target(tab, data):
             df = pd.read_json(data, orient="split")
-            columns = df.columns.to_list()
+            columns = self.__df.columns.to_list()
             return columns, columns, columns, columns[0]
 
         @app.callback(
@@ -124,14 +123,16 @@ class Callbacks:
             selected_deviation = round(selected_df[x_axis].std(), 3)
             return fig, f"Full mean: {mean}, Selected mean: {selected_mean}", f"Full deviation: {deviation}, Selected deviation: {selected_deviation}", style
 
-        """@app.callback(
-            Output("data_frame_store", "data"),
+        @app.callback(
+            Output("data_frame_clusters_store", "data"),
             Input("cluster_button", "n_clicks"),
             State("cluster_amount", "value"),
             State("cluster_feature", "value"),
             State("data_frame_store", "data"),
+            prevent_initial_call=True,
         )
         def compute_clusters(n_clicks, n_clusters, features, df):
+            df = pd.read_json(df, orient="split")
             kmean_df = get_kmean(df, int(n_clusters), features)
-            print(kmean_df)
-            return kmean_df"""
+            self.__df = kmean_df
+            return kmean_df
