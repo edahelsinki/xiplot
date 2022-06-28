@@ -80,6 +80,7 @@ def get_kmean(df, k: int, features):
     km = KMeans(n_clusters=k).fit_predict(scale)
     #y_predicted = km.fit_predict(df[[x_axis, y_axis]])
     df["Clusters"] = km
+    df["Clusters"] = df["Clusters"].astype(str)
 
     return df
 
