@@ -1,4 +1,4 @@
-from dash import Output, Input, State, ctx
+from dash import Output, Input, State
 from services.data_frame import read_data_file, get_kmean
 from services.graphs import *
 from services.dash_layouts import control_data_content, control_scatterplot_content, control_clusters_content
@@ -98,9 +98,10 @@ class Callbacks:
 
         @app.callback(
             Output("histogram", "figure"),
+            Output("histogram", "style"),
+            Output("histogram-container", "style"),
             Output("histo_mean", "children"),
             Output("histo_deviation", "children"),
-            Output("histogram-container", "style"),
             Input("x_axis_histo", "value"),
             Input("scatterplot", "selectedData"),
             prevent_initial_call=True,
@@ -108,6 +109,7 @@ class Callbacks:
         def render_histogram(x_axis, slct_data):
             fig = Histogram(df=self.__df, x_axis=x_axis, barmode="overlay")
             style = fig.style
+            div_style = fig.div_style
 
             points = [point["pointIndex"]
                       for point in slct_data["points"]]
@@ -122,7 +124,7 @@ class Callbacks:
             deviation = round(self.__df[x_axis].std(), 3)
             selected_mean = round(selected_df[x_axis].mean(), 3)
             selected_deviation = round(selected_df[x_axis].std(), 3)
-            return fig, f"Full mean: {mean}, Selected mean: {selected_mean}", f"Full deviation: {deviation}, Selected deviation: {selected_deviation}", style
+            return fig, style, div_style, f"Full mean: {mean}, Selected mean: {selected_mean}", f"Full deviation: {deviation}, Selected deviation: {selected_deviation}"
 
         @app.callback(
             Output("data_frame_clusters_store", "data"),

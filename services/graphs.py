@@ -109,8 +109,9 @@ class Histogram:
         self.__color_discrete_sequence = color_dicrete_sequence
         self.__barmode = barmode
         self.__subset_points = subset_points
-        self.style = {"width": "65%",
-                      "display": "inline-block", "float": "left"}
+        self.div_style = {"width": "65%",
+                          "display": "inline-block", "float": "left"}
+        self.style = {"width": "90vh", "height": "90vh"}
 
     def set_axes(self, x_axis, y_axis=None):
         self.__x_axis = x_axis
