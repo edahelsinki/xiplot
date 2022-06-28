@@ -15,8 +15,9 @@ class Scatterplot:
         self.__clusters = clusters
         self.__jitter = jitter
         self.__subset_points = subset_points
-        self.style = {"width": "65%",
-                      "display": "inline-block", "float": "left"}
+        self.div_style = {"width": "65%",
+                          "display": "inline-block", "float": "left"}
+        self.style = {"width": "90vh", "height": "90vh"}
 
     @property
     def inputs(self):

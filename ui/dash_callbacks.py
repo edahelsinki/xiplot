@@ -67,6 +67,7 @@ class Callbacks:
 
         @app.callback(
             Output("scatterplot", "figure"),
+            Output("scatterplot", "style"),
             Output("scatterplot-container", "style"),
             Output("scatterplot_store", "data"),
             Output("jitter-slider", "max"),
@@ -93,7 +94,7 @@ class Callbacks:
                     df[[x_axis, y_axis]] = jitter_df[[x_axis, y_axis]]
             fig = Scatterplot(
                 df=df, x_axis=x_axis, y_axis=y_axis, color=target, symbol=symbol)
-            return fig.create_plot(), fig.style, fig.inputs, jitter_max
+            return fig.create_plot(), fig.style, fig.div_style, fig.inputs, jitter_max
 
         @app.callback(
             Output("histogram", "figure"),
