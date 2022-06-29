@@ -14,7 +14,7 @@ class DashApp:
 
             dcc.Store(id="data_frame_store"),
             dcc.Store(id="data_file_store"),
-            dcc.Store(id="scatterplot_store"),
+            dcc.Store(id="scatterplot_input_store"),
             dcc.Store(id="data_frame_clusters_store"),
         ])
 
