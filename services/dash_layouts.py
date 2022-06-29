@@ -20,7 +20,9 @@ def control():
     layout = html.Div([
         app_logo(),
         dcc.Tabs(id="control-tabs", value="control-data-tab", children=TABS),
-        html.Div(id="control-tabs-content")
+        control_data_content(),
+        control_scatterplot_content(),
+        control_clusters_content(),
     ], style={
         "width": "32%", "display": "inline-block",
         "float": "right", "background-color": "#dffcde",
@@ -45,12 +47,12 @@ def control_data_content(filename=None):
         html.Div([
             html.H4(id="data_file_load_message")
         ], id="data_file_load_message-container", style={"display": "none"})
-    ], style={"padding-left": "2%"})
+    ], id="control_data_content-container", style={"display": "none"})
 
     return layout
 
 
-def control_scatterplot_content(user_inputs):
+def control_scatterplot_content():
     layout = html.Div([
         html.Div([
             html.H4("Scatterplot"),
@@ -60,7 +62,6 @@ def control_scatterplot_content(user_inputs):
             dcc.RadioItems(
                 id="algorythm",
                 options=["PCA", "Slisemap"],
-                value=user_inputs["embedding"] if user_inputs else None,
             )
         ]),
         html.Div([
@@ -69,14 +70,13 @@ def control_scatterplot_content(user_inputs):
                     html.H5(children="target (color)"),
                 ],),
                 dcc.Dropdown(
-                    id="scatter_target", value=user_inputs["color"] if user_inputs else None)
+                    id="scatter_target_color",)
             ], style={"width": "23%", "display": "inline-block", "margin-right": "2%"}),
             html.Div([
                 html.Div([
                     html.H5("target (symbol)"),
                 ]),
-                dcc.Dropdown(id="scatter_target_symbol",
-                             value=user_inputs["symbol"] if user_inputs else None)
+                dcc.Dropdown(id="scatter_target_symbol",)
             ], style={"width": "23%", "display": "inline-block", "padding-left": "2%"}),
             html.Div([
                 html.Div([
@@ -86,7 +86,7 @@ def control_scatterplot_content(user_inputs):
                            tooltip={"placement": "bottom", "always_visible": True}),
             ])
         ]),
-    ], style={"padding-left": "2%"})
+    ], id="control_scatter_content-container", style={"display": "none"})
     return layout
 
 
@@ -108,7 +108,7 @@ def control_clusters_content():
         html.Div([
             html.Button("Run", id="cluster_button")
         ], style={"padding-left": "2%", "padding-top": "2%"})
-    ])
+    ], id="control_clusters_content-container", style={"display": "none"})
 
     return layout
 
