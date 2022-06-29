@@ -1,6 +1,6 @@
 import pandas as pd
 import os
-from sklearn.preprocessing import MinMaxScaler, StandardScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
 from sklearn.cluster import KMeans
@@ -74,7 +74,7 @@ def read_auto_mpg_file(filename):
 
 
 def get_kmean(df, k: int, features):
-    scaler = MinMaxScaler()
+    scaler = StandardScaler()
     scale = scaler.fit_transform(df[features])
     #df_scale = pd.DataFrame(scale, columns=[x_axis, y_axis])
     km = KMeans(n_clusters=k).fit_predict(scale)
