@@ -1,4 +1,5 @@
 from re import sub
+from turtle import color
 from dash import html, dcc
 from matplotlib.pyplot import bar
 import plotly.express as px
@@ -146,3 +147,32 @@ class Histogram:
     def get_layout(self):
         layout = dash_layouts.histogram()
         return layout
+
+
+class Heatmap:
+    def __init__(self, df, x_axis=None, y_axis=None, color=None, title=None) -> None:
+        self.__df = df
+        self.__x_axis = x_axis
+        self.__y_axis = y_axis
+        self.__color = color
+        self.__title = title
+
+    def set_axes(self, x_axis, y_axis):
+        self.__x_axis = x_axis
+        self.__y_axis = y_axis
+
+    def set_color(self, variable):
+        self.__color = variable
+
+    def create_plot(self):
+        fig = px.imshow(self.__df, x=self.__x_axis,
+                        y=self.__y_axis, color_continuous_scale=self.__color, origin="lower", title=self.__title)
+
+        return fig
+
+    def render(self):
+        fig = self.create_plot()
+        fig.show()
+
+    def get_layout(self):
+        pass
