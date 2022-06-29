@@ -17,7 +17,7 @@ class Scatterplot:
         self.__subset_points = subset_points
         self.div_style = {"width": "65%",
                           "display": "inline-block", "float": "left"}
-        self.style = {"width": "90vh", "height": "90vh"}
+        self.style = {"width": "60vh", "height": "60vh"}
 
     @property
     def inputs(self):
@@ -111,7 +111,7 @@ class Histogram:
         self.__subset_points = subset_points
         self.div_style = {"width": "65%",
                           "display": "inline-block", "float": "left"}
-        self.style = {"width": "90vh", "height": "90vh"}
+        self.style = {"width": "60vh", "height": "60vh"}
 
     def set_axes(self, x_axis, y_axis=None):
         self.__x_axis = x_axis
