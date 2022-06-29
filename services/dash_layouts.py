@@ -31,14 +31,14 @@ def control():
     return layout
 
 
-def control_data_content(filename=None):
+def control_data_content():
     layout = html.Div([
         html.Div([
             html.H4(children="Choose a data file"),
         ], style={"margin-top": 4}),
         html.Div([
             dcc.Dropdown(get_data_files(),
-                         id="data_files", value=filename, clearable=False),
+                         id="data_files", clearable=False),
         ], style={"width": "98%", }),
         html.Div([
             html.Button("Load the data file", id="submit-button",
