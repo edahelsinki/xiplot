@@ -1,4 +1,4 @@
-from dash import Output, Input, State
+from dash import Output, Input, State, callback_context
 from services.data_frame import read_data_file, get_kmean
 from services.graphs import *
 from services.dash_layouts import control_data_content, control_scatterplot_content, control_clusters_content
@@ -14,65 +14,72 @@ class Callbacks:
 
     def get_callbacks(self, app):
         @app.callback(
-            Output("control-tabs-content", "children"),
+            Output("control_data_content-container", "style"),
+            Output("control_scatter_content-container", "style"),
+            Output("control_clusters_content-container", "style"),
             Input("control-tabs", "value"),
-            State("data_file_store", "data"),
-            State("scatterplot_store", "data"),
         )
-        def control(tab, filename, user_inputs):
+        def control(tab):
+            style = {"padding-left": "2%"}
+            hide_style = {"display": "none"}
             if tab == "control-data-tab":
-                return control_data_content(filename)
+                return style, hide_style, hide_style
             elif tab == "control-scatterplot-tab":
-                return control_scatterplot_content(user_inputs)
+                return hide_style, style, hide_style
             elif tab == "control-clusters-tab":
-                return control_clusters_content()
+                style["padding-top"] = "2%"
+                return hide_style, hide_style, style
 
         @app.callback(
             Output("data_frame_store", "data"),
             Output("data_file_store", "data"),
             Output("data_file_load_message-container", "style"),
             Output("data_file_load_message", "children"),
-            Input("submit-button", "n_clicks"),
-            State("data_files", "value"),
-            prevent_initial_call=True
-        )
-        def choose_file(n_clicks, filename):
-            self.__df = read_data_file(filename)
-            file_style = {"display": "inline"}
-            file_message = f"Data file {filename} loaded successfully!"
-            return self.__df.to_json(date_format="iso", orient="split"), filename, file_style, file_message
-
-        @app.callback(
-            Output("scatter_target", "options"),
+            Output("scatter_target_color", "options"),
             Output("scatter_target_symbol", "options"),
             Output("x_axis_histo", "options"),
             Output("x_axis_histo", "value"),
-            Input("control-tabs", "value"),
-            State("data_frame_store", "data"),
-        )
-        def target(tab, data):
-            df = pd.read_json(data, orient="split")
-            columns = self.__df.columns.to_list()
-            return columns, columns, columns, columns[0]
-
-        @app.callback(
             Output("cluster_feature", "options"),
-            Input("control-tabs", "value"),
-            State("data_frame_store", "data")
+            Output("data_frame_clusters_store", "data"),
+            Input("submit-button", "n_clicks"),
+            Input("cluster_button", "n_clicks"),
+            State("data_files", "value"),
+            State("data_frame_clusters_store", "data"),
+            State("cluster_amount", "value"),
+            State("cluster_feature", "value"),
+            State("data_frame_store", "data"),
+
+            prevent_initial_call=True
         )
-        def cluster_feature(tab, data):
-            df = pd.read_json(data, orient="split")
-            columns = df.columns.to_list()
-            return columns
+        def choose_file(data_btn, cluster_btn, filename, clustered_data, n_clusters, features, df):
+            trigger = ctx.triggered_id
+            if trigger == "submit-button":
+                df = read_data_file(filename)
+                self.__df = df
+
+                df_store = df.to_json(date_format="iso", orient="split"),
+                file_style = {"display": "inline"}
+                file_message = f"Data file {filename} loaded successfully!"
+                if clustered_data:
+                    df = pd.read_json(clustered_data, orient="split")
+                columns = df.columns.to_list()
+                return df_store, filename, file_style, file_message, columns, columns, columns, columns[0], columns, None
+            elif trigger == "cluster_button":
+                df = pd.read_json(df[0], orient="split")
+                kmean_df = get_kmean(df, int(n_clusters), features)
+                columns = kmean_df.columns.to_list()
+                self.__df = kmean_df
+                kmean_df = kmean_df.to_json(date_format="iso", orient="split")
+                return None, None, None, None, columns, columns, columns, columns[0], columns, kmean_df
 
         @app.callback(
             Output("scatterplot", "figure"),
             Output("scatterplot", "style"),
             Output("scatterplot-container", "style"),
-            Output("scatterplot_store", "data"),
+            Output("scatterplot_input_store", "data"),
             Output("jitter-slider", "max"),
             Input("algorythm", "value"),
-            Input("scatter_target", "value"),
+            Input("scatter_target_color", "value"),
             Input("scatter_target_symbol", "value"),
             Input("jitter-slider", "value"),
             prevent_initial_call=True,
@@ -107,13 +114,16 @@ class Callbacks:
             prevent_initial_call=True,
         )
         def render_histogram(x_axis, slct_data):
+            df = copy.deepcopy(self.__df)
+            df["Clusters"] = df["Clusters"].astype(float)
+
             fig = Histogram(df=self.__df, x_axis=x_axis, barmode="overlay")
             style = fig.style
             div_style = fig.div_style
 
             points = [point["pointIndex"]
                       for point in slct_data["points"]]
-            selected_df = self.__df.loc[self.__df.index.isin(points)]
+            selected_df = df.loc[df.index.isin(points)]
             color = px.colors.qualitative.Dark2
             fig_2 = Histogram(selected_df, x_axis,
                               color_dicrete_sequence=color)
@@ -125,17 +135,3 @@ class Callbacks:
             selected_mean = round(selected_df[x_axis].mean(), 3)
             selected_deviation = round(selected_df[x_axis].std(), 3)
             return fig, style, div_style, f"Full mean: {mean}, Selected mean: {selected_mean}", f"Full deviation: {deviation}, Selected deviation: {selected_deviation}"
-
-        @app.callback(
-            Output("data_frame_clusters_store", "data"),
-            Input("cluster_button", "n_clicks"),
-            State("cluster_amount", "value"),
-            State("cluster_feature", "value"),
-            State("data_frame_store", "data"),
-            prevent_initial_call=True,
-        )
-        def compute_clusters(n_clicks, n_clusters, features, df):
-            df = pd.read_json(df, orient="split")
-            kmean_df = get_kmean(df, int(n_clusters), features)
-            self.__df = kmean_df
-            return kmean_df
