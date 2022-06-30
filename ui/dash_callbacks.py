@@ -1,4 +1,4 @@
-from dash import Output, Input, State, callback_context
+from dash import Output, Input, State, ctx
 from services.data_frame import read_data_file, get_kmean
 from services.graphs import *
 from services.dash_layouts import control_data_content, control_scatterplot_content, control_clusters_content
