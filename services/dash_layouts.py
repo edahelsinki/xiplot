@@ -103,7 +103,7 @@ def control_scatterplot_content():
                         [
                             html.Div(
                                 [
-                                    html.H5(children="target (color)"),
+                                    "target (color)",
                                 ],
                             ),
                             dcc.Dropdown(
@@ -111,16 +111,15 @@ def control_scatterplot_content():
                             ),
                         ],
                         style={
-                            "width": "23%",
+                            "width": "40%",
                             "display": "inline-block",
-                            "margin-right": "2%",
                         },
                     ),
                     html.Div(
                         [
                             html.Div(
                                 [
-                                    html.H5("target (symbol)"),
+                                    "target (symbol)",
                                 ]
                             ),
                             dcc.Dropdown(
@@ -128,7 +127,7 @@ def control_scatterplot_content():
                             ),
                         ],
                         style={
-                            "width": "23%",
+                            "width": "40%",
                             "display": "inline-block",
                             "padding-left": "2%",
                         },
@@ -145,7 +144,8 @@ def control_scatterplot_content():
                             ),
                         ]
                     ),
-                ]
+                ],
+                style={"padding-top": "2%"},
             ),
         ],
         id="control_scatter_content-container",
