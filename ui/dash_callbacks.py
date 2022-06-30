@@ -52,7 +52,7 @@ class Callbacks:
             prevent_initial_call=True
         )
         def choose_file(data_btn, cluster_btn, filename, clustered_data, n_clusters, features, df):
-            trigger = callback_context.triggered_id
+            trigger = ctx.triggered_id
             if trigger == "submit-button":
                 df = read_data_file(filename)
                 self.__df = df
