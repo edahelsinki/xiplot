@@ -65,8 +65,6 @@ class Callbacks:
                 df_store = (df.to_json(date_format="iso", orient="split"),)
                 file_style = {"display": "inline"}
                 file_message = f"Data file {filename} loaded successfully!"
-                if clustered_data:
-                    df = pd.read_json(clustered_data, orient="split")
                 columns = df.columns.to_list()
                 return (
                     df_store,
@@ -81,7 +79,10 @@ class Callbacks:
                     None,
                 )
             elif trigger == "cluster_button":
-                df = pd.read_json(df[0], orient="split")
+                if clustered_data:
+                    df = pd.read_json(clustered_data, orient="split")
+                else:
+                    df = pd.read_json(df[0], orient="split")
                 kmean_df = get_kmean(df, int(n_clusters), features)
                 columns = kmean_df.columns.to_list()
                 self.__df = kmean_df
@@ -115,7 +116,8 @@ class Callbacks:
             x_axis = embedding + " 1"
             y_axis = embedding + " 2"
 
-            jitter_max = (self.__df[x_axis].max() - self.__df[x_axis].min()) * 0.05
+            jitter_max = (self.__df[x_axis].max() -
+                          self.__df[x_axis].min()) * 0.05
 
             if jitter:
                 jitter = float(jitter)
@@ -153,7 +155,8 @@ class Callbacks:
             points = [point["pointIndex"] for point in slct_data["points"]]
             selected_df = df.loc[df.index.isin(points)]
             color = px.colors.qualitative.Dark2
-            fig_2 = Histogram(selected_df, x_axis, color_dicrete_sequence=color)
+            fig_2 = Histogram(selected_df, x_axis,
+                              color_dicrete_sequence=color)
             fig_2 = fig_2.create_plot().data[0]
             fig = fig.add_trace(fig.create_plot(), fig_2)
 
