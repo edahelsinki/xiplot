@@ -52,7 +52,7 @@ class Callbacks:
             prevent_initial_call=True
         )
         def choose_file(data_btn, cluster_btn, filename, clustered_data, n_clusters, features, df):
-            trigger = ctx.triggered_id
+            trigger = callback_context.triggered_id
             if trigger == "submit-button":
                 df = read_data_file(filename)
                 self.__df = df
@@ -115,7 +115,8 @@ class Callbacks:
         )
         def render_histogram(x_axis, slct_data):
             df = copy.deepcopy(self.__df)
-            df["Clusters"] = df["Clusters"].astype(float)
+            if "Clusters" in df.columns.to_list():
+                df["Clusters"] = df["Clusters"].astype(float)
 
             fig = Histogram(df=self.__df, x_axis=x_axis, barmode="overlay")
             style = fig.style
