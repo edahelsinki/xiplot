@@ -225,7 +225,7 @@ def histogram():
             ),
         ],
         id="histogram-container",
-        style={"width": "65%", "display": "none", "float": "left"},
+        style={"display": "none"},
     )
 
     return layout
