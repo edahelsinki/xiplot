@@ -40,6 +40,10 @@ class Callbacks:
             Output("data_file_store", "data"),
             Output("data_file_load_message-container", "style"),
             Output("data_file_load_message", "children"),
+            Output("scatter_x_axis", "options"),
+            Output("scatter_x_axis", "value"),
+            Output("scatter_y_axis", "options"),
+            Output("scatter_y_axis", "value"),
             Output("scatter_target_color", "options"),
             Output("scatter_target_symbol", "options"),
             Output("x_axis_histo", "options"),
@@ -67,11 +71,23 @@ class Callbacks:
                 file_style = {"display": "inline"}
                 file_message = f"Data file {filename} loaded successfully!"
                 columns = df.columns.to_list()
+                scatter_x = ""
+                scatter_y = ""
+                for column in columns:
+                    if "x-" in column or " 1" in column:
+                        scatter_x = column
+                    elif "y-" in column or " 2" in column:
+                        scatter_y = column
+                        break
                 return (
                     df_store,
                     filename,
                     file_style,
                     file_message,
+                    columns,
+                    scatter_x,
+                    columns,
+                    scatter_y,
                     columns,
                     columns,
                     columns,
@@ -86,6 +102,14 @@ class Callbacks:
                     df = pd.read_json(df[0], orient="split")
                 kmean_df = get_kmean(df, int(n_clusters), features)
                 columns = kmean_df.columns.to_list()
+                scatter_x = ""
+                scatter_y = ""
+                for column in columns:
+                    if "x-" in column or " 1" in column:
+                        scatter_x = column
+                    elif "y-" in column or " 2" in column:
+                        scatter_y = column
+                        break
                 self.__df = kmean_df
                 kmean_df = kmean_df.to_json(date_format="iso", orient="split")
                 return (
@@ -93,6 +117,10 @@ class Callbacks:
                     None,
                     None,
                     None,
+                    columns,
+                    scatter_x,
+                    columns,
+                    scatter_y,
                     columns,
                     columns,
                     columns,
@@ -107,16 +135,14 @@ class Callbacks:
             Output("scatterplot-container", "style"),
             Output("scatterplot_input_store", "data"),
             Output("jitter-slider", "max"),
-            Input("algorythm", "value"),
+            Input("scatter_x_axis", "value"),
+            Input("scatter_y_axis", "value"),
             Input("scatter_target_color", "value"),
             Input("scatter_target_symbol", "value"),
             Input("jitter-slider", "value"),
             prevent_initial_call=True,
         )
-        def render_scatterplot(embedding, target, symbol, jitter):
-            x_axis = embedding + " 1"
-            y_axis = embedding + " 2"
-
+        def render_scatterplot(x_axis, y_axis, target, symbol, jitter):
             jitter_max = (self.__df[x_axis].max() - self.__df[x_axis].min()) * 0.05
 
             if jitter:

@@ -91,11 +91,17 @@ def control_scatterplot_content():
             ),
             html.Div(
                 [
-                    dcc.RadioItems(
-                        id="algorythm",
-                        options=["PCA", "Slisemap"],
-                    )
-                ]
+                    html.Div(["x"], style={"padding-bottom": "2%"}),
+                    dcc.Dropdown(id="scatter_x_axis"),
+                ],
+                style={"display": "inline-block", "width": "40%"},
+            ),
+            html.Div(
+                [
+                    html.Div(["y"], style={"padding-bottom": "2%"}),
+                    dcc.Dropdown(id="scatter_y_axis"),
+                ],
+                style={"display": "inline-block", "width": "40%", "padding-left": "2%"},
             ),
             html.Div(
                 [
