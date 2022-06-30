@@ -1,5 +1,4 @@
 from re import sub
-from turtle import color
 from dash import html, dcc
 from matplotlib.pyplot import bar
 import plotly.express as px
