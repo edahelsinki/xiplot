@@ -1,4 +1,5 @@
 from dash import Output, Input, State, ctx
+from dash.exceptions import PreventUpdate
 from services.data_frame import read_data_file, get_kmean
 from services.graphs import *
 from services.dash_layouts import (
@@ -116,8 +117,7 @@ class Callbacks:
             x_axis = embedding + " 1"
             y_axis = embedding + " 2"
 
-            jitter_max = (self.__df[x_axis].max() -
-                          self.__df[x_axis].min()) * 0.05
+            jitter_max = (self.__df[x_axis].max() - self.__df[x_axis].min()) * 0.05
 
             if jitter:
                 jitter = float(jitter)
@@ -144,6 +144,10 @@ class Callbacks:
             prevent_initial_call=True,
         )
         def render_histogram(x_axis, slct_data):
+            # FIXME: hide histogram when selection is None?
+            if slct_data is None:
+                raise PreventUpdate()
+
             df = copy.deepcopy(self.__df)
             if "Clusters" in df.columns.to_list():
                 df["Clusters"] = df["Clusters"].astype(float)
@@ -155,8 +159,7 @@ class Callbacks:
             points = [point["pointIndex"] for point in slct_data["points"]]
             selected_df = df.loc[df.index.isin(points)]
             color = px.colors.qualitative.Dark2
-            fig_2 = Histogram(selected_df, x_axis,
-                              color_dicrete_sequence=color)
+            fig_2 = Histogram(selected_df, x_axis, color_dicrete_sequence=color)
             fig_2 = fig_2.create_plot().data[0]
             fig = fig.add_trace(fig.create_plot(), fig_2)
 
