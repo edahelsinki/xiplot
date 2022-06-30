@@ -53,7 +53,7 @@ class Scatterplot:
         fig = px.scatter(
             self.__df, self.__x_axis, self.__y_axis, self.__color, self.__symbol
         )
-        fig.update_layout(legend=dict(orientation="h"))
+        fig.update_layout(legend=dict(orientation="h", y=-0.15))
         fig.update_layout(coloraxis_colorbar=dict(orientation="h", y=-0.5))
         return fig
 
