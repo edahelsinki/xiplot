@@ -20,6 +20,7 @@ def slisemap_to_dataframe(
     # importing slisemap inside the function so that installing slisemap
     # is not required if one is not loading slisemap
     from slisemap import Slisemap
+
     if isinstance(path, Slisemap):
         sm = path
     else:
@@ -59,8 +60,7 @@ def slisemap_to_dataframe(
             names += [f"B_{i+1}" for i in range(X.shape[1])]
     else:
         if sm.intercept:
-            names += [f"B_{i+1}" for i in range(B.shape[1] - 1)
-                      ] + ["B_Intercept"]
+            names += [f"B_{i+1}" for i in range(B.shape[1] - 1)] + ["B_Intercept"]
         else:
             names += [f"B_{i+1}" for i in range(B.shape[1])]
     # Then we create a dataframe to return

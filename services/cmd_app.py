@@ -4,7 +4,7 @@ from services.data_frame import *
 
 def start():
     """
-        Main function of the commandline app
+    Main function of the commandline app
     """
     show_start_screen()
     while True:

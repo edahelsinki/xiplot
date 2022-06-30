@@ -1,7 +1,11 @@
 from dash import Output, Input, State, ctx
 from services.data_frame import read_data_file, get_kmean
 from services.graphs import *
-from services.dash_layouts import control_data_content, control_scatterplot_content, control_clusters_content
+from services.dash_layouts import (
+    control_data_content,
+    control_scatterplot_content,
+    control_clusters_content,
+)
 from ui.dash_renderer import render_smiles
 import pandas as pd
 import numpy as np
@@ -48,29 +52,52 @@ class Callbacks:
             State("cluster_amount", "value"),
             State("cluster_feature", "value"),
             State("data_frame_store", "data"),
-
-            prevent_initial_call=True
+            prevent_initial_call=True,
         )
-        def choose_file(data_btn, cluster_btn, filename, clustered_data, n_clusters, features, df):
+        def choose_file(
+            data_btn, cluster_btn, filename, clustered_data, n_clusters, features, df
+        ):
             trigger = ctx.triggered_id
             if trigger == "submit-button":
                 df = read_data_file(filename)
                 self.__df = df
 
-                df_store = df.to_json(date_format="iso", orient="split"),
+                df_store = (df.to_json(date_format="iso", orient="split"),)
                 file_style = {"display": "inline"}
                 file_message = f"Data file {filename} loaded successfully!"
                 if clustered_data:
                     df = pd.read_json(clustered_data, orient="split")
                 columns = df.columns.to_list()
-                return df_store, filename, file_style, file_message, columns, columns, columns, columns[0], columns, None
+                return (
+                    df_store,
+                    filename,
+                    file_style,
+                    file_message,
+                    columns,
+                    columns,
+                    columns,
+                    columns[0],
+                    columns,
+                    None,
+                )
             elif trigger == "cluster_button":
                 df = pd.read_json(df[0], orient="split")
                 kmean_df = get_kmean(df, int(n_clusters), features)
                 columns = kmean_df.columns.to_list()
                 self.__df = kmean_df
                 kmean_df = kmean_df.to_json(date_format="iso", orient="split")
-                return None, None, None, None, columns, columns, columns, columns[0], columns, kmean_df
+                return (
+                    None,
+                    None,
+                    None,
+                    None,
+                    columns,
+                    columns,
+                    columns,
+                    columns[0],
+                    columns,
+                    kmean_df,
+                )
 
         @app.callback(
             Output("scatterplot", "figure"),
@@ -88,7 +115,7 @@ class Callbacks:
             x_axis = embedding + " 1"
             y_axis = embedding + " 2"
 
-            jitter_max = (self.__df[x_axis].max()-self.__df[x_axis].min())*0.05
+            jitter_max = (self.__df[x_axis].max() - self.__df[x_axis].min()) * 0.05
 
             if jitter:
                 jitter = float(jitter)
@@ -100,7 +127,8 @@ class Callbacks:
                     jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
                     df[[x_axis, y_axis]] = jitter_df[[x_axis, y_axis]]
             fig = Scatterplot(
-                df=df, x_axis=x_axis, y_axis=y_axis, color=target, symbol=symbol)
+                df=df, x_axis=x_axis, y_axis=y_axis, color=target, symbol=symbol
+            )
             return fig.create_plot(), fig.style, fig.div_style, fig.inputs, jitter_max
 
         @app.callback(
@@ -122,12 +150,10 @@ class Callbacks:
             style = fig.style
             div_style = fig.div_style
 
-            points = [point["pointIndex"]
-                      for point in slct_data["points"]]
+            points = [point["pointIndex"] for point in slct_data["points"]]
             selected_df = df.loc[df.index.isin(points)]
             color = px.colors.qualitative.Dark2
-            fig_2 = Histogram(selected_df, x_axis,
-                              color_dicrete_sequence=color)
+            fig_2 = Histogram(selected_df, x_axis, color_dicrete_sequence=color)
             fig_2 = fig_2.create_plot().data[0]
             fig = fig.add_trace(fig.create_plot(), fig_2)
 
@@ -135,4 +161,10 @@ class Callbacks:
             deviation = round(self.__df[x_axis].std(), 3)
             selected_mean = round(selected_df[x_axis].mean(), 3)
             selected_deviation = round(selected_df[x_axis].std(), 3)
-            return fig, style, div_style, f"Full mean: {mean}, Selected mean: {selected_mean}", f"Full deviation: {deviation}, Selected deviation: {selected_deviation}"
+            return (
+                fig,
+                style,
+                div_style,
+                f"Full mean: {mean}, Selected mean: {selected_mean}",
+                f"Full deviation: {deviation}, Selected deviation: {selected_deviation}",
+            )

@@ -6,7 +6,17 @@ import services.dash_layouts as dash_layouts
 
 
 class Scatterplot:
-    def __init__(self, df, x_axis=None, y_axis=None, color=None, symbol=None, clusters=0, jitter=0, subset_points=None):
+    def __init__(
+        self,
+        df,
+        x_axis=None,
+        y_axis=None,
+        color=None,
+        symbol=None,
+        clusters=0,
+        jitter=0,
+        subset_points=None,
+    ):
         self.__df = df
         self.__x_axis = x_axis
         self.__y_axis = y_axis
@@ -15,13 +25,16 @@ class Scatterplot:
         self.__clusters = clusters
         self.__jitter = jitter
         self.__subset_points = subset_points
-        self.div_style = {"width": "65%",
-                          "display": "inline-block", "float": "left"}
+        self.div_style = {"width": "65%", "display": "inline-block", "float": "left"}
         self.style = {"width": "60vh", "height": "60vh"}
 
     @property
     def inputs(self):
-        return {"embedding": self.__x_axis.split(" ")[0], "color": self.__color, "symbol": self.__symbol}
+        return {
+            "embedding": self.__x_axis.split(" ")[0],
+            "color": self.__color,
+            "symbol": self.__symbol,
+        }
 
     def set_axes(self, x_axis, y_axis):
         self.__x_axis = x_axis
@@ -37,8 +50,9 @@ class Scatterplot:
         self.__symbol = variable
 
     def create_plot(self):
-        fig = px.scatter(self.__df, self.__x_axis,
-                         self.__y_axis, self.__color, self.__symbol)
+        fig = px.scatter(
+            self.__df, self.__x_axis, self.__y_axis, self.__color, self.__symbol
+        )
         return fig
 
     def render(self):
@@ -101,7 +115,16 @@ class Scatterplot:
 
 
 class Histogram:
-    def __init__(self, df, x_axis=None, y_axis=None, color=None, color_dicrete_sequence=None, barmode=None, subset_points=None):
+    def __init__(
+        self,
+        df,
+        x_axis=None,
+        y_axis=None,
+        color=None,
+        color_dicrete_sequence=None,
+        barmode=None,
+        subset_points=None,
+    ):
         self.__df = df
         self.__x_axis = x_axis
         self.__y_axis = y_axis
@@ -109,8 +132,7 @@ class Histogram:
         self.__color_discrete_sequence = color_dicrete_sequence
         self.__barmode = barmode
         self.__subset_points = subset_points
-        self.div_style = {"width": "65%",
-                          "display": "inline-block", "float": "left"}
+        self.div_style = {"width": "65%", "display": "inline-block", "float": "left"}
         self.style = {"width": "60vh", "height": "60vh"}
 
     def set_axes(self, x_axis, y_axis=None):
@@ -130,8 +152,14 @@ class Histogram:
         self.__barmode = value
 
     def create_plot(self):
-        fig = px.histogram(self.__df, self.__x_axis,
-                           self.__y_axis, self.__color, color_discrete_sequence=self.__color_discrete_sequence, barmode=self.__barmode)
+        fig = px.histogram(
+            self.__df,
+            self.__x_axis,
+            self.__y_axis,
+            self.__color,
+            color_discrete_sequence=self.__color_discrete_sequence,
+            barmode=self.__barmode,
+        )
         return fig
 
     def add_trace(self, fig, fig_2):
@@ -164,8 +192,14 @@ class Heatmap:
         self.__color = variable
 
     def create_plot(self):
-        fig = px.imshow(self.__df, x=self.__x_axis,
-                        y=self.__y_axis, color_continuous_scale=self.__color, origin="lower", title=self.__title)
+        fig = px.imshow(
+            self.__df,
+            x=self.__x_axis,
+            y=self.__y_axis,
+            color_continuous_scale=self.__color,
+            origin="lower",
+            title=self.__title,
+        )
 
         return fig
 

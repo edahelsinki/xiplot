@@ -12,5 +12,5 @@ def render_smiles(smiles):
     img.save(buffered, format="JPEG")
     encoded_image = base64.b64encode(buffered.getvalue()).decode()
     im_url = "data:image/jpeg;base64, " + encoded_image
-    
+
     return im_url

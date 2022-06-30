@@ -8,22 +8,23 @@ from sklearn import preprocessing
 
 
 def get_data_files():
-    data_files = [f for f in os.listdir(
-        "data") if os.path.isfile(os.path.join("data", f))]
+    data_files = [
+        f for f in os.listdir("data") if os.path.isfile(os.path.join("data", f))
+    ]
     return data_files
 
 
 def read_data_file(filename):
     """
-        Read the given data file and convert it to a pandas data frame
+    Read the given data file and convert it to a pandas data frame
 
-        Parameters
-        ----------
-            filename: File name as a string
+    Parameters
+    ----------
+        filename: File name as a string
 
-        Returns
-        -------
-            df: Pandas data frame 
+    Returns
+    -------
+        df: Pandas data frame
     """
     if filename == "auto-mpg.data":
         return read_auto_mpg_file(filename)
@@ -42,14 +43,36 @@ def read_data_file(filename):
 
 def read_auto_mpg_file(filename):
     widths = [7, 4, 10, 10, 11, 7, 4, 4, 30]
-    data = pd.read_fwf(f"data/{filename}", widths=widths,
-                       header=None, na_values=["?"])
+    data = pd.read_fwf(f"data/{filename}", widths=widths, header=None, na_values=["?"])
     df = pd.DataFrame(data)
-    df.columns = pd.array(["mpg", "cylinders", "displacement", "horsepower", "weight", "acceleration",
-                           "model-year", "origin", "car-name"], dtype="U23")
+    df.columns = pd.array(
+        [
+            "mpg",
+            "cylinders",
+            "displacement",
+            "horsepower",
+            "weight",
+            "acceleration",
+            "model-year",
+            "origin",
+            "car-name",
+        ],
+        dtype="U23",
+    )
 
-    features = pd.array(["mpg", "cylinders", "displacement", "horsepower", "weight", "acceleration",
-                         "model-year", "origin"], dtype="U23")
+    features = pd.array(
+        [
+            "mpg",
+            "cylinders",
+            "displacement",
+            "horsepower",
+            "weight",
+            "acceleration",
+            "model-year",
+            "origin",
+        ],
+        dtype="U23",
+    )
     x = df.loc[:, features].values
     y = df.loc[:, ["car-name"]].values
 
@@ -64,21 +87,19 @@ def read_auto_mpg_file(filename):
     principalComponens = pca.fit_transform(X=x)
 
     # Create a DataFrame object of the data that has been calculated with PCA
-    pal_df = pd.DataFrame(data=principalComponens, columns=[
-        "PCA 1", "PCA 2"])
+    pal_df = pd.DataFrame(data=principalComponens, columns=["PCA 1", "PCA 2"])
 
     # Concatenate
-    final_df = pd.concat(
-        [pal_df, df], axis=1)
+    final_df = pd.concat([pal_df, df], axis=1)
     return final_df
 
 
 def get_kmean(df, k: int, features):
     scaler = StandardScaler()
     scale = scaler.fit_transform(df[features])
-    #df_scale = pd.DataFrame(scale, columns=[x_axis, y_axis])
+    # df_scale = pd.DataFrame(scale, columns=[x_axis, y_axis])
     km = KMeans(n_clusters=k).fit_predict(scale)
-    #y_predicted = km.fit_predict(df[[x_axis, y_axis]])
+    # y_predicted = km.fit_predict(df[[x_axis, y_axis]])
     df["Clusters"] = km
     df["Clusters"] = df["Clusters"].astype(str)
 
