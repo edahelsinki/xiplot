@@ -25,8 +25,7 @@ class Scatterplot:
         self.__clusters = clusters
         self.__jitter = jitter
         self.__subset_points = subset_points
-        self.div_style = {"width": "32%",
-                          "display": "inline-block", "float": "left"}
+        self.div_style = {"width": "32%", "display": "inline-block", "float": "left"}
         self.style = {}
 
     @property
@@ -56,6 +55,7 @@ class Scatterplot:
         )
         fig.update_layout(legend=dict(orientation="h", y=-0.15))
         fig.update_layout(coloraxis_colorbar=dict(orientation="h", y=-0.5))
+        fig.update_yaxes(scaleanchor="x", scaleratio=1)
         return fig
 
     def render(self):
@@ -135,8 +135,7 @@ class Histogram:
         self.__color_discrete_sequence = color_dicrete_sequence
         self.__barmode = barmode
         self.__subset_points = subset_points
-        self.div_style = {"width": "32%",
-                          "display": "inline-block", "float": "left"}
+        self.div_style = {"width": "32%", "display": "inline-block", "float": "left"}
         self.style = {"width": "90%", "height": "100%"}
 
     def set_axes(self, x_axis, y_axis=None):
