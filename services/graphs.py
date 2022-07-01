@@ -55,7 +55,7 @@ class Scatterplot:
         )
         fig.update_layout(legend=dict(orientation="h", y=-0.15))
         fig.update_layout(coloraxis_colorbar=dict(orientation="h", y=-0.5))
-        fig.update_yaxes(scaleanchor="x", scaleratio=1)
+        # fig.update_yaxes(scaleanchor="x", scaleratio=1)
         return fig
 
     def render(self):
