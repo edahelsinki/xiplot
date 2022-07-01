@@ -1,4 +1,5 @@
 from dash import html, dcc
+import dash_uploader as du
 from services.data_frame import get_data_files
 
 
@@ -73,6 +74,7 @@ def control_data_content():
                 id="data_file_load_message-container",
                 style={"display": "none"},
             ),
+            html.Div([du.Upload()], style={"padding-top": "2%"}),
         ],
         id="control_data_content-container",
         style={"display": "none"},
