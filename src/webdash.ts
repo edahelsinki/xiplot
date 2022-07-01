@@ -1,7 +1,7 @@
 import { WebFlask } from "./flask";
 import { WorkerManager } from "./worker-loader";
 
-const PYTHON_VERSION = 3.9;
+const PYTHON_VERSION = "3.10";
 const sitePackagesDir = `/lib/python${PYTHON_VERSION}/site-packages/`;
 const directoryMap = {
   "deps": `${sitePackagesDir}dash/deps/`,

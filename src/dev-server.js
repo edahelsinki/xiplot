@@ -6,7 +6,7 @@ import SimpleHTTPServer from "./server/https_server.js";
 let [, , port, servePath, ssl] = process.argv;
 port = Number.parseInt(port) || 8080;
 servePath = servePath || "dist";
-ssl = true;
+ssl = false; // ssl = true;
 
 const entryFiles = path.join(path.resolve("./src"), "index.html");
 console.log(entryFiles);

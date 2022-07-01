@@ -76,6 +76,8 @@ export class WorkerManager {
       return;
     }
 
+    log(e);
+
     // Otherwise this is a response for dash-renderer
     // and we should act on it.
     const success = this.queue.dequeue();

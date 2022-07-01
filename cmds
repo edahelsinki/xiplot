@@ -1,0 +1,33 @@
+npm run dev
+rm -rf dist/ && cp pyodide/dist -r . && cp pyodide/dash_app2022/dist/dashapp-0.1.0-py3-none-any.whl dist/ && cp pyodide/dash_app2022/dashapp/data/Wang-dataframe.csv dist/
+./run_docker
+python3 -m build
+python -m pyodide_build mkpkg [PACKAGE]
+PYODIDE_PACKAGES="brotli,flask,plotly,dash,pandas,jinja2,markupsafe,werkzeug,click,itsdangerous,flask_compress,sklearn,scikit-learn,matplotlib" make
+
+sklearn, flask, jinja2, dash, flask_compress
+
+requirements:
+  run:
+    - scikit-learn
+
+requirements:
+  run:
+    - jinja2
+    - werkzeug
+    - itsdangerous
+    - click
+
+requirements:
+  run:
+    - markupsafe
+
+requirements:
+  run:
+    - flask
+    - flask_compress
+    - setuptools
+
+requirements:
+  run:
+    - brotli

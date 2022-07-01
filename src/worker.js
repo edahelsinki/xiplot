@@ -1,9 +1,9 @@
 const WEBDASH_VERSION = "0.0.3";
 
-let pyodideAddress = `https://cdn.jsdelivr.net/gh/ibdafna/webdash_dist@webdash_${WEBDASH_VERSION}`
+let pyodideAddress = `https://${location.hostname}:${location.port}`;/*`https://cdn.jsdelivr.net/gh/ibdafna/webdash_dist@webdash_${WEBDASH_VERSION}`
 if (process.env.NODE_ENV === "development") {
   pyodideAddress = `https://${location.hostname}:${location.port}`;
-}
+}*/
 
 importScripts(`${pyodideAddress}/pyodide.js`);
 
@@ -13,16 +13,17 @@ async function loadPyodideAndPackages() {
     homedir: "/",
     indexURL: `${pyodideAddress}/`,
   });
-  await self.pyodide.loadPackage(["pandas", "numpy", "dash"], postConsoleMessage, postConsoleMessage);
+  await self.pyodide.loadPackage(["pandas", "numpy", "dash", "plotly", "sklearn", "matplotlib", "dashapp-0.1.0-py3-none-any.whl"], postConsoleMessage, postConsoleMessage);
 }
 
 let pyodideReadyPromise = loadPyodideAndPackages();
 
 function fileSystemCall(msgType, param) {
+  console.log("hi", msgType, param);
   const output = pyodide._module.FS[msgType](param);
   // Uncomment for debugging purposes
-  // console.log("fileSystemCall()", msgType, param);
-  // console.log(output);
+  console.log("fileSystemCall()", msgType, param);
+  console.log(output);
   return output;
 }
 
@@ -78,7 +79,7 @@ onmessage = async (event) => {
   const { python, fsCommands, ...context } = event.data;
 
   // Uncomment for debugging pureposes
-  // console.log("[3. Worker]", event.data);
+  console.log("[3. Worker]", event.data);
 
   if (fsCommands) {
     handleFsCommands(fsCommands);
@@ -96,6 +97,7 @@ onmessage = async (event) => {
  */
 
 function postMessageRegular(object) {
+  console.log("postMessageRegular", object);
   self.postMessage({
     results: object,
   });

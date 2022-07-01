@@ -18,7 +18,7 @@ data = pyodide.open_url('https://plotly.github.io/datasets/country_indicators.cs
 df = pd.read_csv(data)
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets, compress=False)
 
 available_indicators = df['Indicator Name'].unique()
 
