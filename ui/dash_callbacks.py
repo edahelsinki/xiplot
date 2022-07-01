@@ -80,6 +80,8 @@ class Callbacks:
                 scatter_x = ""
                 scatter_y = ""
                 for column in columns:
+                    if type(column) != str:
+                        break
                     if "x-" in column or " 1" in column:
                         scatter_x = column
                     elif "y-" in column or " 2" in column:
