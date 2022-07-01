@@ -8,7 +8,7 @@ from ui.dash_callbacks import Callbacks
 
 class DashApp:
     def __init__(self) -> None:
-        du.configure_upload(app, "data")
+        du.configure_upload(app=app, folder="data", use_upload_id=False)
         app.layout = html.Div(
             [
                 dash_layouts.control(),
