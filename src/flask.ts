@@ -31,11 +31,11 @@ export class WebFlask {
    * @param init request payload
    */
   postRequest(req, init) {
-    log("[POST Request]", req, init);
+    log("[POST Request]", req);
     return `
     with app.server.test_request_context('${req}', 
-      data='''${init.body}''', 
-      content_type="application/json"): 
+      data=r"""${init.body}""", 
+      content_type="application/json"):
       x = app.dispatch()
     x`;
   }
@@ -48,11 +48,15 @@ export class WebFlask {
   async generateResponse(codeWillRun) {
     log("[2. Flask Request Generated]");
     const flaskRespone = await this.worker.asyncRun(codeWillRun, {});
-    log("[5. Flask Response Received]", flaskRespone);
-    const response = new Response(flaskRespone["response"], {
-      headers: flaskRespone["headers"],
-    });
-    return response;
+    log("[5. Flask Response Received]");
+    const options = {};
+    if (flaskRespone["headers"]) {
+      options["headers"] = flaskRespone["headers"];
+    }
+    if (flaskRespone["status"]) {
+      options["status"] = flaskRespone["status"];
+    }
+    return new Response(flaskRespone["response"], options);
   }
 
   /**
@@ -66,14 +70,13 @@ export class WebFlask {
     init?: RequestInit | null | undefined
   ): Promise<Response> {
     // TODO: handle raw requests in addition to strings
-    log("[1. Request Intercepted]", req, init);
+    log("[1. Request Intercepted]", req);
     const url = new URL(new Request(req).url);
 
     let codeWillRun = this.router[url.pathname];
     if (codeWillRun) {
-      log(url.pathname);
       const resp = await this.generateResponse(codeWillRun(req, init));
-      log(`[6. ${url.pathname} done.]`, resp);
+      log(`[6. ${url.pathname} done.]`);
       return resp;
     } else {
       log("[Passthrough Request]");
@@ -92,8 +95,8 @@ export class WebFlask {
       async,
       user,
       password = args;
-    console.log("Method: ", method);
-    console.log("URL: ", url);
+    log("Method: ", method);
+    log("URL: ", url);
 
     return this.originalXHROpen.apply(this, ...args);
   }

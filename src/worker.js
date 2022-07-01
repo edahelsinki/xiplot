@@ -19,11 +19,8 @@ async function loadPyodideAndPackages() {
 let pyodideReadyPromise = loadPyodideAndPackages();
 
 function fileSystemCall(msgType, param) {
-  console.log("hi", msgType, param);
-  const output = pyodide._module.FS[msgType](param);
-  // Uncomment for debugging purposes
   console.log("fileSystemCall()", msgType, param);
-  console.log(output);
+  const output = pyodide._module.FS[msgType](param);
   return output;
 }
 
@@ -60,11 +57,30 @@ function handleFsCommands(fsCommands) {
 async function handlePythonCode(python) {
   // Load any imports
   await self.pyodide.loadPackagesFromImports(python, console.log, console.err)
-  let result = await self.pyodide.runPython(python);
+  let result
+  try {
+    result = await self.pyodide.runPython(python);
+  } catch(e) {
+    if (e.message.endsWith("dash.exceptions.PreventUpdate\n")) {
+      postMessageRegular({
+        status: 204,
+        response: null,
+      })
+    } else {
+      postMessageRegular({
+        status: 500,
+        response: e.message,
+      })
+    }
+
+    return
+  }
+
   // Processing Proxy objects before sending.
   if (pyodide.isPyProxy(result)) {
     result = generateResponseObject(result);
   }
+
   try {
     postMessageRegular(result);
   } catch (error) {
@@ -79,7 +95,7 @@ onmessage = async (event) => {
   const { python, fsCommands, ...context } = event.data;
 
   // Uncomment for debugging pureposes
-  console.log("[3. Worker]", event.data);
+  console.log("[3. Worker onmessage]");
 
   if (fsCommands) {
     handleFsCommands(fsCommands);
@@ -97,7 +113,7 @@ onmessage = async (event) => {
  */
 
 function postMessageRegular(object) {
-  console.log("postMessageRegular", object);
+  console.log("postMessageRegular");
   self.postMessage({
     results: object,
   });

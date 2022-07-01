@@ -1,0 +1,3 @@
+[submodule "pyodide"]
+	path = pyodide
+	url = https://github.com/MomoLangenstein/dashapp-wasm-pyodide.git

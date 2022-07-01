@@ -65,7 +65,7 @@ export class WorkerManager {
    * @returns void or resolved promise
    */
   processMessage(e): Function | void {
-    log("[4. Message received from worker]", e.data);
+    log("[4. Message received from worker]");
 
     // Update status tracker if this is a console.log message
     if (e.data.consoleMessage) {
@@ -75,8 +75,6 @@ export class WorkerManager {
       }
       return;
     }
-
-    log(e);
 
     // Otherwise this is a response for dash-renderer
     // and we should act on it.

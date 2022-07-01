@@ -1,7 +1,6 @@
 .cache/
-dist
-node_modules
-.vscode
-pyodide
-dash
-temp
+/dist
+/node_modules
+/.vscode
+/dash
+/temp
