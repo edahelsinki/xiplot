@@ -26,7 +26,7 @@ def control():
             control_clusters_content(),
         ],
         style={
-            "width": "32%",
+            "width": "25%",
             "display": "inline-block",
             "float": "right",
             "background-color": "#dffcde",
@@ -92,14 +92,14 @@ def control_scatterplot_content():
             html.Div(
                 [
                     html.Div(["x"], style={"padding-bottom": "2%"}),
-                    dcc.Dropdown(id="scatter_x_axis"),
+                    dcc.Dropdown(id="scatter_x_axis", clearable=False),
                 ],
                 style={"display": "inline-block", "width": "40%"},
             ),
             html.Div(
                 [
                     html.Div(["y"], style={"padding-bottom": "2%"}),
-                    dcc.Dropdown(id="scatter_y_axis"),
+                    dcc.Dropdown(id="scatter_y_axis", clearable=False),
                 ],
                 style={"display": "inline-block", "width": "40%", "padding-left": "2%"},
             ),
