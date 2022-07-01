@@ -152,7 +152,7 @@ class Callbacks:
                     jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
                     df[[x_axis, y_axis]] = jitter_df[[x_axis, y_axis]]
             fig = Scatterplot(
-                df=df, x_axis=x_axis, y_axis=y_axis, color=target, symbol=symbol
+                df=df, x_axis=x_axis, y_axis=y_axis, color=color, symbol=symbol
             )
             return fig.create_plot(), fig.style, fig.div_style, fig.inputs, jitter_max
 
