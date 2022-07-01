@@ -12,7 +12,7 @@ TABS = [
 
 def app_logo():
     layout = html.Div(
-        [html.H1("Dash App 2022")], style={"text-align": "center", "margin": 20}
+        [html.H1("Dash App 2022")], style={"textAlign": "center", "margin": 20}
     )
     return layout
 
@@ -74,7 +74,7 @@ def control_data_content():
                 id="data_file_load_message-container",
                 style={"display": "none"},
             ),
-            html.Div([du.Upload()], style={"padding-top": "2%"}),
+            html.Div([du.Upload(id="file_uploader")], style={"padding-top": "2%"}),
         ],
         id="control_data_content-container",
         style={"display": "none"},
