@@ -49,25 +49,25 @@ class Callbacks:
             Output("x_axis_histo", "options"),
             Output("x_axis_histo", "value"),
             Output("cluster_feature", "options"),
-            Output("data_frame_clusters_store", "data"),
+            Output("clusters_column_store", "data"),
             Input("submit-button", "n_clicks"),
             Input("cluster_button", "n_clicks"),
             State("data_files", "value"),
-            State("data_frame_clusters_store", "data"),
+            State("scatter_x_axis", "value"),
+            State("scatter_y_axis", "value"),
             State("cluster_amount", "value"),
             State("cluster_feature", "value"),
             State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
         def choose_file(
-            data_btn, cluster_btn, filename, clustered_data, n_clusters, features, df
+            data_btn, cluster_btn, filename, x_axis, y_axis, n_clusters, features, df
         ):
             trigger = ctx.triggered_id
             if trigger == "submit-button":
                 df = read_data_file(filename)
                 self.__df = df
-
-                df_store = (df.to_json(date_format="iso", orient="split"),)
+                df_store = df.to_json(date_format="iso", orient="split")
                 file_style = {"display": "inline"}
                 file_message = f"Data file {filename} loaded successfully!"
                 columns = df.columns.to_list()
@@ -95,38 +95,28 @@ class Callbacks:
                     columns,
                     None,
                 )
-            elif trigger == "cluster_button":
-                if clustered_data:
-                    df = pd.read_json(clustered_data, orient="split")
-                else:
-                    df = pd.read_json(df[0], orient="split")
-                kmean_df = get_kmean(df, int(n_clusters), features)
-                columns = kmean_df.columns.to_list()
-                scatter_x = ""
-                scatter_y = ""
-                for column in columns:
-                    if "x-" in column or " 1" in column:
-                        scatter_x = column
-                    elif "y-" in column or " 2" in column:
-                        scatter_y = column
-                        break
-                self.__df = kmean_df
-                kmean_df = kmean_df.to_json(date_format="iso", orient="split")
+            elif trigger == "cluster_button" and n_clusters and features:
+                df_store = df
+                df = pd.read_json(df, orient="split")
+                kmeans_col = get_kmean(df, int(n_clusters), features)
+                df["Clusters"] = kmeans_col
+                columns = df.columns.to_list()
+
                 return (
-                    None,
+                    df_store,
                     None,
                     None,
                     None,
                     columns,
-                    scatter_x,
+                    x_axis,
                     columns,
-                    scatter_y,
+                    y_axis,
                     columns,
                     columns,
                     columns,
                     columns[0],
                     columns,
-                    kmean_df,
+                    kmeans_col,
                 )
 
         @app.callback(
@@ -140,14 +130,21 @@ class Callbacks:
             Input("scatter_target_color", "value"),
             Input("scatter_target_symbol", "value"),
             Input("jitter-slider", "value"),
+            Input("clusters_column_store", "data"),
+            Input("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def render_scatterplot(x_axis, y_axis, target, symbol, jitter):
-            jitter_max = (self.__df[x_axis].max() - self.__df[x_axis].min()) * 0.05
+        def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
+            df = pd.read_json(df, orient="split")
+            if kmeans_col:
+                df["Clusters"] = kmeans_col
+                # Make color scale discrete
+                df["Clusters"] = df["Clusters"].astype(str)
+            jitter_max = (df[x_axis].max() -
+                          df[x_axis].min()) * 0.05
 
             if jitter:
                 jitter = float(jitter)
-            df = copy.deepcopy(self.__df)
             if type(jitter) == float:
                 if jitter > 0:
                     Z = df[[x_axis, y_axis]].to_numpy("float64")
