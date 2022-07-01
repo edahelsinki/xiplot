@@ -1,6 +1,7 @@
 from dash import Output, Input, State, ctx
 from dash.exceptions import PreventUpdate
-from services.data_frame import read_data_file, get_kmean
+import dash_uploader as du
+from services.data_frame import read_data_file, get_kmean, get_data_files
 from services.graphs import *
 from services.dash_layouts import (
     control_data_content,
@@ -34,6 +35,11 @@ class Callbacks:
             elif tab == "control-clusters-tab":
                 style["padding-top"] = "2%"
                 return hide_style, hide_style, style
+
+        @du.callback(output=Output("data_files", "options"), id="file_uploader")
+        def upload(status):
+            files = get_data_files()
+            return files
 
         @app.callback(
             Output("data_frame_store", "data"),
