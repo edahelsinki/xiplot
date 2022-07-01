@@ -140,8 +140,7 @@ class Callbacks:
                 df["Clusters"] = kmeans_col
                 # Make color scale discrete
                 df["Clusters"] = df["Clusters"].astype(str)
-            jitter_max = (df[x_axis].max() -
-                          df[x_axis].min()) * 0.05
+            jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
 
             if jitter:
                 jitter = float(jitter)
@@ -182,8 +181,7 @@ class Callbacks:
             points = [point["pointIndex"] for point in slct_data["points"]]
             selected_df = df.loc[df.index.isin(points)]
             color = px.colors.qualitative.Dark2
-            fig_2 = Histogram(selected_df, x_axis,
-                              color_dicrete_sequence=color)
+            fig_2 = Histogram(selected_df, x_axis, color_dicrete_sequence=color)
             fig_2 = fig_2.create_plot().data[0]
             fig = fig.add_trace(fig.create_plot(), fig_2)
 
