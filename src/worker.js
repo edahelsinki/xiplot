@@ -14,6 +14,15 @@ async function loadPyodideAndPackages() {
     indexURL: `${pyodideAddress}/`,
   });
   await self.pyodide.loadPackage(["pandas", "numpy", "dash", "plotly", "sklearn", "matplotlib", "dashapp-0.1.0-py3-none-any.whl"], postConsoleMessage, postConsoleMessage);
+
+  self.pyodide.FS.mkdir("data");
+
+  for (const dataset of [
+    "autompg-B.csv", "autompg.csv", "auto-mpg.data",
+    "Wang-B.csv", "Wang-dataframe.csv",
+  ]) {
+    self.pyodide.FS.createLazyFile("data", dataset, "data/" + dataset, true, false);
+  }
 }
 
 let pyodideReadyPromise = loadPyodideAndPackages();
