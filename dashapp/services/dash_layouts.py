@@ -1,6 +1,8 @@
-from dash import html, dcc
 import dash_uploader as du
-from services.data_frame import get_data_files
+
+from dash import html, dcc
+
+from dashapp.services.data_frame import get_data_files
 
 
 TABS = [

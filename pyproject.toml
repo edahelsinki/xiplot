@@ -1,0 +1,21 @@
+[project]
+name = "dashapp"
+version = "0.1.0"
+
+[dependencies]
+dash = "^2.5.1"
+dash-uploader = "^0.6.0"
+flask = "^2.1.2"
+matplotlib = "^3.5.2"
+pandas = "^1.4.2"
+plotly = "^5.9.0"
+rdkit = "^2022.3.3"
+scikit-learn = "^1.1.1"
+sklearn = "^0.0"
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["dashapp"]

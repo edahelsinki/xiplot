@@ -1,8 +1,11 @@
+import plotly.express as px
+
 from re import sub
+
 from dash import html, dcc
 from matplotlib.pyplot import bar
-import plotly.express as px
-import services.dash_layouts as dash_layouts
+
+from dashapp.services import dash_layouts
 
 
 class Scatterplot:

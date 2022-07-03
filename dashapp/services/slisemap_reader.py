@@ -1,7 +1,8 @@
-from os import PathLike
-from typing import Optional, Sequence, Union
 import pandas as pd
 import numpy as np
+
+from os import PathLike
+from typing import Optional, Sequence, Union
 
 
 def slisemap_to_dataframe(
