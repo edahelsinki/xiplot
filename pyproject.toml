@@ -17,5 +17,8 @@ sklearn = "^0.0"
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["dashapp"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dashapp*"]
+exclude = []
+namespaces = true
