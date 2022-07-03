@@ -1,4 +1,4 @@
-.PHONY: pyodide install_pyodide patch_pyodide build_pyodide dashapp install_dashapp build_dashapp deploy all clean nuke
+.PHONY: pyodide install_pyodide patch_pyodide build_pyodide dashapp install_dashapp patch_dashapp build_dashapp deploy all clean nuke
 
 all: deploy
 
@@ -10,13 +10,13 @@ pyodide/.gitignore:
 
 patch_pyodide: pyodide/packages/dash/meta.yaml
 
-pyodide/packages/dash/meta.yaml: install_pyodide
+pyodide/packages/dash/meta.yaml: pyodide/.gitignore
 	cd pyodide; \
 	git apply ../patches/pyodide.patch
 
 build_pyodide: pyodide/dist/repodata.json
 
-pyodide/dist/repodata.json: install_pyodide
+pyodide/dist/repodata.json: pyodide/.gitignore
 	cd pyodide; \
 	./run_docker --non-interactive PYODIDE_PACKAGES="brotli,flask,plotly,dash,dash-uploader,pandas,jinja2,markupsafe,werkzeug,click,itsdangerous,flask_compress,sklearn,scikit-learn,matplotlib" make
 
@@ -28,13 +28,15 @@ dashapp/.gitignore:
 	git submodule init dashapp
 	git submodule update dashapp
 
-patch_dashapp: install_dashapp
+patch_dashapp: dashapp/patch.marker
+
+dashapp/patch.marker: dashapp/.gitignore
 	cd dashapp; \
 	git apply ../patches/dashapp.patch
 
 build_dashapp: dashapp/dist/dashapp-0.1.0-py3-none-any.whl
 
-dashapp/dist/dashapp-0.1.0-py3-none-any.whl: install_dashapp
+dashapp/dist/dashapp-0.1.0-py3-none-any.whl: dashapp/.gitignore
 	pip install build; \
 	cd dashapp; \
 	python3 -m build
