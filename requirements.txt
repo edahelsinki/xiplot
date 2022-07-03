@@ -1,9 +1,9 @@
 dash==2.5.1
-dash-bootstrap-components==1.1.0
 dash-uploader==0.6.0
+flask==2.1.2
 matplotlib==3.5.2
 pandas==1.4.2
-plotly==5.8.2
+plotly==5.9.0
 rdkit==2022.3.3
 scikit-learn==1.1.1
 sklearn==0.0
