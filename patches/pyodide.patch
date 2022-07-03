@@ -1,0 +1,240 @@
+diff --git a/packages/brotli/meta.yaml b/packages/brotli/meta.yaml
+new file mode 100644
+index 00000000..8d5da3a7
+--- /dev/null
++++ b/packages/brotli/meta.yaml
+@@ -0,0 +1,14 @@
++package:
++  name: brotli
++  version: 1.0.9
++source:
++  url: https://files.pythonhosted.org/packages/2a/18/70c32fe9357f3eea18598b23aa9ed29b1711c3001835f7cf99a9818985d0/Brotli-1.0.9.zip
++  sha256: 4d1b810aa0ed773f81dceda2cc7b403d01057458730e309856356d4ef4188438
++test:
++  imports:
++    - brotli
++about:
++  home: https://github.com/google/brotli
++  PyPI: https://pypi.org/project/brotli
++  summary: Python bindings for the Brotli compression library
++  license: MIT
+diff --git a/packages/click/meta.yaml b/packages/click/meta.yaml
+new file mode 100644
+index 00000000..cedec332
+--- /dev/null
++++ b/packages/click/meta.yaml
+@@ -0,0 +1,14 @@
++package:
++  name: click
++  version: 8.1.3
++source:
++  url: https://files.pythonhosted.org/packages/c2/f1/df59e28c642d583f7dacffb1e0965d0e00b218e0186d7858ac5233dce840/click-8.1.3-py3-none-any.whl
++  sha256: bb4d8133cb15a609f44e8213d9b391b0809795062913b383c62be0ee95b1db48
++test:
++  imports:
++    - click
++about:
++  home: https://palletsprojects.com/p/click/
++  PyPI: https://pypi.org/project/click
++  summary: Composable command line interface toolkit
++  license: BSD-3-Clause
+diff --git a/packages/dash/meta.yaml b/packages/dash/meta.yaml
+new file mode 100644
+index 00000000..360f67a2
+--- /dev/null
++++ b/packages/dash/meta.yaml
+@@ -0,0 +1,19 @@
++package:
++  name: dash
++  version: 2.5.1
++source:
++  url: https://files.pythonhosted.org/packages/a2/d2/d645397dca44d9459e17fcad1a8611ea3e77f930b7af1e7926824f0d42b8/dash-2.5.1-py3-none-any.whl
++  sha256: 1b9110bcde7559a8405095901d4f7cfcfd18054b0c9758ec8562b3977824fbfe
++requirements:
++  run:
++    - flask
++    - flask_compress
++    - setuptools
++test:
++  imports:
++    - dash
++about:
++  home: https://plotly.com/dash
++  PyPI: https://pypi.org/project/dash
++  summary: A Python framework for building reactive web-apps. Developed by Plotly.
++  license: MIT
+diff --git a/packages/flask/meta.yaml b/packages/flask/meta.yaml
+new file mode 100644
+index 00000000..4a06ec96
+--- /dev/null
++++ b/packages/flask/meta.yaml
+@@ -0,0 +1,20 @@
++package:
++  name: flask
++  version: 2.1.2
++source:
++  url: https://files.pythonhosted.org/packages/ba/76/e9580e494eaf6f09710b0f3b9000c9c0363e44af5390be32bb0394165853/Flask-2.1.2-py3-none-any.whl
++  sha256: fad5b446feb0d6db6aec0c3184d16a8c1f6c3e464b511649c8918a9be100b4fe
++requirements:
++  run:
++    - jinja2
++    - werkzeug
++    - itsdangerous
++    - click
++test:
++  imports:
++    - flask
++about:
++  home: https://palletsprojects.com/p/flask
++  PyPI: https://pypi.org/project/flask
++  summary: A simple framework for building complex web applications.
++  license: BSD-3-Clause
+diff --git a/packages/flask_compress/meta.yaml b/packages/flask_compress/meta.yaml
+new file mode 100644
+index 00000000..4704b3f2
+--- /dev/null
++++ b/packages/flask_compress/meta.yaml
+@@ -0,0 +1,17 @@
++package:
++  name: flask_compress
++  version: "1.12"
++source:
++  url: https://files.pythonhosted.org/packages/d5/08/91ffc9506cb569f45cc4781ac8d35c6be19b9c3c8b1f8bc77aed56a46b53/Flask_Compress-1.12-py3-none-any.whl
++  sha256: 9f4e40211755e86f85e5eb7d414856ef1e8751912caa78d62853169400335f0c
++requirements:
++  run:
++    - brotli
++test:
++  imports:
++    - flask_compress
++about:
++  home: https://github.com/colour-science/flask-compress
++  PyPI: https://pypi.org/project/flask_compress
++  summary: Compress responses in your Flask app with gzip, deflate or brotli.
++  license: MIT
+diff --git a/packages/itsdangerous/meta.yaml b/packages/itsdangerous/meta.yaml
+new file mode 100644
+index 00000000..788e5840
+--- /dev/null
++++ b/packages/itsdangerous/meta.yaml
+@@ -0,0 +1,14 @@
++package:
++  name: itsdangerous
++  version: 2.1.2
++source:
++  url: https://files.pythonhosted.org/packages/68/5f/447e04e828f47465eeab35b5d408b7ebaaaee207f48b7136c5a7267a30ae/itsdangerous-2.1.2-py3-none-any.whl
++  sha256: 2c2349112351b88699d8d4b6b075022c0808887cb7ad10069318a8b0bc88db44
++test:
++  imports:
++    - itsdangerous
++about:
++  home: https://palletsprojects.com/p/itsdangerous/
++  PyPI: https://pypi.org/project/itsdangerous
++  summary: Safely pass data to untrusted environments and back.
++  license: BSD-3-Clause
+diff --git a/packages/jinja2/meta.yaml b/packages/jinja2/meta.yaml
+new file mode 100644
+index 00000000..f4656686
+--- /dev/null
++++ b/packages/jinja2/meta.yaml
+@@ -0,0 +1,17 @@
++package:
++  name: jinja2
++  version: 3.1.2
++source:
++  url: https://files.pythonhosted.org/packages/bc/c3/f068337a370801f372f2f8f6bad74a5c140f6fda3d9de154052708dd3c65/Jinja2-3.1.2-py3-none-any.whl
++  sha256: 6088930bfe239f0e6710546ab9c19c9ef35e29792895fed6e6e31a023a182a61
++requirements:
++  run:
++    - markupsafe
++test:
++  imports:
++    - jinja2
++about:
++  home: https://palletsprojects.com/p/jinja/
++  PyPI: https://pypi.org/project/jinja2
++  summary: A very fast and expressive template engine.
++  license: BSD-3-Clause
+diff --git a/packages/markupsafe/meta.yaml b/packages/markupsafe/meta.yaml
+new file mode 100644
+index 00000000..76441c32
+--- /dev/null
++++ b/packages/markupsafe/meta.yaml
+@@ -0,0 +1,14 @@
++package:
++  name: markupsafe
++  version: 2.1.1
++source:
++  url: https://files.pythonhosted.org/packages/1d/97/2288fe498044284f39ab8950703e88abbac2abbdf65524d576157af70556/MarkupSafe-2.1.1.tar.gz
++  sha256: 7f91197cc9e48f989d12e4e6fbc46495c446636dfc81b9ccf50bb0ec74b91d4b
++test:
++  imports:
++    - markupsafe
++about:
++  home: https://palletsprojects.com/p/markupsafe/
++  PyPI: https://pypi.org/project/markupsafe
++  summary: Safely add untrusted strings to HTML/XML markup.
++  license: BSD-3-Clause
+diff --git a/packages/plotly/meta.yaml b/packages/plotly/meta.yaml
+new file mode 100644
+index 00000000..4793b2e4
+--- /dev/null
++++ b/packages/plotly/meta.yaml
+@@ -0,0 +1,14 @@
++package:
++  name: plotly
++  version: 5.9.0
++source:
++  url: https://files.pythonhosted.org/packages/2d/6a/2c2e9ed190066646bbf1620c0b67f8e363e0024ee7bf0d3ea1fdcc9af3ae/plotly-5.9.0-py2.py3-none-any.whl
++  sha256: 9acf168915101caac82ed6da3390840c622d9d4e4a78cbe1260f52501efc3117
++test:
++  imports:
++    - plotly
++about:
++  home: https://plotly.com/python/
++  PyPI: https://pypi.org/project/plotly
++  summary: An open-source, interactive data visualization library for Python
++  license: MIT
+diff --git a/packages/sklearn/meta.yaml b/packages/sklearn/meta.yaml
+new file mode 100644
+index 00000000..947980c8
+--- /dev/null
++++ b/packages/sklearn/meta.yaml
+@@ -0,0 +1,17 @@
++package:
++  name: sklearn
++  version: "0.0"
++source:
++  url: https://files.pythonhosted.org/packages/1e/7a/dbb3be0ce9bd5c8b7e3d87328e79063f8b263b2b1bfa4774cb1147bfcd3f/sklearn-0.0.tar.gz
++  sha256: e23001573aa194b834122d2b9562459bf5ae494a2d59ca6b8aa22c85a44c0e31
++requirements:
++  run:
++    - scikit-learn
++test:
++  imports:
++    - sklearn
++about:
++  home: https://pypi.python.org/pypi/scikit-learn/
++  PyPI: https://pypi.org/project/sklearn
++  summary: A set of python modules for machine learning and data mining
++  license: UNKNOWN
+diff --git a/packages/werkzeug/meta.yaml b/packages/werkzeug/meta.yaml
+new file mode 100644
+index 00000000..6ddbc663
+--- /dev/null
++++ b/packages/werkzeug/meta.yaml
+@@ -0,0 +1,14 @@
++package:
++  name: werkzeug
++  version: 2.1.2
++source:
++  url: https://files.pythonhosted.org/packages/c4/44/f50f2d22cdfb6d56c03d1b4cc3cfa03ebee2f21b59a7768f151e43415ba5/Werkzeug-2.1.2-py3-none-any.whl
++  sha256: 72a4b735692dd3135217911cbeaa1be5fa3f62bffb8745c5215420a03dc55255
++test:
++  imports:
++    - werkzeug
++about:
++  home: https://palletsprojects.com/p/werkzeug/
++  PyPI: https://pypi.org/project/werkzeug
++  summary: The comprehensive WSGI web application library.
++  license: BSD-3-Clause

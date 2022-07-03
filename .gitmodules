@@ -1,3 +1,6 @@
+[submodule "dashapp"]
+	path = dashapp
+	url = https://github.com/edahelsinki/dash_app2022.git
 [submodule "pyodide"]
 	path = pyodide
-	url = https://github.com/MomoLangenstein/dashapp-wasm-pyodide.git
+	url = https://github.com/pyodide/pyodide.git
