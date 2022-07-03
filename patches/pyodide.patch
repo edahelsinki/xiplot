@@ -38,6 +38,26 @@ index 00000000..cedec332
 +  PyPI: https://pypi.org/project/click
 +  summary: Composable command line interface toolkit
 +  license: BSD-3-Clause
+diff --git a/packages/dash-uploader/meta.yaml b/packages/dash-uploader/meta.yaml
+new file mode 100644
+index 00000000..7df62c74
+--- /dev/null
++++ b/packages/dash-uploader/meta.yaml
+@@ -0,0 +1,14 @@
++package:
++  name: dash-uploader
++  version: 0.6.0
++source:
++  url: https://files.pythonhosted.org/packages/80/5a/5d047e4970738660df625138e956fbde284bb39037c96e1c88159424fa43/dash_uploader-0.6.0.tar.gz
++  sha256: 18eae11c6e4cd99ad52a1556420d49707e2e15bbf104dd9fc38716081b113619
++test:
++  imports:
++    - dash-uploader
++about:
++  home: https://github.com/np-8/dash-uploader
++  PyPI: https://pypi.org/project/dash-uploader
++  summary: Upload large files using resumable.js
++  license: MIT
 diff --git a/packages/dash/meta.yaml b/packages/dash/meta.yaml
 new file mode 100644
 index 00000000..360f67a2

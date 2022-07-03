@@ -1,6 +1,11 @@
 //@ts-ignore
 window.dashApp = `
-from dashapp import DashApp
+import dashapp
 
-app = DashApp().start(run=False)
+from dash import Dash
+
+from dashapp.services.dash import DashApp
+
+dash = Dash(__name__, suppress_callback_exceptions=True, compress=False)
+app = DashApp(app=dash).app
 `;

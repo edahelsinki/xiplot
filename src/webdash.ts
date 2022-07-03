@@ -8,7 +8,9 @@ const directoryMap = {
   "dash-renderer": `${sitePackagesDir}dash/dash-renderer/build`,
   "dcc": `${sitePackagesDir}dash/dcc/`,
   "html": `${sitePackagesDir}dash/html/`,
-  "dash_table": `${sitePackagesDir}dash/dash_table/`
+  "dash_table": `${sitePackagesDir}dash/dash_table/`,
+  // FIXME: remove when dash uploader is removed
+  "_build": `${sitePackagesDir}dash_uploader/_build/`
 }
 
 declare global {
