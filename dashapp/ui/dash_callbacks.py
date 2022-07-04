@@ -41,14 +41,20 @@ class Callbacks:
                 return hide_style, hide_style, style
 
         @du.callback(
-            output=[Output("uploaded_data_file_store", "data")], id="file_uploader"
+            output=[
+                Output("uploaded_data_file_store", "data"),
+                Output("data_files", "options"),
+            ],
+            id="file_uploader",
         )
         def upload(status):
             filename = os.path.split(status[0])[1]
             df = read_data_file(filename)
+            files = get_data_files() + [filename + " (Uploaded)"]
+            files.remove(filename)
             df = df.to_json(date_format="iso", orient="split")
             os.remove(os.path.join("data", filename))
-            return [df]
+            return [df], files
 
         @app.callback(
             Output("data_frame_store", "data"),
@@ -112,14 +118,20 @@ class Callbacks:
                     kmeans_col,
                 )
             elif trigger == "submit-button":
-                df = read_data_file(filename)
+                if len(filename.split(" ")) < 2:
+                    df = read_data_file(filename)
+                    df_store = df.to_json(date_format="iso", orient="split")
+                elif filename.split(" ")[1] == "(Uploaded)":
+                    df = pd.read_json(uploaded_data[0], orient="split")
+                    df_store = uploaded_data[0]
+                else:
+                    return
                 self.__df = df
-                df_store = df.to_json(date_format="iso", orient="split")
                 file_style = {"display": "inline"}
                 file_message = f"Data file {filename} loaded successfully!"
             elif trigger == "uploaded_data_file_store":
-                df_store = uploaded_data
-                df = pd.read_json(uploaded_data, orient="split")
+                df_store = uploaded_data[0]
+                df = pd.read_json(uploaded_data[0], orient="split")
 
             columns = df.columns.to_list()
             scatter_x = ""
