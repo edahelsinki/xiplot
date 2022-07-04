@@ -242,18 +242,19 @@ class Callbacks:
             Output("histo_deviation", "children"),
             Input("x_axis_histo", "value"),
             Input("scatterplot", "selectedData"),
+            State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def render_histogram(x_axis, slct_data):
+        def render_histogram(x_axis, slct_data, df):
             # FIXME: hide histogram when selection is None?
+            df = pd.read_json(df, orient="split")
             if slct_data is None:
                 raise PreventUpdate()
 
-            df = copy.deepcopy(self.__df)
             if "Clusters" in df.columns.to_list():
                 df["Clusters"] = df["Clusters"].astype(float)
 
-            fig = Histogram(df=self.__df, x_axis=x_axis, barmode="overlay")
+            fig = Histogram(df=df, x_axis=x_axis, barmode="overlay")
             style = fig.style
             div_style = fig.div_style
 
@@ -264,8 +265,8 @@ class Callbacks:
             fig_2 = fig_2.create_plot().data[0]
             fig = fig.add_trace(fig.create_plot(), fig_2)
 
-            mean = round(self.__df[x_axis].mean(), 3)
-            deviation = round(self.__df[x_axis].std(), 3)
+            mean = round(df[x_axis].mean(), 3)
+            deviation = round(df[x_axis].std(), 3)
             selected_mean = round(selected_df[x_axis].mean(), 3)
             selected_deviation = round(selected_df[x_axis].std(), 3)
             return (
