@@ -234,12 +234,127 @@ index 00000000..cd8b2aed
 \ No newline at end of file
 diff --git a/packages/rdkit/patches/setup.patch b/packages/rdkit/patches/setup.patch
 new file mode 100644
-index 00000000..33534524
+index 00000000..6432b2bf
 --- /dev/null
 +++ b/packages/rdkit/patches/setup.patch
-@@ -0,0 +1,26 @@
+@@ -0,0 +1,143 @@
++diff --git a/conan_boost_mod/all/conandata.yml b/conan_boost_mod/all/conandata.yml
++index c0041cf..7a1aa86 100644
++--- a/conan_boost_mod/all/conandata.yml
+++++ b/conan_boost_mod/all/conandata.yml
++@@ -92,6 +92,8 @@ patches:
++       base_path: "source_subfolder"
++     - patch_file: "patches/1.69.0-type_erasure-no-system.patch"
++       base_path: "source_subfolder"
+++    - patch_file: "patches/b2-ambiguous-generator.patch"
+++      base_path: "source_subfolder"
++   1.70.0:
++     - patch_file: "patches/0001-beast-fix-moved-from-executor.patch"
++       base_path: "source_subfolder"
++@@ -117,6 +119,8 @@ patches:
++       base_path: "source_subfolder"
++     - patch_file: "patches/1.69.0-type_erasure-no-system.patch"
++       base_path: "source_subfolder"
+++    - patch_file: "patches/b2-ambiguous-generator.patch"
+++      base_path: "source_subfolder"
++   1.71.0:
++     - patch_file: "patches/bcp_namespace_issues_1_71.patch"
++       base_path: "source_subfolder"
++@@ -140,6 +144,8 @@ patches:
++       base_path: "source_subfolder"
++     - patch_file: "patches/1.69.0-type_erasure-no-system.patch"
++       base_path: "source_subfolder"
+++    - patch_file: "patches/b2-ambiguous-generator.patch"
+++      base_path: "source_subfolder"
++   1.72.0:
++     - patch_file: "patches/bcp_namespace_issues_1_72.patch"
++       base_path: "source_subfolder"
++@@ -165,6 +171,8 @@ patches:
++       base_path: "source_subfolder"
++     - patch_file: "patches/1.69.0-type_erasure-no-system.patch"
++       base_path: "source_subfolder"
+++    - patch_file: "patches/b2-ambiguous-generator.patch"
+++      base_path: "source_subfolder"
++   1.73.0:
++     - patch_file: "patches/boost_build_qcc_fix_debug_build_parameter.patch"
++       base_path: "source_subfolder"
++@@ -180,6 +188,8 @@ patches:
++       base_path: "source_subfolder"
++     - patch_file: "patches/1.69.0-type_erasure-no-system.patch"
++       base_path: "source_subfolder"
+++    - patch_file: "patches/b2-ambiguous-generator.patch"
+++      base_path: "source_subfolder"
++   1.74.0:
++     - patch_file: "patches/boost_build_qcc_fix_debug_build_parameter_since_1_74.patch"
++       base_path: "source_subfolder"
++@@ -195,6 +205,8 @@ patches:
++       base_path: "source_subfolder"
++     - patch_file: "patches/1.69.0-type_erasure-no-system.patch"
++       base_path: "source_subfolder"
+++    - patch_file: "patches/b2-ambiguous-generator.patch"
+++      base_path: "source_subfolder"
++   1.75.0:
++     - patch_file: "patches/boost_build_qcc_fix_debug_build_parameter_since_1_74.patch"
++       base_path: "source_subfolder"
++@@ -208,6 +220,8 @@ patches:
++       base_path: "source_subfolder"
++     - patch_file: "patches/1.77.0-type_erasure-no-system.patch"
++       base_path: "source_subfolder"
+++    - patch_file: "patches/b2-ambiguous-generator.patch"
+++      base_path: "source_subfolder"
++   1.76.0:
++     - patch_file: "patches/boost_locale_fail_on_missing_backend.patch"
++       base_path: "source_subfolder"
++@@ -217,6 +231,8 @@ patches:
++       base_path: "source_subfolder"
++     - patch_file: "patches/1.77.0-type_erasure-no-system.patch"
++       base_path: "source_subfolder"
+++    - patch_file: "patches/b2-ambiguous-generator.patch"
+++      base_path: "source_subfolder"
++   1.77.0:
++     - patch_file: "patches/boost_locale_fail_on_missing_backend.patch"
++       base_path: "source_subfolder"
++@@ -228,8 +244,12 @@ patches:
++       base_path: "source_subfolder"
++     - patch_file: "patches/1.77.0-fiber-mingw.patch"
++       base_path: "source_subfolder"
+++    - patch_file: "patches/b2-ambiguous-generator.patch"
+++      base_path: "source_subfolder"
++   1.78.0:
++     - patch_file: "patches/boost_locale_fail_on_missing_backend.patch"
++       base_path: "source_subfolder"
++     - patch_file: "patches/1.78.0-b2-fix-install.patch"
++       base_path: "source_subfolder"
+++    - patch_file: "patches/b2-ambiguous-generator.patch"
+++      base_path: "source_subfolder"
++diff --git a/conan_boost_mod/all/patches/b2-ambiguous-generator.patch b/conan_boost_mod/all/patches/b2-ambiguous-generator.patch
++new file mode 100644
++index 0000000..1ccc2af
++--- /dev/null
+++++ b/conan_boost_mod/all/patches/b2-ambiguous-generator.patch
++@@ -0,0 +1,20 @@
+++--- a/tools/build/src/tools/emscripten.jam
++++++ b/tools/build/src/tools/emscripten.jam
+++@@ -6,6 +6,7 @@
+++ import feature ;
+++ import os ;
+++ import toolset ;
++++import generators ;
+++ import common ;
+++ import gcc ;
+++ import type ;
+++@@ -50,6 +51,9 @@ toolset.inherit-flags emscripten : gcc
+++         <rtti>off <rtti>on
+++         ;
+++ 
++++generators.override builtin.lib-generator : emscripten.prebuilt ;
++++generators.override emscripten.searched-lib-generator : searched-lib-generator ;
++++
+++ type.set-generated-target-suffix EXE : <toolset>emscripten : "js" ;
+++ type.set-generated-target-suffix OBJ : <toolset>emscripten : "bc" ;
+++ type.set-generated-target-suffix STATIC_LIB : <toolset>emscripten : "bc" ;
 +diff --git a/setup.py b/setup.py
-+index 14feae4..4b02409 100644
++index 14feae4..4c5ac9f 100644
 +--- a/setup.py
 ++++ b/setup.py
 +@@ -10,6 +10,8 @@ from textwrap import dedent
@@ -251,7 +366,7 @@ index 00000000..33534524
 + # RDKit version to build (tag from github repository)
 + rdkit_tag = "Release_2022_03_3"
 + 
-+@@ -94,6 +96,12 @@ class BuildRDKit(build_ext_orig):
++@@ -94,6 +96,14 @@ class BuildRDKit(build_ext_orig):
 +         if "macosx_arm64" in os.environ["CIBW_BUILD"]:
 +             cmd += ["-s", "arch=armv8", "-s", "arch_build=armv8"]
 + 
@@ -260,6 +375,8 @@ index 00000000..33534524
 ++        cmd += ["-s", "compiler.libcxx=libc++"]
 ++        cmd += ["-s", "os=Emscripten"]
 ++        cmd += ["-s", "arch=wasm"]
+++        cmd += ["-o", "boost:without_locale=True"]
+++        cmd += ["-o", "boost:without_log=True"]
 ++
 +         check_call(cmd)
 + 
