@@ -215,6 +215,55 @@ index 00000000..4793b2e4
 +  PyPI: https://pypi.org/project/plotly
 +  summary: An open-source, interactive data visualization library for Python
 +  license: MIT
+diff --git a/packages/rdkit/meta.yaml b/packages/rdkit/meta.yaml
+new file mode 100644
+index 00000000..cd8b2aed
+--- /dev/null
++++ b/packages/rdkit/meta.yaml
+@@ -0,0 +1,10 @@
++package:
++  name: rdkit
++  version: 2022.3.3
++
++source:
++  sha256: 2d7e759363dbc0b9b538d33420c1480a09721cf25ad292309a96f1baf68fb1c9
++  url: https://github.com/kuelumbus/rdkit-pypi/archive/540f53cafb0b90b150893fdad9a52834db8a2620.tar.gz
++
++  patches:
++    - patches/setup.patch
+\ No newline at end of file
+diff --git a/packages/rdkit/patches/setup.patch b/packages/rdkit/patches/setup.patch
+new file mode 100644
+index 00000000..33534524
+--- /dev/null
++++ b/packages/rdkit/patches/setup.patch
+@@ -0,0 +1,26 @@
++diff --git a/setup.py b/setup.py
++index 14feae4..4b02409 100644
++--- a/setup.py
+++++ b/setup.py
++@@ -10,6 +10,8 @@ from textwrap import dedent
++ from setuptools import Extension, find_packages, setup
++ from setuptools.command.build_ext import build_ext as build_ext_orig
++ 
+++os.environ["CIBW_BUILD"] = "cp310-emscripten_3_1_14_wasm32"
+++
++ # RDKit version to build (tag from github repository)
++ rdkit_tag = "Release_2022_03_3"
++ 
++@@ -94,6 +96,12 @@ class BuildRDKit(build_ext_orig):
++         if "macosx_arm64" in os.environ["CIBW_BUILD"]:
++             cmd += ["-s", "arch=armv8", "-s", "arch_build=armv8"]
++ 
+++        cmd += ["-s", "compiler=clang"]
+++        cmd += ["-s", "compiler.version=15"]
+++        cmd += ["-s", "compiler.libcxx=libc++"]
+++        cmd += ["-s", "os=Emscripten"]
+++        cmd += ["-s", "arch=wasm"]
+++
++         check_call(cmd)
++ 
++     def build_rdkit(self, ext):
 diff --git a/packages/sklearn/meta.yaml b/packages/sklearn/meta.yaml
 new file mode 100644
 index 00000000..947980c8

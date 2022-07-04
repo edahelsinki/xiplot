@@ -5,6 +5,9 @@ python3 -m build
 python -m pyodide_build mkpkg [PACKAGE]
 PYODIDE_PACKAGES="brotli,flask,plotly,dash,pandas,jinja2,markupsafe,werkzeug,click,itsdangerous,flask_compress,sklearn,scikit-learn,matplotlib" make
 
+sudo apt-get update && sudo apt-get install clang
+python -m pyodide_build buildpkg meta.yaml
+
 sklearn, flask, jinja2, dash, flask_compress
 
 requirements:
