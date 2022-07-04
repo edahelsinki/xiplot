@@ -18,7 +18,7 @@ build_pyodide: pyodide/dist/repodata.json
 
 pyodide/dist/repodata.json: pyodide/.gitignore
 	cd pyodide; \
-	./run_docker --non-interactive PYODIDE_PACKAGES="brotli,flask,plotly,dash,dash-uploader,pandas,jinja2,markupsafe,werkzeug,click,itsdangerous,flask_compress,sklearn,scikit-learn,matplotlib" make
+	./run_docker --non-interactive PYODIDE_PACKAGES="brotli,flask,plotly,dash,pandas,jinja2,markupsafe,werkzeug,click,itsdangerous,flask_compress,sklearn,scikit-learn,matplotlib" make
 
 pyodide: install_pyodide patch_pyodide build_pyodide
 
@@ -54,8 +54,9 @@ clean:
 	rm -rf dist
 	mkdir dist
 	rm -rf .cache
+	rm -rf dashapp/dist
 
 nuke: clean
 	rm -rf node_modules
-	git submodule deinit dashapp
-	git submodule deinit pyodide
+	git submodule deinit -f dashapp
+	git submodule deinit -f pyodide
