@@ -1,14 +1,21 @@
+import base64
 import copy
+import os
 
 import pandas as pd
 import numpy as np
-import os
-import dash_uploader as du
+
+from io import BytesIO
 
 from dash import Output, Input, State, ctx
 from dash.exceptions import PreventUpdate
 
-from dashapp.services.data_frame import read_data_file, get_kmean, get_data_files
+from dashapp.services.data_frame import (
+    read_data_file,
+    read_dataframe_with_extension,
+    get_kmean,
+    get_data_files,
+)
 from dashapp.services.graphs import *
 from dashapp.services.dash_layouts import (
     control_data_content,
@@ -40,22 +47,49 @@ class Callbacks:
                 style["padding-top"] = "2%"
                 return hide_style, hide_style, style
 
-        @du.callback(
-            output=[
+        try:
+            import dash_uploader as du
+
+            @du.callback(
+                output=[
+                    Output("uploaded_data_file_store", "data"),
+                    Output("data_files", "options"),
+                    Output("data_files", "value"),
+                ],
+                id="file_uploader",
+            )
+            def upload(status):
+                filename = os.path.split(status[0])[1]
+                df = read_data_file(filename)
+                files = get_data_files() + [filename + " (Uploaded)"]
+                df = df.to_json(date_format="iso", orient="split")
+                os.remove(os.path.join("data", filename))
+                return df, files, filename + " (Uploaded)"
+
+        except ImportError:
+
+            @app.callback(
                 Output("uploaded_data_file_store", "data"),
                 Output("data_files", "options"),
                 Output("data_files", "value"),
-            ],
-            id="file_uploader",
-        )
-        def upload(status):
-            filename = os.path.split(status[0])[1]
-            df = read_data_file(filename)
-            files = get_data_files() + [filename + " (Uploaded)"]
-            files.remove(filename)
-            df = df.to_json(date_format="iso", orient="split")
-            os.remove(os.path.join("data", filename))
-            return [df], files, filename + " (Uploaded)"
+                Input("file_uploader", "contents"),
+                State("file_uploader", "filename"),
+            )
+            def upload(contents, filename):
+                if contents is None:
+                    raise PreventUpdate()
+
+                content_type, content_string = contents.split(",")
+                decoded = base64.b64decode(content_string)
+
+                df = read_dataframe_with_extension(BytesIO(decoded), filename)
+
+                if df is None:
+                    raise PreventUpdate()
+                else:
+                    files = get_data_files() + [filename + " (Uploaded)"]
+                    df = df.to_json(date_format="iso", orient="split")
+                    return df, files, filename + " (Uploaded)"
 
         @app.callback(
             Output("data_frame_store", "data"),
@@ -122,17 +156,17 @@ class Callbacks:
                 if len(filename.split(" ")) < 2:
                     df = read_data_file(filename)
                     df_store = df.to_json(date_format="iso", orient="split")
-                elif filename.split(" ")[1] == "(Uploaded)":
-                    df = pd.read_json(uploaded_data[0], orient="split")
-                    df_store = uploaded_data[0]
+                elif filename.endswith(" (Uploaded)"):
+                    df = pd.read_json(uploaded_data, orient="split")
+                    df_store = uploaded_data
                 else:
                     return
                 self.__df = df
                 file_message = f"Data file {filename} loaded successfully!"
             elif trigger == "uploaded_data_file_store":
-                df_store = uploaded_data[0]
-                df = pd.read_json(uploaded_data[0], orient="split")
-                filename = filename.split(" ")[0]
+                df_store = uploaded_data
+                df = pd.read_json(uploaded_data, orient="split")
+                filename = filename[:-11]
                 file_message = f"Data file {filename} loaded successfully!"
 
             columns = df.columns.to_list()

@@ -1,5 +1,3 @@
-import dash_uploader as du
-
 from dash import html, dcc
 
 from dashapp.services.data_frame import read_data_file, get_data_files
@@ -11,7 +9,12 @@ class DashApp:
     def __init__(self, app) -> None:
         self.app = app
 
-        du.configure_upload(app=self.app, folder="data", use_upload_id=False)
+        try:
+            import dash_uploader as du
+
+            du.configure_upload(app=self.app, folder="data", use_upload_id=True)
+        except ImportError:
+            pass
 
         self.app.layout = html.Div(
             [

@@ -16,6 +16,32 @@ def get_data_files():
     return data_files
 
 
+def read_dataframe_with_extension(data, filename):
+    """
+    Read the given data and convert it to a pandas data frame
+
+    Parameters
+    ----------
+        data: File name or File-like object
+        filename: File name as a string
+
+    Returns
+    -------
+        df: Pandas data frame
+    """
+    file_extension = os.path.splitext(filename)[1]
+    if file_extension == ".csv":
+        data = pd.read_csv(data)
+    elif file_extension == ".json":
+        data = pd.read_json(data)
+    elif file_extension == ".pkl":
+        data = pd.read_pickle(data)
+    else:
+        return None
+    df = pd.DataFrame(data)
+    return df
+
+
 def read_data_file(filename):
     """
     Read the given data file and convert it to a pandas data frame
@@ -30,17 +56,7 @@ def read_data_file(filename):
     """
     if filename == "auto-mpg.data":
         return read_auto_mpg_file(filename)
-    file_extension = os.path.splitext(filename)[1]
-    if file_extension == ".csv":
-        data = pd.read_csv(f"data/{filename}")
-    elif file_extension == ".json":
-        data = pd.read_json(f"data/{filename}")
-    elif file_extension == ".pkl":
-        data = pd.read_pickle(f"data/{filename}")
-    else:
-        return
-    df = pd.DataFrame(data)
-    return df
+    return read_dataframe_with_extension(filename, filename)
 
 
 def read_auto_mpg_file(filename):
