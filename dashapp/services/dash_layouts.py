@@ -14,7 +14,7 @@ TABS = [
 
 def app_logo():
     layout = html.Div(
-        [html.H1("Dash App 2022")], style={"textAlign": "center", "margin": 20}
+        [html.H1("Dash App 2022")], style={"text-align": "center", "margin": 20}
     )
     return layout
 
@@ -44,19 +44,12 @@ def control():
 def control_data_content():
     layout = html.Div(
         [
-            html.Div(
-                [
-                    html.H4(children="Choose a data file"),
-                ],
-                style={"margin-top": 4},
-            ),
-            html.Div(
-                [
-                    dcc.Dropdown(get_data_files(), id="data_files", clearable=False),
-                ],
-                style={
-                    "width": "98%",
-                },
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    get_data_files(), id="data_files", clearable=False
+                ),
+                title="Choose a data file",
+                style={"width": "98%"},
             ),
             html.Div(
                 [
@@ -76,7 +69,6 @@ def control_data_content():
                 id="data_file_load_message-container",
                 style={"display": "none"},
             ),
-            html.Div([du.Upload(id="file_uploader")], style={"padding-top": "2%"}),
         ],
         id="control_data_content-container",
         style={"display": "none"},
@@ -93,69 +85,34 @@ def control_scatterplot_content():
                     html.H4("Scatterplot"),
                 ]
             ),
-            html.Div(
-                [
-                    html.Div(["x"], style={"padding-bottom": "2%"}),
-                    dcc.Dropdown(id="scatter_x_axis", clearable=False),
-                ],
-                style={"display": "inline-block", "width": "40%"},
+            layout_wrapper(
+                component=dcc.Dropdown(id="scatter_x_axis", clearable=False), title="x"
             ),
-            html.Div(
-                [
-                    html.Div(["y"], style={"padding-bottom": "2%"}),
-                    dcc.Dropdown(id="scatter_y_axis", clearable=False),
-                ],
-                style={"display": "inline-block", "width": "40%", "padding-left": "2%"},
+            layout_wrapper(
+                component=dcc.Dropdown(id="scatter_y_axis", clearable=False), title="y"
             ),
-            html.Div(
-                [
-                    html.Div(
-                        [
-                            html.Div(
-                                [
-                                    "target (color)",
-                                ],
-                            ),
-                            dcc.Dropdown(
-                                id="scatter_target_color",
-                            ),
-                        ],
-                        style={
-                            "width": "40%",
-                            "display": "inline-block",
-                        },
-                    ),
-                    html.Div(
-                        [
-                            html.Div(
-                                [
-                                    "target (symbol)",
-                                ]
-                            ),
-                            dcc.Dropdown(
-                                id="scatter_target_symbol",
-                            ),
-                        ],
-                        style={
-                            "width": "40%",
-                            "display": "inline-block",
-                            "padding-left": "2%",
-                        },
-                    ),
-                    html.Div(
-                        [
-                            html.Div([html.H5("jitter (float)")]),
-                            dcc.Slider(
-                                id="jitter-slider",
-                                min=0,
-                                max=1,
-                                marks=None,
-                                tooltip={"placement": "bottom", "always_visible": True},
-                            ),
-                        ]
-                    ),
-                ],
-                style={"padding-top": "2%"},
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id="scatter_target_color",
+                ),
+                title="target (color)",
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id="scatter_target_symbol",
+                ),
+                title="target (symbol)",
+            ),
+            layout_wrapper(
+                component=dcc.Slider(
+                    id="jitter-slider",
+                    min=0,
+                    max=1,
+                    marks=None,
+                    tooltip={"placement": "bottom", "always_visible": True},
+                ),
+                title="jitter",
+                style={"width": "80%", "padding-left": "2%"},
             ),
         ],
         id="control_scatter_content-container",
@@ -167,28 +124,16 @@ def control_scatterplot_content():
 def control_clusters_content():
     layout = html.Div(
         [
-            html.Div(
-                [
-                    html.Div(
-                        [
-                            html.H5("amount of clusters"),
-                        ]
-                    ),
-                    dcc.Dropdown(
-                        options=[i for i in range(2, 11)], id="cluster_amount"
-                    ),
-                ],
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    options=[i for i in range(2, 11)], id="cluster_amount"
+                ),
+                title="cluster amount",
                 style={"width": "23%", "display": "inline-block", "padding-left": "2%"},
             ),
-            html.Div(
-                [
-                    html.Div(
-                        [
-                            html.H5("features"),
-                        ]
-                    ),
-                    dcc.Dropdown(id="cluster_feature", multi=True),
-                ],
+            layout_wrapper(
+                component=dcc.Dropdown(id="cluster_feature", multi=True),
+                title="features",
                 style={"width": "50%", "display": "inline-block", "padding-left": "2%"},
             ),
             html.Div(
@@ -216,16 +161,9 @@ def scatterplot():
 def histogram():
     layout = html.Div(
         [
-            html.Div(
-                [
-                    html.Div(
-                        [
-                            html.H5(children="x axis (histogram)"),
-                        ],
-                        style={"padding-top": 8},
-                    ),
-                    dcc.Dropdown(id="x_axis_histo", clearable=False),
-                ],
+            layout_wrapper(
+                component=dcc.Dropdown(id="x_axis_histo", clearable=False),
+                title="x axis",
                 style={"margin-top": 10, "margin-left": "10%", "width": "82%"},
             ),
             dcc.Graph(id="histogram"),
@@ -247,10 +185,18 @@ def smiles():
     return layout
 
 
-def layout_wrapper(content, style):
+def layout_wrapper(component, id="", style=None, css_class=None, title=None):
     layout = html.Div(
-        [
-            content,
-        ],
-        style=style if style else None,
+        children=[html.Div(title), component],
+        id=id,
+        style=style
+        if style
+        else {
+            "width": "40%",
+            "display": "inline-block",
+            "padding-left": "2%",
+        },
+        className=css_class,
     )
+
+    return layout
