@@ -23,7 +23,8 @@ def control():
     layout = html.Div(
         [
             app_logo(),
-            dcc.Tabs(id="control-tabs", value="control-data-tab", children=TABS),
+            dcc.Tabs(id="control-tabs",
+                     value="control-data-tab", children=TABS),
             control_data_content(),
             control_scatterplot_content(),
             control_clusters_content(),
@@ -69,6 +70,8 @@ def control_data_content():
                 id="data_file_load_message-container",
                 style={"display": "none"},
             ),
+            html.Div([du.Upload(id="file_uploader")],
+                     style={"padding-top": "2%"})
         ],
         id="control_data_content-container",
         style={"display": "none"},
@@ -129,12 +132,14 @@ def control_clusters_content():
                     options=[i for i in range(2, 11)], id="cluster_amount"
                 ),
                 title="cluster amount",
-                style={"width": "23%", "display": "inline-block", "padding-left": "2%"},
+                style={"width": "23%", "display": "inline-block",
+                       "padding-left": "2%"},
             ),
             layout_wrapper(
                 component=dcc.Dropdown(id="cluster_feature", multi=True),
                 title="features",
-                style={"width": "50%", "display": "inline-block", "padding-left": "2%"},
+                style={"width": "50%", "display": "inline-block",
+                       "padding-left": "2%"},
             ),
             html.Div(
                 [html.Button("Run", id="cluster_button")],
