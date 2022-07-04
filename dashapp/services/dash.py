@@ -18,9 +18,8 @@ class DashApp:
                 dash_layouts.control(),
                 dash_layouts.scatterplot(),
                 dash_layouts.histogram(),
-                dcc.Store(id="data_frame_store"),
                 dcc.Store(id="data_file_store"),
-                dcc.Store(id="scatterplot_input_store"),
+                dcc.Store(id="data_frame_store"),
                 dcc.Store(id="clusters_column_store"),
             ]
         )

@@ -134,7 +134,6 @@ class Callbacks:
             Output("scatterplot", "figure"),
             Output("scatterplot", "style"),
             Output("scatterplot-container", "style"),
-            Output("scatterplot_input_store", "data"),
             Output("jitter-slider", "max"),
             Input("scatter_x_axis", "value"),
             Input("scatter_y_axis", "value"),
@@ -164,7 +163,7 @@ class Callbacks:
             fig = Scatterplot(
                 df=df, x_axis=x_axis, y_axis=y_axis, color=color, symbol=symbol
             )
-            return fig.create_plot(), fig.style, fig.div_style, fig.inputs, jitter_max
+            return fig.create_plot(), fig.style, fig.div_style, jitter_max
 
         @app.callback(
             Output("histogram", "figure"),
@@ -192,7 +191,8 @@ class Callbacks:
             points = [point["pointIndex"] for point in slct_data["points"]]
             selected_df = df.loc[df.index.isin(points)]
             color = px.colors.qualitative.Dark2
-            fig_2 = Histogram(selected_df, x_axis, color_dicrete_sequence=color)
+            fig_2 = Histogram(selected_df, x_axis,
+                              color_dicrete_sequence=color)
             fig_2 = fig_2.create_plot().data[0]
             fig = fig.add_trace(fig.create_plot(), fig_2)
 
