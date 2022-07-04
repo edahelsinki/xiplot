@@ -44,6 +44,7 @@ class Callbacks:
             output=[
                 Output("uploaded_data_file_store", "data"),
                 Output("data_files", "options"),
+                Output("data_files", "value"),
             ],
             id="file_uploader",
         )
@@ -54,7 +55,7 @@ class Callbacks:
             files.remove(filename)
             df = df.to_json(date_format="iso", orient="split")
             os.remove(os.path.join("data", filename))
-            return [df], files
+            return [df], files, filename + " (Uploaded)"
 
         @app.callback(
             Output("data_frame_store", "data"),
@@ -127,11 +128,12 @@ class Callbacks:
                 else:
                     return
                 self.__df = df
-                file_style = {"display": "inline"}
                 file_message = f"Data file {filename} loaded successfully!"
             elif trigger == "uploaded_data_file_store":
                 df_store = uploaded_data[0]
                 df = pd.read_json(uploaded_data[0], orient="split")
+                filename = filename.split(" ")[0]
+                file_message = f"Data file {filename} loaded successfully!"
 
             columns = df.columns.to_list()
             scatter_x = ""
@@ -144,12 +146,13 @@ class Callbacks:
                 elif "y-" in column or " 2" in column:
                     scatter_y = column
                     break
+            file_style = {"display": "inline"}
             submit_btn = trigger == "submit-button"
             return (
                 df_store,
                 filename if submit_btn else None,
-                file_style if submit_btn else None,
-                file_message if submit_btn else None,
+                file_style,
+                file_message,
                 columns,
                 scatter_x,
                 columns,
