@@ -56,7 +56,7 @@ def read_data_file(filename):
     """
     if filename == "auto-mpg.data":
         return read_auto_mpg_file(filename)
-    return read_dataframe_with_extension(filename, filename)
+    return read_dataframe_with_extension(f"data/{filename}", filename)
 
 
 def read_auto_mpg_file(filename):
