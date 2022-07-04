@@ -2,6 +2,7 @@ import copy
 
 import pandas as pd
 import numpy as np
+import os
 import dash_uploader as du
 
 from dash import Output, Input, State, ctx
@@ -39,10 +40,15 @@ class Callbacks:
                 style["padding-top"] = "2%"
                 return hide_style, hide_style, style
 
-        @du.callback(output=Output("data_files", "options"), id="file_uploader")
+        @du.callback(
+            output=[Output("uploaded_data_file_store", "data")], id="file_uploader"
+        )
         def upload(status):
-            files = get_data_files()
-            return files
+            filename = os.path.split(status[0])[1]
+            df = read_data_file(filename)
+            df = df.to_json(date_format="iso", orient="split")
+            os.remove(os.path.join("data", filename))
+            return [df]
 
         @app.callback(
             Output("data_frame_store", "data"),
@@ -61,6 +67,7 @@ class Callbacks:
             Output("clusters_column_store", "data"),
             Input("submit-button", "n_clicks"),
             Input("cluster_button", "n_clicks"),
+            Input("uploaded_data_file_store", "data"),
             State("data_files", "value"),
             State("scatter_x_axis", "value"),
             State("scatter_y_axis", "value"),
@@ -70,43 +77,18 @@ class Callbacks:
             prevent_initial_call=True,
         )
         def choose_file(
-            data_btn, cluster_btn, filename, x_axis, y_axis, n_clusters, features, df
+            data_btn,
+            cluster_btn,
+            uploaded_data,
+            filename,
+            x_axis,
+            y_axis,
+            n_clusters,
+            features,
+            df,
         ):
             trigger = ctx.triggered_id
-            if trigger == "submit-button":
-                df = read_data_file(filename)
-                self.__df = df
-                df_store = df.to_json(date_format="iso", orient="split")
-                file_style = {"display": "inline"}
-                file_message = f"Data file {filename} loaded successfully!"
-                columns = df.columns.to_list()
-                scatter_x = ""
-                scatter_y = ""
-                for column in columns:
-                    if type(column) != str:
-                        break
-                    if "x-" in column or " 1" in column:
-                        scatter_x = column
-                    elif "y-" in column or " 2" in column:
-                        scatter_y = column
-                        break
-                return (
-                    df_store,
-                    filename,
-                    file_style,
-                    file_message,
-                    columns,
-                    scatter_x,
-                    columns,
-                    scatter_y,
-                    columns,
-                    columns,
-                    columns,
-                    columns[0],
-                    columns,
-                    None,
-                )
-            elif trigger == "cluster_button" and n_clusters and features:
+            if trigger == "cluster_button" and n_clusters and features:
                 df_store = df
                 df = pd.read_json(df, orient="split")
                 kmeans_col = get_kmean(df, int(n_clusters), features)
@@ -129,6 +111,44 @@ class Callbacks:
                     columns,
                     kmeans_col,
                 )
+            elif trigger == "submit-button":
+                df = read_data_file(filename)
+                self.__df = df
+                df_store = df.to_json(date_format="iso", orient="split")
+                file_style = {"display": "inline"}
+                file_message = f"Data file {filename} loaded successfully!"
+            elif trigger == "uploaded_data_file_store":
+                df_store = uploaded_data
+                df = pd.read_json(uploaded_data, orient="split")
+
+            columns = df.columns.to_list()
+            scatter_x = ""
+            scatter_y = ""
+            for column in columns:
+                if type(column) != str:
+                    break
+                if "x-" in column or " 1" in column:
+                    scatter_x = column
+                elif "y-" in column or " 2" in column:
+                    scatter_y = column
+                    break
+            submit_btn = trigger == "submit-button"
+            return (
+                df_store,
+                filename if submit_btn else None,
+                file_style if submit_btn else None,
+                file_message if submit_btn else None,
+                columns,
+                scatter_x,
+                columns,
+                scatter_y,
+                columns,
+                columns,
+                columns,
+                columns[0],
+                columns,
+                None,
+            )
 
         @app.callback(
             Output("scatterplot", "figure"),
