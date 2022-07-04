@@ -1,10 +1,12 @@
-import pandas as pd
 import os
+
+import pandas as pd
+
+from sklearn import preprocessing
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.impute import SimpleImputer
 from sklearn.cluster import KMeans
-from sklearn import preprocessing
 
 
 def get_data_files():

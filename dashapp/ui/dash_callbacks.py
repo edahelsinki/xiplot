@@ -1,24 +1,27 @@
+import copy
+
+import pandas as pd
+import numpy as np
+import dash_uploader as du
+
 from dash import Output, Input, State, ctx
 from dash.exceptions import PreventUpdate
-import dash_uploader as du
-from services.data_frame import read_data_file, get_kmean, get_data_files
-from services.graphs import *
-from services.dash_layouts import (
+
+from dashapp.services.data_frame import read_data_file, get_kmean, get_data_files
+from dashapp.services.graphs import *
+from dashapp.services.dash_layouts import (
     control_data_content,
     control_scatterplot_content,
     control_clusters_content,
 )
-from ui.dash_renderer import render_smiles
-import pandas as pd
-import numpy as np
-import copy
+from dashapp.ui.dash_renderer import render_smiles
 
 
 class Callbacks:
     def __init__(self, df=None) -> None:
         self.__df = df
 
-    def get_callbacks(self, app):
+    def init_callbacks(self, app):
         @app.callback(
             Output("control_data_content-container", "style"),
             Output("control_scatter_content-container", "style"),
