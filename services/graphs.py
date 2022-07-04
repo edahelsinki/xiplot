@@ -127,6 +127,7 @@ class Histogram:
         color_dicrete_sequence=None,
         barmode=None,
         subset_points=None,
+        title=None,
     ):
         self.__df = df
         self.__x_axis = x_axis
@@ -135,6 +136,7 @@ class Histogram:
         self.__color_discrete_sequence = color_dicrete_sequence
         self.__barmode = barmode
         self.__subset_points = subset_points
+        self.__title = title
         self.div_style = {"width": "32%", "display": "inline-block", "float": "left"}
         self.style = {"width": "90%", "height": "100%"}
 
@@ -162,6 +164,7 @@ class Histogram:
             self.__color,
             color_discrete_sequence=self.__color_discrete_sequence,
             barmode=self.__barmode,
+            title=self.__title,
         )
         return fig
 
