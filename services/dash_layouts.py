@@ -243,3 +243,12 @@ def smiles():
     layout = html.Div([html.Div(id="smiles_image")], style={"float": "left"})
 
     return layout
+
+
+def layout_wrapper(content, style):
+    layout = html.Div(
+        [
+            content,
+        ],
+        style=style if style else None,
+    )
