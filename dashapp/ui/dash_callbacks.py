@@ -171,6 +171,34 @@ class Callbacks:
                 #columns,
                 #None,
             )
+        
+        @app.callback(
+            Output("main", "children"),
+            Input("new_plot-button", "n_clicks"),
+            State("main", "children"),
+            State("plot_type", "value"),
+            State("data_frame_store", "data"),
+            State("clusters_column_store", "data"),
+            prevent_initial_call=True,
+        )
+        def add_new_plot(
+            n_clicks, children, plot_type, df, kmeans_col
+        ):
+            # read df from store
+            df = pd.read_json(df, orient="split")
+            # create column for clusters if needed
+            if kmeans_col:
+                df["Clusters"] = kmeans_col
+                df["Clusters"] = df["Clusters"].astype(str)
+            columns = df.columns.to_list()
+            if plot_type == "Scatterplot":
+                plot = Scatterplot(df)
+                layout = plot.get_layout(n_clicks, columns)
+
+            # TODO other plots as well
+
+            children.append(layout)
+            return children
 
         """@app.callback(
             Output("scatterplot", "figure"),
