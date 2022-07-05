@@ -26,9 +26,6 @@ from dashapp.ui.dash_renderer import render_smiles
 
 
 class Callbacks:
-    def __init__(self, df=None) -> None:
-        self.__df = df
-
     def init_callbacks(self, app):
         @app.callback(
             Output("control_data_content-container", "style"),
@@ -161,7 +158,6 @@ class Callbacks:
                     df_store = uploaded_data
                 else:
                     return
-                self.__df = df
                 file_message = f"Data file {filename} loaded successfully!"
             elif trigger == "uploaded_data_file_store":
                 df_store = uploaded_data
