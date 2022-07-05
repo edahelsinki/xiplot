@@ -12,7 +12,7 @@ class DashApp:
         try:
             import dash_uploader as du
 
-            du.configure_upload(app=self.app, folder="data", use_upload_id=True)
+            du.configure_upload(app=self.app, folder="data", use_upload_id=False)
         except ImportError:
             pass
 
