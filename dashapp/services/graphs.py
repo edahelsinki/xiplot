@@ -2,8 +2,10 @@ import plotly.express as px
 
 from re import sub
 
-from dash import html, dcc
+from dash import html, dcc, Output, Input, MATCH
 from matplotlib.pyplot import bar
+import pandas as pd
+import numpy as np
 
 from dashapp.services import dash_layouts
 
@@ -30,6 +32,50 @@ class Scatterplot:
         self.__subset_points = subset_points
         self.div_style = {"width": "32%", "display": "inline-block", "float": "left"}
         self.style = {}
+
+    @staticmethod
+    def init_callback(app):
+        @app.callback(
+            Output({"type": "scatterplot", "index": MATCH}, "figure"),
+            Output({"type": "scatterplot-container", "index": MATCH}, "style"),
+            Output({"type": "jitter-slider", "index": MATCH}, "max"),
+            Input({"type": "scatter_x_axis1", "index": MATCH}, "value"),
+            Input({"type": "scatter_y_axis1", "index": MATCH}, "value"),
+            Input({"type": "scatter_target_color", "index": MATCH}, "value"),
+            Input({"type": "scatter_target_symbol", "index": MATCH}, "value"),
+            Input({"type": "jitter-slider", "index": MATCH}, "value"),
+            Input("clusters_column_store", "data"),
+            Input("data_frame_store", "data"),
+            prevent_initial_call=True,
+        )
+        def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
+            df = pd.read_json(df, orient="split")
+            if kmeans_col:
+                df["Clusters"] = kmeans_col
+                # Make color scale discrete
+                df["Clusters"] = df["Clusters"].astype(str)
+            jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
+
+            if jitter:
+                jitter = float(jitter)
+            if type(jitter) == float:
+                if jitter > 0:
+                    Z = df[[x_axis, y_axis]].to_numpy("float64")
+                    Z = np.random.normal(Z, jitter)
+                    jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
+                    df[[x_axis, y_axis]] = jitter_df[[x_axis, y_axis]]
+            # fig = Scatterplot(
+            #    df=df, x_axis=x_axis, y_axis=y_axis, color=color, symbol=symbol
+            # )
+            fig = px.scatter(
+                data_frame=df, x=x_axis, y=y_axis, color=color, symbol=symbol
+            )
+            fig.update_layout(legend=dict(orientation="h", y=-0.15))
+            fig.update_layout(coloraxis_colorbar=dict(orientation="h", y=-0.5))
+
+            style = {"width": "32%", "display": "inline-block", "float": "left"}
+
+            return fig, style, jitter_max
 
     @property
     def inputs(self):
