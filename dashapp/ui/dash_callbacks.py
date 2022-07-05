@@ -96,79 +96,54 @@ class Callbacks:
             Output("data_file_store", "data"),
             Output("data_file_load_message-container", "style"),
             Output("data_file_load_message", "children"),
-            Output("scatter_x_axis", "options"),
-            Output("scatter_x_axis", "value"),
-            Output("scatter_y_axis", "options"),
-            Output("scatter_y_axis", "value"),
-            Output("scatter_target_color", "options"),
-            Output("scatter_target_symbol", "options"),
-            Output("x_axis_histo", "options"),
-            Output("x_axis_histo", "value"),
-            Output("cluster_feature", "options"),
-            Output("clusters_column_store", "data"),
+            #Output("scatter_x_axis", "options"),
+            #Output("scatter_x_axis", "value"),
+            #Output("scatter_y_axis", "options"),
+            #Output("scatter_y_axis", "value"),
+            #Output("scatter_target_color", "options"),
+            #Output("scatter_target_symbol", "options"),
+            #Output("x_axis_histo", "options"),
+            #Output("x_axis_histo", "value"),
+            #Output("cluster_feature", "options"),
+            #Output("clusters_column_store", "data"),
             Input("submit-button", "n_clicks"),
-            Input("cluster_button", "n_clicks"),
+            #Input("cluster_button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
             State("data_files", "value"),
-            State("scatter_x_axis", "value"),
-            State("scatter_y_axis", "value"),
-            State("cluster_amount", "value"),
-            State("cluster_feature", "value"),
-            State("data_frame_store", "data"),
+            #State("scatter_x_axis", "value"),
+            #State("scatter_y_axis", "value"),
+            #State("cluster_amount", "value"),
+            #State("cluster_feature", "value"),
+            #State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
         def choose_file(
             data_btn,
-            cluster_btn,
+            #cluster_btn,
             uploaded_data,
             filename,
-            x_axis,
-            y_axis,
-            n_clusters,
-            features,
-            df,
+            #x_axis,
+            #y_axis,
+            #n_clusters,
+            #features,
+            #df,
         ):
             trigger = ctx.triggered_id
-            if trigger == "cluster_button" and n_clusters and features:
-                df_store = df
-                df = pd.read_json(df, orient="split")
-                kmeans_col = get_kmean(df, int(n_clusters), features)
-                df["Clusters"] = kmeans_col
-                columns = df.columns.to_list()
-
-                return (
-                    df_store,
-                    None,
-                    None,
-                    None,
-                    columns,
-                    x_axis,
-                    columns,
-                    y_axis,
-                    columns,
-                    columns,
-                    columns,
-                    columns[0],
-                    columns,
-                    kmeans_col,
-                )
-            elif trigger == "submit-button":
-                if len(filename.split(" ")) < 2:
-                    df = read_data_file(filename)
-                    df_store = df.to_json(date_format="iso", orient="split")
-                elif filename.endswith(" (Uploaded)"):
+            if trigger == "submit-button":
+                if filename.endswith(" (Uploaded)"):
                     df = pd.read_json(uploaded_data, orient="split")
                     df_store = uploaded_data
                 else:
-                    return
+                    df = read_data_file(filename)
+                    df_store = df.to_json(date_format="iso", orient="split")                    
                 file_message = f"Data file {filename} loaded successfully!"
-            elif trigger == "uploaded_data_file_store":
-                df_store = uploaded_data
-                df = pd.read_json(uploaded_data, orient="split")
-                filename = filename[:-11]
-                file_message = f"Data file {filename} loaded successfully!"
+            #elif trigger == "uploaded_data_file_store":
+            #    df_store = uploaded_data
+            #    df = pd.read_json(uploaded_data, orient="split")
+            #    filename = filename[:-11]
+            #    file_message = f"Data file {filename} loaded successfully!"
 
-            columns = df.columns.to_list()
+            """columns = df.columns.to_list()
             scatter_x = ""
             scatter_y = ""
             for column in columns:
@@ -178,27 +153,26 @@ class Callbacks:
                     scatter_x = column
                 elif "y-" in column or " 2" in column:
                     scatter_y = column
-                    break
+                    break"""
             file_style = {"display": "inline"}
-            submit_btn = trigger == "submit-button"
             return (
                 df_store,
-                filename if submit_btn else None,
+                filename,
                 file_style,
                 file_message,
-                columns,
-                scatter_x,
-                columns,
-                scatter_y,
-                columns,
-                columns,
-                columns,
-                columns[0],
-                columns,
-                None,
+                #columns,
+                #scatter_x,
+                #columns,
+                #scatter_y,
+                #columns,
+                #columns,
+                #columns,
+                #columns[0],
+                #columns,
+                #None,
             )
 
-        @app.callback(
+        """@app.callback(
             Output("scatterplot", "figure"),
             Output("scatterplot", "style"),
             Output("scatterplot-container", "style"),
@@ -234,7 +208,7 @@ class Callbacks:
             fig = Scatterplot(
                 df=df, x_axis=x_axis, y_axis=y_axis, color=color, symbol=symbol
             )
-            return fig.create_plot(), fig.style, fig.div_style, jitter_max
+            return fig.create_plot(), fig.style, fig.div_style, jitter_max"""
 
         @app.callback(
             Output("histogram", "figure"),
