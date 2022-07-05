@@ -2,10 +2,13 @@ from dash import html, dcc
 
 from dashapp.services.data_frame import get_data_files
 
+import dash_uploader as du
+
 
 TABS = [
     dcc.Tab(label="Data", value="control-data-tab"),
     dcc.Tab(label="Scatter plot", value="control-scatterplot-tab"),
+    dcc.Tab(label="Plots", value="control-plots-tab"),
     dcc.Tab(label="Clusters", value="control-clusters-tab"),
 ]
 
@@ -24,6 +27,7 @@ def control():
             dcc.Tabs(id="control-tabs", value="control-data-tab", children=TABS),
             control_data_content(),
             control_scatterplot_content(),
+            control_plots_content(),
             control_clusters_content(),
         ],
         style={
@@ -40,34 +44,6 @@ def control():
 
 
 def control_data_content():
-    try:
-        import dash_uploader as du
-
-        uploader = du.Upload(
-            id="file_uploader", text="Drag and Drop or Select a File to upload"
-        )
-    except ImportError:
-        uploader = dcc.Upload(
-            id="file_uploader",
-            children=html.Div(
-                [
-                    "Drag and Drop or ",
-                    html.A("Select a File"),
-                    " to upload",
-                ]
-            ),
-            style={
-                "width": "100%",
-                "height": "60px",
-                "lineHeight": "60px",
-                "borderWidth": "1px",
-                "borderStyle": "dashed",
-                "borderRadius": "5px",
-                "textAlign": "center",
-                "margin": "10px",
-            },
-        )
-
     layout = html.Div(
         [
             layout_wrapper(
@@ -95,7 +71,7 @@ def control_data_content():
                 id="data_file_load_message-container",
                 style={"display": "none"},
             ),
-            html.Div([uploader], style={"padding-top": "2%"}),
+            html.Div([du.Upload(id="file_uploader")], style={"padding-top": "2%"}),
         ],
         id="control_data_content-container",
         style={"display": "none"},
@@ -147,6 +123,24 @@ def control_scatterplot_content():
     )
     return layout
 
+def control_plots_content():
+    layout = html.Div(
+        [
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    options=["Scatterplot", "Histogram", "Heatmap"], id="plot_type"
+                ),
+                title="Select a plot type",
+                style={"width": "98%"},
+            ),
+            html.Button("Show", id="new_plot-button"),
+        ],
+        id="control_plots_content-container",
+        style={"display": "none"},
+    )
+
+    return layout
+
 
 def control_clusters_content():
     layout = html.Div(
@@ -169,37 +163,6 @@ def control_clusters_content():
             ),
         ],
         id="control_clusters_content-container",
-        style={"display": "none"},
-    )
-
-    return layout
-
-
-def scatterplot():
-    layout = html.Div(
-        id="scatterplot-container",
-        children=[dcc.Graph(id="scatterplot")],
-        style={"display": "none"},
-    )
-
-    return layout
-
-
-def histogram():
-    layout = html.Div(
-        [
-            layout_wrapper(
-                component=dcc.Dropdown(id="x_axis_histo", clearable=False),
-                title="x axis",
-                style={"margin-top": 10, "margin-left": "10%", "width": "82%"},
-            ),
-            dcc.Graph(id="histogram"),
-            html.Div(
-                [html.P(id="histo_mean"), html.P(id="histo_deviation")],
-                style={"textAlign": "center"},
-            ),
-        ],
-        id="histogram-container",
         style={"display": "none"},
     )
 
