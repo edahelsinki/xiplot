@@ -19,7 +19,7 @@ from dashapp.services.data_frame import (
 from dashapp.services.graphs import *
 from dashapp.services.dash_layouts import (
     control_data_content,
-    control_scatterplot_content,
+    control_plots_content,
     control_clusters_content,
 )
 from dashapp.ui.dash_renderer import render_smiles
@@ -29,7 +29,6 @@ class Callbacks:
     def init_callbacks(self, app):
         @app.callback(
             Output("control_data_content-container", "style"),
-            Output("control_scatter_content-container", "style"),
             Output("control_plots_content-container", "style"),
             Output("control_clusters_content-container", "style"),
             Input("control-tabs", "value"),
@@ -38,14 +37,12 @@ class Callbacks:
             style = {"padding-left": "2%"}
             hide_style = {"display": "none"}
             if tab == "control-data-tab":
-                return style, hide_style, hide_style, hide_style
-            elif tab == "control-scatterplot-tab":
-                return hide_style, style, hide_style, hide_style
+                return style, hide_style, hide_style
             elif tab == "control-plots-tab":
-                return hide_style, hide_style, style, hide_style
+                return hide_style, style, hide_style
             elif tab == "control-clusters-tab":
                 style["padding-top"] = "2%"
-                return hide_style, hide_style, hide_style, style
+                return hide_style, hide_style, style
 
         try:
             import dash_uploader as du

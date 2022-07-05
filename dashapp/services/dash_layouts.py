@@ -26,7 +26,6 @@ def control():
             app_logo(),
             dcc.Tabs(id="control-tabs", value="control-data-tab", children=TABS),
             control_data_content(),
-            control_scatterplot_content(),
             control_plots_content(),
             control_clusters_content(),
         ],
@@ -77,50 +76,6 @@ def control_data_content():
         style={"display": "none"},
     )
 
-    return layout
-
-
-def control_scatterplot_content():
-    layout = html.Div(
-        [
-            html.Div(
-                [
-                    html.H4("Scatterplot"),
-                ]
-            ),
-            layout_wrapper(
-                component=dcc.Dropdown(id="scatter_x_axis", clearable=False), title="x"
-            ),
-            layout_wrapper(
-                component=dcc.Dropdown(id="scatter_y_axis", clearable=False), title="y"
-            ),
-            layout_wrapper(
-                component=dcc.Dropdown(
-                    id="scatter_target_color",
-                ),
-                title="target (color)",
-            ),
-            layout_wrapper(
-                component=dcc.Dropdown(
-                    id="scatter_target_symbol",
-                ),
-                title="target (symbol)",
-            ),
-            layout_wrapper(
-                component=dcc.Slider(
-                    id="jitter-slider",
-                    min=0,
-                    max=1,
-                    marks=None,
-                    tooltip={"placement": "bottom", "always_visible": True},
-                ),
-                title="jitter",
-                style={"width": "80%", "padding-left": "2%"},
-            ),
-        ],
-        id="control_scatter_content-container",
-        style={"display": "none"},
-    )
     return layout
 
 
