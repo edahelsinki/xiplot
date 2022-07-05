@@ -6,23 +6,10 @@ import { log } from "./webdash";
  */
 export class WebFlask {
   constructor() {
-    // TODO: Implement an API to add/remove routes
-    this.router = {
-      "/_dash-layout": () => `
-            x = app.serve_layout()
-            x`,
-      "/_dash-dependencies": () => `
-          with app.server.app_context(): 
-            x = app.dependencies()
-          x`,
-      "/_dash-update-component": this.postRequest,
-    };
     this.worker = window.workerManager;
+
     this.originalFetch = window.fetch;
     window.fetch = this.fetch.bind(this);
-    // Commenting this out until we have a working solution for XHR intercepts.
-    // this.originalXHROpen = window.XMLHttpRequest.prototype.open;
-    // window.XMLHttpRequest.prototype.open = this.xmlHttpRequestOpen.bind(this);
   }
 
   /**
@@ -32,11 +19,29 @@ export class WebFlask {
    */
   postRequest(req, init) {
     log("[POST Request]", req);
+
+    let data;
+    if (init.body) {
+      data = `r"""${init.body}"""`
+    } else {
+      data = "None"
+    }
+
+    let content_type;
+    if (init.body) {
+      content_type = `"application/json"`
+    } else {
+      content_type = "None"
+    }
+
     return `
-    with app.server.test_request_context('${req}', 
-      data=r"""${init.body}""", 
-      content_type="application/json"):
-      x = app.dispatch()
+    with app.server.app_context():
+      with app.server.test_client() as client:
+        x = client.open('${req}',
+          data=${data},
+          content_type=${content_type},
+          method="${init.method}",
+        )
     x`;
   }
 
@@ -73,9 +78,8 @@ export class WebFlask {
     log("[1. Request Intercepted]", req);
     const url = new URL(new Request(req).url);
 
-    let codeWillRun = this.router[url.pathname];
-    if (codeWillRun) {
-      const resp = await this.generateResponse(codeWillRun(req, init));
+    if (url.origin == window.location.origin) {
+      const resp = await this.generateResponse(this.postRequest(req, init));
       log(`[6. ${url.pathname} done.]`);
       return resp;
     } else {
@@ -84,27 +88,6 @@ export class WebFlask {
     }
   }
 
-  /**
-   * Hooks into the 'open' method of XMLHttpRequest. This
-   * allows us to intercept get requests and redirect them
-   * to the Flask backend when appropriate. (not currently functional!)
-   */
-  xmlHttpRequestOpen(...args): void {
-    let method,
-      url,
-      async,
-      user,
-      password = args;
-    log("Method: ", method);
-    log("URL: ", url);
-
-    return this.originalXHROpen.apply(this, ...args);
-  }
-
-  router: Router;
   worker: WorkerManager;
   originalFetch: (request: any, response: any) => Promise<Response>;
-  originalXHROpen: Function;
 }
-
-type Router = { [key: string]: Function };

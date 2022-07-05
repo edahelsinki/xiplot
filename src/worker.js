@@ -1,17 +1,10 @@
-const WEBDASH_VERSION = "0.0.3";
-
-let pyodideAddress = `https://${location.hostname}:${location.port}`;/*`https://cdn.jsdelivr.net/gh/ibdafna/webdash_dist@webdash_${WEBDASH_VERSION}`
-if (process.env.NODE_ENV === "development") {
-  pyodideAddress = `https://${location.hostname}:${location.port}`;
-}*/
-
-importScripts(`${pyodideAddress}/pyodide.js`);
+importScripts("pyodide.js");
 
 
 async function loadPyodideAndPackages() {
   self.pyodide = await loadPyodide({
     homedir: "/",
-    indexURL: `${pyodideAddress}/`,
+    indexURL: "",
   });
   await self.pyodide.loadPackage(["pandas", "numpy", "dash", "plotly", "sklearn", "matplotlib", "dashapp-0.1.0-py3-none-any.whl"], postConsoleMessage, postConsoleMessage);
 
@@ -34,10 +27,12 @@ function fileSystemCall(msgType, param) {
 }
 
 function generateResponseObject(pythonResponse) {
-  const responseBody = pythonResponse.get_data((as_text = true));
+  const responseBody = pythonResponse.get_data((as_text = true)) || null;
   const headerKeys = pythonResponse.headers.keys();
+  const responseStatus = pythonResponse.status_code;
   const returnObject = {
     response: responseBody,
+    status: responseStatus,
     headers: Array.from(headerKeys).reduce(
       (acc, val) => ((acc[val] = pythonResponse.headers.get(val)), acc),
       {}
@@ -65,25 +60,9 @@ function handleFsCommands(fsCommands) {
 
 async function handlePythonCode(python) {
   // Load any imports
-  await self.pyodide.loadPackagesFromImports(python, console.log, console.err)
-  let result
-  try {
-    result = await self.pyodide.runPython(python);
-  } catch(e) {
-    if (e.message.endsWith("dash.exceptions.PreventUpdate\n")) {
-      postMessageRegular({
-        status: 204,
-        response: null,
-      })
-    } else {
-      postMessageRegular({
-        status: 500,
-        response: e.message,
-      })
-    }
+  await self.pyodide.loadPackagesFromImports(python, console.log, console.err);
 
-    return
-  }
+  let result = await self.pyodide.runPython(python);
 
   // Processing Proxy objects before sending.
   if (pyodide.isPyProxy(result)) {
