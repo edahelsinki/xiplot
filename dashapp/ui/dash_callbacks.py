@@ -96,37 +96,37 @@ class Callbacks:
             Output("data_file_store", "data"),
             Output("data_file_load_message-container", "style"),
             Output("data_file_load_message", "children"),
-            #Output("scatter_x_axis", "options"),
-            #Output("scatter_x_axis", "value"),
-            #Output("scatter_y_axis", "options"),
-            #Output("scatter_y_axis", "value"),
-            #Output("scatter_target_color", "options"),
-            #Output("scatter_target_symbol", "options"),
-            #Output("x_axis_histo", "options"),
-            #Output("x_axis_histo", "value"),
-            #Output("cluster_feature", "options"),
-            #Output("clusters_column_store", "data"),
+            # Output("scatter_x_axis", "options"),
+            # Output("scatter_x_axis", "value"),
+            # Output("scatter_y_axis", "options"),
+            # Output("scatter_y_axis", "value"),
+            # Output("scatter_target_color", "options"),
+            # Output("scatter_target_symbol", "options"),
+            # Output("x_axis_histo", "options"),
+            # Output("x_axis_histo", "value"),
+            # Output("cluster_feature", "options"),
+            # Output("clusters_column_store", "data"),
             Input("submit-button", "n_clicks"),
-            #Input("cluster_button", "n_clicks"),
+            # Input("cluster_button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
             State("data_files", "value"),
-            #State("scatter_x_axis", "value"),
-            #State("scatter_y_axis", "value"),
-            #State("cluster_amount", "value"),
-            #State("cluster_feature", "value"),
-            #State("data_frame_store", "data"),
+            # State("scatter_x_axis", "value"),
+            # State("scatter_y_axis", "value"),
+            # State("cluster_amount", "value"),
+            # State("cluster_feature", "value"),
+            # State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
         def choose_file(
             data_btn,
-            #cluster_btn,
+            # cluster_btn,
             uploaded_data,
             filename,
-            #x_axis,
-            #y_axis,
-            #n_clusters,
-            #features,
-            #df,
+            # x_axis,
+            # y_axis,
+            # n_clusters,
+            # features,
+            # df,
         ):
             trigger = ctx.triggered_id
             if trigger == "submit-button":
@@ -135,9 +135,9 @@ class Callbacks:
                     df_store = uploaded_data
                 else:
                     df = read_data_file(filename)
-                    df_store = df.to_json(date_format="iso", orient="split")                    
+                    df_store = df.to_json(date_format="iso", orient="split")
                 file_message = f"Data file {filename} loaded successfully!"
-            #elif trigger == "uploaded_data_file_store":
+            # elif trigger == "uploaded_data_file_store":
             #    df_store = uploaded_data
             #    df = pd.read_json(uploaded_data, orient="split")
             #    filename = filename[:-11]
@@ -160,18 +160,18 @@ class Callbacks:
                 filename,
                 file_style,
                 file_message,
-                #columns,
-                #scatter_x,
-                #columns,
-                #scatter_y,
-                #columns,
-                #columns,
-                #columns,
-                #columns[0],
-                #columns,
-                #None,
+                # columns,
+                # scatter_x,
+                # columns,
+                # scatter_y,
+                # columns,
+                # columns,
+                # columns,
+                # columns[0],
+                # columns,
+                # None,
             )
-        
+
         @app.callback(
             Output("main", "children"),
             Input("new_plot-button", "n_clicks"),
@@ -181,9 +181,7 @@ class Callbacks:
             State("clusters_column_store", "data"),
             prevent_initial_call=True,
         )
-        def add_new_plot(
-            n_clicks, children, plot_type, df, kmeans_col
-        ):
+        def add_new_plot(n_clicks, children, plot_type, df, kmeans_col):
             # read df from store
             df = pd.read_json(df, orient="split")
             # create column for clusters if needed

@@ -92,7 +92,10 @@ class Scatterplot:
                     title="target (color)",
                 ),
                 dash_layouts.layout_wrapper(
-                    component=dcc.Dropdown(id={"type": "scatter_target_symbol", "index": index}, options=columns),
+                    component=dcc.Dropdown(
+                        id={"type": "scatter_target_symbol", "index": index},
+                        options=columns,
+                    ),
                     title="target (symbol)",
                 ),
                 dash_layouts.layout_wrapper(

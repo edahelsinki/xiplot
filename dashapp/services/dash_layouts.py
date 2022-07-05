@@ -123,6 +123,7 @@ def control_scatterplot_content():
     )
     return layout
 
+
 def control_plots_content():
     layout = html.Div(
         [
