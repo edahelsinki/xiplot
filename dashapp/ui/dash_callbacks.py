@@ -96,37 +96,15 @@ class Callbacks:
             Output("data_file_store", "data"),
             Output("data_file_load_message-container", "style"),
             Output("data_file_load_message", "children"),
-            # Output("scatter_x_axis", "options"),
-            # Output("scatter_x_axis", "value"),
-            # Output("scatter_y_axis", "options"),
-            # Output("scatter_y_axis", "value"),
-            # Output("scatter_target_color", "options"),
-            # Output("scatter_target_symbol", "options"),
-            # Output("x_axis_histo", "options"),
-            # Output("x_axis_histo", "value"),
-            # Output("cluster_feature", "options"),
-            # Output("clusters_column_store", "data"),
             Input("submit-button", "n_clicks"),
-            # Input("cluster_button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
             State("data_files", "value"),
-            # State("scatter_x_axis", "value"),
-            # State("scatter_y_axis", "value"),
-            # State("cluster_amount", "value"),
-            # State("cluster_feature", "value"),
-            # State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
         def choose_file(
             data_btn,
-            # cluster_btn,
             uploaded_data,
             filename,
-            # x_axis,
-            # y_axis,
-            # n_clusters,
-            # features,
-            # df,
         ):
             trigger = ctx.triggered_id
             if trigger == "submit-button":
@@ -137,39 +115,17 @@ class Callbacks:
                     df = read_data_file(filename)
                     df_store = df.to_json(date_format="iso", orient="split")
                 file_message = f"Data file {filename} loaded successfully!"
-            # elif trigger == "uploaded_data_file_store":
-            #    df_store = uploaded_data
-            #    df = pd.read_json(uploaded_data, orient="split")
-            #    filename = filename[:-11]
-            #    file_message = f"Data file {filename} loaded successfully!"
-
-            """columns = df.columns.to_list()
-            scatter_x = ""
-            scatter_y = ""
-            for column in columns:
-                if type(column) != str:
-                    break
-                if "x-" in column or " 1" in column:
-                    scatter_x = column
-                elif "y-" in column or " 2" in column:
-                    scatter_y = column
-                    break"""
+            elif trigger == "uploaded_data_file_store":
+                df_store = uploaded_data
+                df = pd.read_json(uploaded_data, orient="split")
+                filename = filename[:-11]
+                file_message = f"Data file {filename} loaded successfully!"
             file_style = {"display": "inline"}
             return (
                 df_store,
                 filename,
                 file_style,
                 file_message,
-                # columns,
-                # scatter_x,
-                # columns,
-                # scatter_y,
-                # columns,
-                # columns,
-                # columns,
-                # columns[0],
-                # columns,
-                # None,
             )
 
         @app.callback(
@@ -197,44 +153,6 @@ class Callbacks:
 
             children.append(layout)
             return children
-
-        """@app.callback(
-            Output("scatterplot", "figure"),
-            Output("scatterplot", "style"),
-            Output("scatterplot-container", "style"),
-            Output("jitter-slider", "max"),
-            Input("scatter_x_axis", "value"),
-            Input("scatter_y_axis", "value"),
-            Input("scatter_target_color", "value"),
-            Input("scatter_target_symbol", "value"),
-            Input("jitter-slider", "value"),
-            Input("clusters_column_store", "data"),
-            Input("data_frame_store", "data"),
-            prevent_initial_call=True,
-        )
-        def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
-            df = pd.read_json(df, orient="split")
-            if kmeans_col:
-                df["Clusters"] = kmeans_col
-                # Make color scale discrete
-                df["Clusters"] = df["Clusters"].astype(str)
-            if type(df[x_axis]) == float:
-                jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
-            else:
-                jitter_max = None
-
-            if jitter:
-                jitter = float(jitter)
-            if type(jitter) == float:
-                if jitter > 0:
-                    Z = df[[x_axis, y_axis]].to_numpy("float64")
-                    Z = np.random.normal(Z, jitter)
-                    jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
-                    df[[x_axis, y_axis]] = jitter_df[[x_axis, y_axis]]
-            fig = Scatterplot(
-                df=df, x_axis=x_axis, y_axis=y_axis, color=color, symbol=symbol
-            )
-            return fig.create_plot(), fig.style, fig.div_style, jitter_max"""
 
         @app.callback(
             Output("histogram", "figure"),
