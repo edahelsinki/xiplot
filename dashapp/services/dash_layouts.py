@@ -7,7 +7,6 @@ import dash_uploader as du
 
 TABS = [
     dcc.Tab(label="Data", value="control-data-tab"),
-    dcc.Tab(label="Scatter plot", value="control-scatterplot-tab"),
     dcc.Tab(label="Plots", value="control-plots-tab"),
     dcc.Tab(label="Clusters", value="control-clusters-tab"),
 ]
