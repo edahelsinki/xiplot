@@ -219,7 +219,10 @@ class Callbacks:
                 df["Clusters"] = kmeans_col
                 # Make color scale discrete
                 df["Clusters"] = df["Clusters"].astype(str)
-            jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
+            if type(df[x_axis]) == float:
+                jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
+            else:
+                jitter_max = None
 
             if jitter:
                 jitter = float(jitter)
