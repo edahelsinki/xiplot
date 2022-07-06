@@ -29,11 +29,10 @@ def control(plot_types):
             control_clusters_content(),
         ],
         style={
-            "width": "25%",
+            "width": "100%",
             "display": "inline-block",
-            "float": "right",
             "background-color": "#dffcde",
-            "height": "600px",
+            "height": "auto",
             "border-radius": "8px",
         },
     )
