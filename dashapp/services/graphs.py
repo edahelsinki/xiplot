@@ -274,13 +274,15 @@ class Histogram:
 
 
 class Heatmap:
-    def __init__(self, df=None, x_axis=None, y_axis=None, color=None, title=None) -> None:
+    def __init__(
+        self, df=None, x_axis=None, y_axis=None, color=None, title=None
+    ) -> None:
         self.__df = df
         self.__x_axis = x_axis
         self.__y_axis = y_axis
         self.__color = color
         self.__title = title
-    
+
     def set_df(self, df):
         self.__df = df
 
