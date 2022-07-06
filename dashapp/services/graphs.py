@@ -233,16 +233,19 @@ class Histogram:
         fig.show()
 
     def get_layout(self, index, columns):
-        layout = html.Div([
-            layout_wrapper(
-                component=dcc.Dropdown(id="x_axis_histo", clearable=False, options=columns),
-                title="x axis",
-                style={"margin-top": 10, "margin-left": "10%", "width": "82%"},
-            ),
-            dcc.Graph(id={"type": "histogram", "index": index}),
-        ],
-        id={"type": "histogram-container", "index": index},
-        style={"display": "none"},
+        layout = html.Div(
+            [
+                layout_wrapper(
+                    component=dcc.Dropdown(
+                        id="x_axis_histo", clearable=False, options=columns
+                    ),
+                    title="x axis",
+                    style={"margin-top": 10, "margin-left": "10%", "width": "82%"},
+                ),
+                dcc.Graph(id={"type": "histogram", "index": index}),
+            ],
+            id={"type": "histogram-container", "index": index},
+            style={"display": "none"},
         )
         return layout
 

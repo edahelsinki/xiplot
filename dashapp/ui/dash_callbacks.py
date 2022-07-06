@@ -157,7 +157,7 @@ class Callbacks:
 
             children.append(layout)
             return children
-        
+
         @app.callback(
             Output("clusters_column_store", "data"),
             Output("clusters_created_message-container", "style"),
@@ -166,7 +166,7 @@ class Callbacks:
             State("cluster_amount", "value"),
             State("cluster_feature", "value"),
             State("data_frame_store", "data"),
-            prevent_initial_call=True
+            prevent_initial_call=True,
         )
         def set_clusters(n_clicks, n_clusters, features, df):
             df = pd.read_json(df, orient="split")
