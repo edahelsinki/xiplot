@@ -28,10 +28,10 @@ class DashApp:
             id="main",
         )
 
-        self.cb = Callbacks()
+        PLOT_TYPES = {"Scatterplot": Scatterplot(), "Histogram": Histogram()}
+
+        self.cb = Callbacks(PLOT_TYPES)
         self.cb.init_callbacks(self.app)
 
-        PLOT_TYPES = [Scatterplot()]
-
-        for plot_type in PLOT_TYPES:
-            plot_type.init_callback(app)
+        for plot_type, plot in PLOT_TYPES.items():
+            plot.init_callback(app)
