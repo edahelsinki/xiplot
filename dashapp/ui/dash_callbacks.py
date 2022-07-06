@@ -153,8 +153,7 @@ class Callbacks:
                     df["Clusters"] = kmeans_col
                     df["Clusters"] = df["Clusters"].astype(str)
             columns = df.columns.to_list()
-            plot = self.__plot_types[plot_type]
-            plot.set_df(df)
+            plot = self.__plot_types[plot_type](df)
             layout = plot.get_layout(n_clicks, columns)
 
             # TODO other plots as well
