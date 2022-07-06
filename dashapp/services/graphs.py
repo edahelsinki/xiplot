@@ -198,6 +198,24 @@ class Histogram:
         self.div_style = {"width": "32%", "display": "inline-block", "float": "left"}
         self.style = {"width": "90%", "height": "100%"}
 
+    @staticmethod
+    def init_callback(app):
+        @app.callback(
+            Output({"type": "histogram", "index": MATCH}, "figure"),
+            Output({"type": "histogram-container", "index": MATCH}, "style"),
+            Input({"type": "x_axis_histo", "index": MATCH}, "value"),
+            State("data_frame_store", "data"),
+            prevent_initial_call=True,
+        )
+        def render_histogram(x_axis, df):
+            df = pd.read_json(df, orient="split")
+            fig = px.histogram(df, x_axis)
+            style = {"widthe": "32%", "display": "inline-block", "float": "left"}
+            return fig, style
+
+    def set_df(self, df):
+        self.__df = df
+
     def set_axes(self, x_axis, y_axis=None):
         self.__x_axis = x_axis
         self.__y_axis = y_axis
@@ -240,7 +258,9 @@ class Histogram:
             [
                 layout_wrapper(
                     component=dcc.Dropdown(
-                        id="x_axis_histo", clearable=False, options=columns
+                        id={"type": "x_axis_histo", "index": index},
+                        clearable=False,
+                        options=columns,
                     ),
                     title="x axis",
                     style={"margin-top": 10, "margin-left": "10%", "width": "82%"},
