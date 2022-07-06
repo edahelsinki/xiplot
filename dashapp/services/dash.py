@@ -17,7 +17,7 @@ class DashApp:
         except ImportError:
             pass
 
-        PLOT_TYPES = {"Scatterplot": Scatterplot(), "Histogram": Histogram()}
+        PLOT_TYPES = {"Scatterplot": Scatterplot, "Histogram": Histogram}
 
         self.app.layout = html.Div(
             [
