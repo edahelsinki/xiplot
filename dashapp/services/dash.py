@@ -21,6 +21,7 @@ class DashApp:
             "Scatterplot": Scatterplot,
             "Histogram": Histogram,
             "Heatmap": Heatmap,
+            "Barplot": Barplot,
         }
 
         self.app.layout = html.Div(

@@ -1,9 +1,6 @@
 import plotly.express as px
 
-from re import sub
-
 from dash import html, dcc, Output, Input, State, MATCH
-from matplotlib.pyplot import bar
 import pandas as pd
 import numpy as np
 
@@ -364,6 +361,80 @@ class Heatmap:
                 ),
             ],
             id={"type": "heatmap-container", "index": index},
+            style=self.div_style,
+        )
+        return layout
+
+
+class Barplot:
+    def __init__(
+        self, df=None, x_axis=None, y_axis=None, color=None, title=None
+    ) -> None:
+        self.__df = df
+        self.__x_axis = x_axis
+        self.__y_axis = y_axis
+        self.__color = color
+        self.__title = title
+        self.div_style = {"width": "32%", "display": "inline-block", "float": "left"}
+
+    @staticmethod
+    def init_callback(app):
+        pass
+
+    def set_df(self, df):
+        self.__df = df
+
+    def set_axes(self, x_axis, y_axis):
+        self.__x_axis = x_axis
+        self.__y_axis = y_axis
+
+    def set_color(self, variable):
+        self.__color = variable
+
+    def create_plot(self):
+        fig = px.bar(
+            self.__df, self.__x_axis, self.__y_axis, self.__color, title=self.__title
+        )
+
+        return fig
+
+    def render(self):
+        fig = self.create_plot()
+        fig.show()
+
+    def get_layout(self, index, df, columns):
+        layout = html.Div(
+            [
+                dcc.Graph(
+                    id={"type": "barplot", "index": index},
+                    figure=px.bar(df, columns[6], columns[3]),
+                ),
+                layout_wrapper(
+                    component=dcc.Dropdown(
+                        id={"type": "barplot_x_axis", "index": index},
+                        value=columns[0],
+                        clearable=False,
+                        options=columns,
+                    ),
+                    title="x axis",
+                ),
+                layout_wrapper(
+                    component=dcc.Dropdown(
+                        id={"type": "barplot_y_axis", "index": index},
+                        value=columns[1],
+                        clearable=False,
+                        options=columns,
+                    ),
+                    title="y axis",
+                ),
+                layout_wrapper(
+                    component=dcc.Dropdown(
+                        id={"type": "barplot_cluster_amount", "index": index},
+                    ),
+                    title="Cluster amount",
+                ),
+            ],
+            id={"type": "histogram-container", "index": index},
             style=self.div_style,
         )
         return layout
