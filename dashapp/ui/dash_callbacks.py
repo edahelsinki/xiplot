@@ -60,10 +60,10 @@ class Callbacks:
             )
             def upload(status):
                 filename = os.path.split(status[0])[1]
-                df = read_data_file(filename)
+                df = read_dataframe_with_extension(f"uploads/{filename}", filename)
                 files = get_data_files() + [filename + " (Uploaded)"]
                 df = df.to_json(date_format="iso", orient="split")
-                os.remove(os.path.join("data", filename))
+                os.remove(os.path.join("uploads", filename))
                 return df, files, filename + " (Uploaded)"
 
         except ImportError:
