@@ -116,6 +116,11 @@ def control_clusters_content():
                 [html.Button("Run", id="cluster-button")],
                 style={"padding-left": "2%", "padding-top": "2%"},
             ),
+            html.Div(
+                [html.H4(id="clusters_created_message")],
+                id="clusters_created_message-container",
+                style={"display": "none"},
+            ),
         ],
         id="control_clusters_content-container",
         style={"display": "none"},
