@@ -53,12 +53,12 @@ class Scatterplot:
             prevent_initial_call=True,
         )
         def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
-            #TODO erottele ctx triggerillä run clusters ja muut!!
             df = pd.read_json(df, orient="split")
             if kmeans_col:
-                df["Clusters"] = kmeans_col
-                # Make color scale discrete
-                df["Clusters"] = df["Clusters"].astype(str)
+                if len(kmeans_col) == df.shape[0]:
+                    df["Clusters"] = kmeans_col
+                    # Make color scale discrete
+                    df["Clusters"] = df["Clusters"].astype(str)
             columns = df.columns.to_list()
             if x_axis:
                 jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
