@@ -6,7 +6,7 @@ async function loadPyodideAndPackages() {
     homedir: "/",
     indexURL: "",
   });
-  await self.pyodide.loadPackage(["pandas", "numpy", "dash", "plotly", "sklearn", "matplotlib", "dashapp-0.1.0-py3-none-any.whl"], postConsoleMessage, postConsoleMessage);
+  await self.pyodide.loadPackage(["pandas", "numpy", "dash", "dash-uploader", "plotly", "sklearn", "matplotlib", "dashapp-0.1.0-py3-none-any.whl"], postConsoleMessage, postConsoleMessage);
 
   self.pyodide.FS.mkdir("data");
 

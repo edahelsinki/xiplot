@@ -84,7 +84,7 @@ export class WebFlask {
       return resp;
     } else {
       log("[Passthrough Request]");
-      return this.originalFetch.apply(this, [req, init]);
+      return this.originalFetch.apply(window, [req, init]);
     }
   }
 

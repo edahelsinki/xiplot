@@ -6,6 +6,6 @@ from dash import Dash
 
 from dashapp.services.dash import DashApp
 
-dash = Dash(__name__, suppress_callback_exceptions=True, compress=False)
-app = DashApp(app=dash).app
+app = Dash(__name__, suppress_callback_exceptions=True, compress=False, eager_loading=True)
+app = DashApp(app=app).app
 `;
