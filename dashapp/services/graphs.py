@@ -2,7 +2,7 @@ import plotly.express as px
 
 from re import sub
 
-from dash import html, dcc, Output, Input, MATCH
+from dash import html, dcc, Output, Input, State, MATCH
 from matplotlib.pyplot import bar
 import pandas as pd
 import numpy as np
