@@ -71,14 +71,19 @@ class Scatterplot:
                         Z = np.random.normal(Z, jitter)
                         jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
                         df[[x_axis, y_axis]] = jitter_df[[x_axis, y_axis]]
+            else:
+                jitter_max = 0
             # fig = Scatterplot(
             #    df=df, x_axis=x_axis, y_axis=y_axis, color=color, symbol=symbol
             # )
-            fig = px.scatter(
-                data_frame=df, x=x_axis, y=y_axis, color=color, symbol=symbol
-            )
-            fig.update_layout(legend=dict(orientation="h", y=-0.15))
-            fig.update_layout(coloraxis_colorbar=dict(orientation="h", y=-0.5))
+            if not (x_axis or y_axis):
+                fig = {}
+            else:
+                fig = px.scatter(
+                    data_frame=df, x=x_axis, y=y_axis, color=color, symbol=symbol
+                )
+                fig.update_layout(legend=dict(orientation="h", y=-0.15))
+                fig.update_layout(coloraxis_colorbar=dict(orientation="h", y=-0.5))
 
             style = {"width": "32%", "display": "inline-block", "float": "left"}
             return fig, style, jitter_max, columns, columns, columns, columns
