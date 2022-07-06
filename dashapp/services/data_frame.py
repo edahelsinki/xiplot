@@ -118,3 +118,10 @@ def get_kmean(df, k: int, features):
     km = KMeans(n_clusters=k).fit_predict(scale)
 
     return km
+
+
+def get_cluster_centers(df, k, random_state=42):
+    km = KMeans(k, random_state=random_state)
+    km.fit(df)
+    cluster_centers = km.cluster_centers_
+    return cluster_centers
