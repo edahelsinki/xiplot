@@ -145,8 +145,9 @@ class Callbacks:
             df = pd.read_json(df, orient="split")
             # create column for clusters if needed
             if kmeans_col:
-                df["Clusters"] = kmeans_col
-                df["Clusters"] = df["Clusters"].astype(str)
+                if len(kmeans_col) == df.shape[0]:
+                    df["Clusters"] = kmeans_col
+                    df["Clusters"] = df["Clusters"].astype(str)
             columns = df.columns.to_list()
             if plot_type == "Scatterplot":
                 plot = Scatterplot(df)
@@ -159,6 +160,8 @@ class Callbacks:
         
         @app.callback(
             Output("clusters_column_store", "data"),
+            Output("clusters_created_message-container", "style"),
+            Output("clusters_created_message", "children"),
             Input("cluster-button", "n_clicks"),
             State("cluster_amount", "value"),
             State("cluster_feature", "value"),
@@ -168,7 +171,9 @@ class Callbacks:
         def set_clusters(n_clicks, n_clusters, features, df):
             df = pd.read_json(df, orient="split")
             kmeans_col = get_kmean(df, int(n_clusters), features)
-            return kmeans_col
+            style = {"display": "inline"}
+            message = "Clusters created!"
+            return kmeans_col, style, message
 
         @app.callback(
             Output("histogram", "figure"),
