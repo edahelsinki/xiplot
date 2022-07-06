@@ -39,8 +39,12 @@ class Scatterplot:
             Output({"type": "scatterplot", "index": MATCH}, "figure"),
             Output({"type": "scatterplot-container", "index": MATCH}, "style"),
             Output({"type": "jitter-slider", "index": MATCH}, "max"),
-            Input({"type": "scatter_x_axis1", "index": MATCH}, "value"),
-            Input({"type": "scatter_y_axis1", "index": MATCH}, "value"),
+            Output({"type": "scatter_x_axis", "index": MATCH}, "options"),
+            Output({"type": "scatter_y_axis", "index": MATCH}, "options"),
+            Output({"type": "scatter_target_color", "index": MATCH}, "options"),
+            Output({"type": "scatter_target_symbol", "index": MATCH}, "options"),
+            Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
+            Input({"type": "scatter_y_axis", "index": MATCH}, "value"),
             Input({"type": "scatter_target_color", "index": MATCH}, "value"),
             Input({"type": "scatter_target_symbol", "index": MATCH}, "value"),
             Input({"type": "jitter-slider", "index": MATCH}, "value"),
@@ -74,8 +78,7 @@ class Scatterplot:
             fig.update_layout(coloraxis_colorbar=dict(orientation="h", y=-0.5))
 
             style = {"width": "32%", "display": "inline-block", "float": "left"}
-
-            return fig, style, jitter_max
+            return fig, style, jitter_max, columns, columns, columns, columns
 
     @property
     def inputs(self):
@@ -116,7 +119,7 @@ class Scatterplot:
             children=[
                 dash_layouts.layout_wrapper(
                     component=dcc.Dropdown(
-                        id={"type": "scatter_x_axis1", "index": index},
+                        id={"type": "scatter_x_axis", "index": index},
                         options=columns,
                         clearable=False,
                     ),
@@ -124,7 +127,7 @@ class Scatterplot:
                 ),
                 dash_layouts.layout_wrapper(
                     component=dcc.Dropdown(
-                        id={"type": "scatter_y_axis1", "index": index},
+                        id={"type": "scatter_y_axis", "index": index},
                         options=columns,
                         clearable=False,
                     ),
