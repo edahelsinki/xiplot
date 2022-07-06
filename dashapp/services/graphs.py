@@ -91,6 +91,9 @@ class Scatterplot:
             "symbol": self.__symbol,
         }
 
+    def set_df(self, df):
+        self.__df = df
+
     def set_axes(self, x_axis, y_axis):
         self.__x_axis = x_axis
         self.__y_axis = y_axis
@@ -175,7 +178,7 @@ class Scatterplot:
 class Histogram:
     def __init__(
         self,
-        df,
+        df=None,
         x_axis=None,
         y_axis=None,
         color=None,
@@ -251,12 +254,15 @@ class Histogram:
 
 
 class Heatmap:
-    def __init__(self, df, x_axis=None, y_axis=None, color=None, title=None) -> None:
+    def __init__(self, df=None, x_axis=None, y_axis=None, color=None, title=None) -> None:
         self.__df = df
         self.__x_axis = x_axis
         self.__y_axis = y_axis
         self.__color = color
         self.__title = title
+    
+    def set_df(self, df):
+        self.__df = df
 
     def set_axes(self, x_axis, y_axis):
         self.__x_axis = x_axis
