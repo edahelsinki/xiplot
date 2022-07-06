@@ -156,6 +156,19 @@ class Callbacks:
 
             children.append(layout)
             return children
+        
+        @app.callback(
+            Output("clusters_column_store", "data"),
+            Input("cluster-button", "n_clicks"),
+            State("cluster_amount", "value"),
+            State("cluster_feature", "value"),
+            State("data_frame_store", "data"),
+            prevent_initial_call=True
+        )
+        def set_clusters(n_clicks, n_clusters, features, df):
+            df = pd.read_json(df, orient="split")
+            kmeans_col = get_kmean(df, int(n_clusters), features)
+            return kmeans_col
 
         @app.callback(
             Output("histogram", "figure"),
