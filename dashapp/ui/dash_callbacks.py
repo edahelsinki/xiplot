@@ -26,6 +26,9 @@ from dashapp.ui.dash_renderer import render_smiles
 
 
 class Callbacks:
+    def __init__(self, plot_types) -> None:
+        self.__plot_types = plot_types
+
     def init_callbacks(self, app):
         @app.callback(
             Output("control_data_content-container", "style"),
@@ -150,12 +153,9 @@ class Callbacks:
                     df["Clusters"] = kmeans_col
                     df["Clusters"] = df["Clusters"].astype(str)
             columns = df.columns.to_list()
-            if plot_type == "Scatterplot":
-                plot = Scatterplot(df)
-                layout = plot.get_layout(n_clicks, columns)
-            elif plot_type == "Histogram":
-                plot = Histogram(df)
-                layout = plot.get_layout(n_clicks, columns)
+            plot = self.__plot_types[plot_type]
+            plot.set_df(df)
+            layout = plot.get_layout(n_clicks, columns)
 
             # TODO other plots as well
 
