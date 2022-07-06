@@ -128,6 +128,9 @@ class Scatterplot:
     def get_layout(self, index, columns):
         layout = html.Div(
             children=[
+                dcc.Graph(
+                    id={"type": "scatterplot", "index": index},
+                ),
                 dash_layouts.layout_wrapper(
                     component=dcc.Dropdown(
                         id={"type": "scatter_x_axis", "index": index},
@@ -168,9 +171,6 @@ class Scatterplot:
                     ),
                     title="jitter",
                     style={"width": "80%", "padding-left": "2%"},
-                ),
-                dcc.Graph(
-                    id={"type": "scatterplot", "index": index},
                 ),
             ],
             id={"type": "scatterplot-container", "index": index},
@@ -261,6 +261,7 @@ class Histogram:
     def get_layout(self, index, columns):
         layout = html.Div(
             [
+                dcc.Graph(id={"type": "histogram", "index": index}),
                 layout_wrapper(
                     component=dcc.Dropdown(
                         id={"type": "x_axis_histo", "index": index},
@@ -270,7 +271,6 @@ class Histogram:
                     title="x axis",
                     style={"margin-top": 10, "margin-left": "10%", "width": "82%"},
                 ),
-                dcc.Graph(id={"type": "histogram", "index": index}),
             ],
             id={"type": "histogram-container", "index": index},
             style=self.div_style,
