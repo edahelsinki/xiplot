@@ -88,7 +88,7 @@ def control_plots_content():
                 title="Select a plot type",
                 style={"width": "98%"},
             ),
-            html.Button("Show", id="new_plot-button"),
+            html.Button("Add", id="new_plot-button"),
         ],
         id="control_plots_content-container",
         style={"display": "none"},
@@ -113,7 +113,7 @@ def control_clusters_content():
                 style={"width": "50%", "display": "inline-block", "padding-left": "2%"},
             ),
             html.Div(
-                [html.Button("Run", id="cluster_button")],
+                [html.Button("Run", id="cluster-button")],
                 style={"padding-left": "2%", "padding-top": "2%"},
             ),
         ],
