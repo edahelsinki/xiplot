@@ -245,7 +245,7 @@ class Histogram:
                 dcc.Graph(id={"type": "histogram", "index": index}),
             ],
             id={"type": "histogram-container", "index": index},
-            style={"display": "none"},
+            style=self.div_style,
         )
         return layout
 

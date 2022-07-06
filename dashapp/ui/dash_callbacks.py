@@ -8,6 +8,7 @@ from io import BytesIO
 
 from dash import Output, Input, State, ctx
 from dash.exceptions import PreventUpdate
+from prometheus_client import Histogram
 
 from dashapp.services.data_frame import (
     read_data_file,
@@ -151,6 +152,9 @@ class Callbacks:
             columns = df.columns.to_list()
             if plot_type == "Scatterplot":
                 plot = Scatterplot(df)
+                layout = plot.get_layout(n_clicks, columns)
+            elif plot_type == "Histogram":
+                plot = Histogram(df)
                 layout = plot.get_layout(n_clicks, columns)
 
             # TODO other plots as well
