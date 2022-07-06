@@ -293,6 +293,11 @@ class Heatmap:
         self.__y_axis = y_axis
         self.__color = color
         self.__title = title
+        self.div_style = {"width": "32%", "display": "inline-block", "float": "left"}
+
+    @staticmethod
+    def init_callback(app):
+        pass
 
     def set_df(self, df):
         self.__df = df
@@ -320,5 +325,19 @@ class Heatmap:
         fig = self.create_plot()
         fig.show()
 
-    def get_layout(self):
-        pass
+    def get_layout(self, index, df, columns):
+        layout = html.Div(
+            [
+                dcc.Graph(
+                    id={"type": "heatmap", "index": index},
+                    figure=px.imshow(df, color_continuous_scale="RdBu", origin="lower"),
+                ),
+                layout_wrapper(
+                    component=dcc.Slider(0, 10),
+                    title="Cluster amount",
+                    style={"width": "80%"},
+                ),
+            ],
+            style=self.div_style,
+        )
+        return layout

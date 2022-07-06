@@ -155,7 +155,6 @@ class Callbacks:
             columns = df.columns.to_list()
             plot = self.__plot_types[plot_type](df)
             layout = plot.get_layout(n_clicks, df, columns)
-
             children.append(layout)
             return children
 
