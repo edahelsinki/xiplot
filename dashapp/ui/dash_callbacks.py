@@ -92,6 +92,7 @@ class Callbacks:
             Output("data_file_store", "data"),
             Output("data_file_load_message-container", "style"),
             Output("data_file_load_message", "children"),
+            Output("cluster_feature", "options"),
             Input("submit-button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
             State("data_files", "value"),
@@ -104,24 +105,30 @@ class Callbacks:
         ):
             trigger = ctx.triggered_id
             if trigger == "submit-button":
+
                 if filename.endswith(" (Uploaded)"):
                     df = pd.read_json(uploaded_data, orient="split")
                     df_store = uploaded_data
+
                 else:
                     df = read_data_file(filename)
                     df_store = df.to_json(date_format="iso", orient="split")
                 file_message = f"Data file {filename} loaded successfully!"
+
             elif trigger == "uploaded_data_file_store":
                 df_store = uploaded_data
                 df = pd.read_json(uploaded_data, orient="split")
                 filename = filename[:-11]
                 file_message = f"Data file {filename} loaded successfully!"
+
             file_style = {"display": "inline"}
+            columns = df.columns.to_list()
             return (
                 df_store,
                 filename,
                 file_style,
                 file_message,
+                columns,
             )
 
         @app.callback(
