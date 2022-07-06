@@ -19,13 +19,13 @@ def app_logo():
     return layout
 
 
-def control():
+def control(plot_types):
     layout = html.Div(
         [
             app_logo(),
             dcc.Tabs(id="control-tabs", value="control-data-tab", children=TABS),
             control_data_content(),
-            control_plots_content(),
+            control_plots_content(plot_types),
             control_clusters_content(),
         ],
         style={
@@ -78,12 +78,12 @@ def control_data_content():
     return layout
 
 
-def control_plots_content():
+def control_plots_content(plot_types):
     layout = html.Div(
         [
             layout_wrapper(
                 component=dcc.Dropdown(
-                    options=["Scatterplot", "Histogram", "Heatmap"], id="plot_type"
+                    options=[plot_type for plot_type in plot_types], id="plot_type"
                 ),
                 title="Select a plot type",
                 style={"width": "98%"},
