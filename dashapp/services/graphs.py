@@ -50,7 +50,7 @@ class Scatterplot:
             Input({"type": "scatter_target_symbol", "index": MATCH}, "value"),
             Input({"type": "jitter-slider", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
-            Input("data_frame_store", "data"),
+            State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
         def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
