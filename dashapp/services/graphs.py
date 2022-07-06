@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 from dashapp.services import dash_layouts
+from dashapp.services.dash_layouts import layout_wrapper
 
 
 class Scatterplot:
@@ -231,8 +232,18 @@ class Histogram:
         fig = self.create_plot()
         fig.show()
 
-    def get_layout(self):
-        layout = dash_layouts.histogram()
+    def get_layout(self, index, columns):
+        layout = html.Div([
+            layout_wrapper(
+                component=dcc.Dropdown(id="x_axis_histo", clearable=False, options=columns),
+                title="x axis",
+                style={"margin-top": 10, "margin-left": "10%", "width": "82%"},
+            ),
+            dcc.Graph(id={"type": "histogram", "index": index}),
+        ],
+        id={"type": "histogram-container", "index": index},
+        style={"display": "none"},
+        )
         return layout
 
 
