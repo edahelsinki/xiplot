@@ -13,13 +13,15 @@ class DashApp:
         try:
             import dash_uploader as du
 
-            du.configure_upload(app=self.app, folder="data", use_upload_id=False)
+            du.configure_upload(app=self.app, folder="uploads", use_upload_id=False)
         except ImportError:
             pass
 
+        PLOT_TYPES = {"Scatterplot": Scatterplot(), "Histogram": Histogram()}
+
         self.app.layout = html.Div(
             [
-                dash_layouts.control(),
+                dash_layouts.control(PLOT_TYPES),
                 dcc.Store(id="data_file_store"),
                 dcc.Store(id="data_frame_store"),
                 dcc.Store(id="clusters_column_store"),
@@ -27,8 +29,6 @@ class DashApp:
             ],
             id="main",
         )
-
-        PLOT_TYPES = {"Scatterplot": Scatterplot(), "Histogram": Histogram()}
 
         self.cb = Callbacks(PLOT_TYPES)
         self.cb.init_callbacks(self.app)
