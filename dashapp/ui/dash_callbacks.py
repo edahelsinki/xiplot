@@ -8,7 +8,6 @@ from io import BytesIO
 
 from dash import Output, Input, State, ctx
 from dash.exceptions import PreventUpdate
-from prometheus_client import Histogram
 
 from dashapp.services.data_frame import (
     read_data_file,
