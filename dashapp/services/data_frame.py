@@ -37,7 +37,10 @@ def read_dataframe_with_extension(data, filename):
     elif file_extension == ".pkl":
         data = pd.read_pickle(data)
     elif file_extension == ".ft":
-        data = pd.read_feather(data)
+        try:
+            data = pd.read_feather(data)
+        except ImportError:
+            return None
     else:
         return None
     df = pd.DataFrame(data)
