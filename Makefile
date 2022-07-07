@@ -54,6 +54,7 @@ deploy: pyodide dashapp
 	cd dashapp; \
 	pip install -r requirements.txt; \
 	python3 bundle.py
+	npm install
 	npm run build
 
 run: deploy
