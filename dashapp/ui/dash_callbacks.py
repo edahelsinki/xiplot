@@ -71,6 +71,8 @@ class Callbacks:
                 Output("uploaded_data_file_store", "data"),
                 Output("data_files", "options"),
                 Output("data_files", "value"),
+                Output("file_uploader", "contents"),
+                Output("file_uploader", "filename"),
                 Input("file_uploader", "contents"),
                 State("file_uploader", "filename"),
             )
@@ -88,7 +90,7 @@ class Callbacks:
                 else:
                     files = get_data_files() + [filename + " (Uploaded)"]
                     df = df.to_json(date_format="iso", orient="split")
-                    return df, files, filename + " (Uploaded)"
+                    return df, files, filename + " (Uploaded)", None, None
 
         @app.callback(
             Output("data_frame_store", "data"),

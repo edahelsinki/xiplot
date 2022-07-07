@@ -2,8 +2,6 @@ from dash import html, dcc
 
 from dashapp.services.data_frame import get_data_files
 
-import dash_uploader as du
-
 
 TABS = [
     dcc.Tab(label="Data", value="control-data-tab"),
@@ -41,6 +39,34 @@ def control(plot_types):
 
 
 def control_data_content():
+    try:
+        import dash_uploader as du
+
+        uploader = du.Upload(
+            id="file_uploader", text="Drag and Drop or Select a File to upload"
+        )
+    except ImportError:
+        uploader = dcc.Upload(
+            id="file_uploader",
+            children=html.Div(
+                [
+                    "Drag and Drop or ",
+                    html.A("Select a File"),
+                    " to upload",
+                ]
+            ),
+            style={
+                "width": "100%",
+                "height": "60px",
+                "lineHeight": "60px",
+                "borderWidth": "1px",
+                "borderStyle": "dashed",
+                "borderRadius": "5px",
+                "textAlign": "center",
+                "margin": "10px",
+            },
+        )
+
     layout = html.Div(
         [
             layout_wrapper(
@@ -68,7 +94,7 @@ def control_data_content():
                 id="data_file_load_message-container",
                 style={"display": "none"},
             ),
-            html.Div([du.Upload(id="file_uploader")], style={"padding-top": "2%"}),
+            html.Div([uploader], style={"padding-top": "2%"}),
         ],
         id="control_data_content-container",
         style={"display": "none"},
