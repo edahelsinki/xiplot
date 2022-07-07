@@ -1,5 +1,6 @@
 dash==2.5.1
 dash-uploader==0.6.0
+feather-format==0.4.1
 flask==2.1.2
 matplotlib==3.5.2
 pandas==1.4.2

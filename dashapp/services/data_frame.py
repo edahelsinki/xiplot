@@ -36,6 +36,8 @@ def read_dataframe_with_extension(data, filename):
         data = pd.read_json(data)
     elif file_extension == ".pkl":
         data = pd.read_pickle(data)
+    elif file_extension == ".ft":
+        data = pd.read_feather(data)
     else:
         return None
     df = pd.DataFrame(data)
