@@ -8,6 +8,7 @@ from io import BytesIO
 
 from dash import Output, Input, State, ctx
 from dash.exceptions import PreventUpdate
+from dash_extensions.enrich import ServersideOutput
 
 from dashapp.services.data_frame import (
     read_data_file,
@@ -51,7 +52,7 @@ class Callbacks:
 
             @du.callback(
                 output=[
-                    Output("uploaded_data_file_store", "data"),
+                    ServersideOutput("uploaded_data_file_store", "data"),
                     Output("data_files", "options"),
                     Output("data_files", "value"),
                 ],
@@ -68,7 +69,7 @@ class Callbacks:
         except ImportError:
 
             @app.callback(
-                Output("uploaded_data_file_store", "data"),
+                ServersideOutput("uploaded_data_file_store", "data"),
                 Output("data_files", "options"),
                 Output("data_files", "value"),
                 Output("file_uploader", "contents"),
@@ -93,8 +94,8 @@ class Callbacks:
                     return df, files, filename + " (Uploaded)", None, None
 
         @app.callback(
-            Output("data_frame_store", "data"),
-            Output("data_file_store", "data"),
+            ServersideOutput("data_frame_store", "data"),
+            ServersideOutput("data_file_store", "data"),
             Output("data_file_load_message-container", "style"),
             Output("data_file_load_message", "children"),
             Output("cluster_feature", "options"),
@@ -160,7 +161,7 @@ class Callbacks:
             return children
 
         @app.callback(
-            Output("clusters_column_store", "data"),
+            ServersideOutput("clusters_column_store", "data"),
             Output("clusters_created_message-container", "style"),
             Output("clusters_created_message", "children"),
             Input("cluster-button", "n_clicks"),
