@@ -1,4 +1,5 @@
 from dash import html, dcc
+import plotly.express as px
 
 from dashapp.services.data_frame import get_data_files
 
@@ -145,6 +146,122 @@ def control_clusters_content():
                 [html.H4(id="clusters_created_message")],
                 id="clusters_created_message-container",
                 style={"display": "none"},
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id="selection_cluster_dropdown",
+                    clearable=False,
+                    options=[
+                        {
+                            "label": html.Div(
+                                [
+                                    html.Div(
+                                        style={
+                                            "width": 20,
+                                            "height": 20,
+                                            "display": "inline-block",
+                                            "background-color": px.colors.qualitative.Plotly[
+                                                0
+                                            ],
+                                        }
+                                    ),
+                                    html.Div(
+                                        "background",
+                                        style={
+                                            "display": "inline-block",
+                                            "padding-left": 10,
+                                        },
+                                    ),
+                                ]
+                            ),
+                            "value": "bg",
+                        }
+                    ]
+                    + [
+                        {
+                            "label": html.Div(
+                                [
+                                    html.Div(
+                                        style={
+                                            "width": 20,
+                                            "height": 20,
+                                            "display": "inline-block",
+                                            "background-color": c,
+                                        }
+                                    ),
+                                    html.Div(
+                                        f"cluster #{i+1}",
+                                        style={
+                                            "display": "inline-block",
+                                            "padding-left": 10,
+                                        },
+                                    ),
+                                ]
+                            ),
+                            "value": f"c{i+1}",
+                        }
+                        for i, c in enumerate(px.colors.qualitative.Plotly[1:])
+                    ],
+                ),
+                title="Selection Cluster:",
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id="comparison_cluster_dropdown",
+                    clearable=False,
+                    options=[
+                        {
+                            "label": html.Div(
+                                [
+                                    html.Div(
+                                        style={
+                                            "width": 20,
+                                            "height": 20,
+                                            "display": "inline-block",
+                                            "background-color": px.colors.qualitative.Plotly[
+                                                0
+                                            ],
+                                        }
+                                    ),
+                                    html.Div(
+                                        "background",
+                                        style={
+                                            "display": "inline-block",
+                                            "padding-left": 10,
+                                        },
+                                    ),
+                                ]
+                            ),
+                            "value": "bg",
+                        }
+                    ]
+                    + [
+                        {
+                            "label": html.Div(
+                                [
+                                    html.Div(
+                                        style={
+                                            "width": 20,
+                                            "height": 20,
+                                            "display": "inline-block",
+                                            "background-color": c,
+                                        }
+                                    ),
+                                    html.Div(
+                                        f"cluster #{i+1}",
+                                        style={
+                                            "display": "inline-block",
+                                            "padding-left": 10,
+                                        },
+                                    ),
+                                ]
+                            ),
+                            "value": f"c{i+1}",
+                        }
+                        for i, c in enumerate(px.colors.qualitative.Plotly[1:])
+                    ],
+                ),
+                title="Comparison Cluster:",
             ),
         ],
         id="control_clusters_content-container",
