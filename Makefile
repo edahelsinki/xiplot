@@ -1,6 +1,6 @@
-.PHONY: pyodide install_pyodide patch_pyodide build_pyodide dashapp install_dashapp patch_dashapp build_dashapp deploy all clean nuke
+.PHONY: pyodide install_pyodide patch_pyodide build_pyodide dashapp install_dashapp patch_dashapp build_dashapp deploy run all clean nuke
 
-all: deploy
+all: run
 
 install_pyodide: pyodide/.gitignore
 
@@ -50,6 +50,15 @@ deploy: pyodide dashapp
 	cp dashapp/dist/dashapp-0.1.0-py3-none-any.whl dist/
 	cp -r dashapp/data dist/
 	cp -r dashapp/dashapp/assets/* dist/
+	cp bundle.py dashapp/
+	cd dashapp; \
+	pip install -r requirements.txt; \
+	python3 bundle.py
+	npm run build
+
+run: deploy
+	cd dist; \
+	python3 -m http.server
 
 clean:
 	rm -rf dist

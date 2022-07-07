@@ -74,18 +74,67 @@ from pathlib import Path
 
 SRC_PATTERN = re.compile(r"src=\"([^\"]+)\"")
 
+dist = Path.cwd().parent / "dist"
+
 for script in app._generate_scripts_html().split("\n"):
     src = SRC_PATTERN.search(script).group(1)
 
-    print(script)
+    print(src)
 
     with app.server.app_context():
         with app.server.test_client() as client:
             content = client.get(src).text
 
-    path = Path.cwd().parent / "dist" / src.strip("/")
+    path = dist / src.strip("/")
 
     path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(path, "w") as file:
         file.write(content)
+
+    try:
+        src_map = src + ".map"
+
+        with app.server.app_context():
+            with app.server.test_client() as client:
+                content = client.get(src_map).text
+
+        path_map = dist / src_map.strip("/")
+
+        with open(path_map, "w") as file:
+            file.write(content)
+
+        print(src_map)
+    except:
+        pass
+
+
+import hashlib
+import json
+
+with open(dist / "repodata.json", "r") as file:
+    repodata = json.load(file)
+
+with open(dist / "dashapp-0.1.0-py3-none-any.whl", "rb") as file:
+    sha256 = hashlib.sha256(file.read()).hexdigest()
+
+repodata["packages"]["dashapp"] = {
+    "name": "dashapp",
+    "version": "0.1.0",
+    "file_name": "dashapp-0.1.0-py3-none-any.whl",
+    "install_dir": "site",
+    "sha256": sha256,
+    "depends": [
+        "dash",
+        "plotly",
+        "dash-extensions",
+        "flask",
+        "pandas",
+        "sklearn",
+        "matplotlib",
+    ],
+    "imports": ["dashapp"],
+}
+
+with open(dist / "repodata.json", "w") as file:
+    json.dump(repodata, file)
