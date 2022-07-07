@@ -33,16 +33,40 @@ dash.dash.build_fingerprint = new_build_fingerprint
 dash.fingerprint.check_fingerprint = new_check_fingerprint
 dash.dash.check_fingerprint = new_check_fingerprint
 
-from dash import Dash
-
 import dashapp
+
+from dash_extensions.enrich import DashProxy, ServersideOutputTransform
+
 from dashapp.services.dash import DashApp
+from dashapp.services.store import ServerSideStoreBackend
 
 
-dash = Dash(
-    __name__, suppress_callback_exceptions=True, compress=False, eager_loading=True
+dash = DashProxy(
+    __name__,
+    suppress_callback_exceptions=True,
+    compress=False,
+    eager_loading=True,
+    transforms=[
+        ServersideOutputTransform(
+            backend=ServerSideStoreBackend(),
+            session_check=False,
+            arg_check=False,
+        )
+    ],
 )
 app = DashApp(app=dash).app
+
+
+# FIXME: hotfix until https://github.com/thedirtyfew/dash-extensions/issues/188 is fixed
+import dash_extensions
+
+dash_extensions.async_resources.remove("burger")
+dash_extensions._js_dist = [
+    ext
+    for ext in dash_extensions._js_dist
+    if ext["relative_package_path"] not in ["async-burger.js", "async-burger.min.js"]
+]
+
 
 import re
 

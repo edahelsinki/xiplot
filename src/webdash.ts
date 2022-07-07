@@ -96,6 +96,7 @@ ${window.dashApp}
     document.head.innerHTML = `
 ${await this.workerManager.asyncRun("app._generate_meta_html()", {})}
 <title>${await this.workerManager.asyncRun("app.title", {})}</title>
+<link rel="icon" type="image/x-icon" href="favicon.ico">
 ${await this.workerManager.asyncRun("app._generate_css_dist_html()", {})}
     `;
 
@@ -106,8 +107,6 @@ ${await this.workerManager.asyncRun("app._generate_css_dist_html()", {})}
     const footer = document.createElement("footer");
     footer.innerHTML = await self.workerManager.asyncRun("app._generate_config_html()", {});
     document.body.appendChild(footer);
-
-    const scriptPromises = [];
 
     const scriptChunk = await this.workerManager.asyncRun("app._generate_scripts_html()", {});
 
@@ -136,10 +135,8 @@ ${await this.workerManager.asyncRun("app._generate_css_dist_html()", {})}
         footer.appendChild(scriptTag);
       });
 
-      scriptPromises.push(promise);
+      await promise;
     }
-
-    await Promise.all(scriptPromises);
 
     log("Successfully loaded all script tags");
 
@@ -149,21 +146,6 @@ ${await this.workerManager.asyncRun("app._generate_css_dist_html()", {})}
     rendererScriptTag.type = "application/javascript";
     rendererScriptTag.innerHTML = await self.workerManager.asyncRun("app.renderer", {});
     footer.appendChild(rendererScriptTag);
-  }
-
-  async generateScriptBlob(dir, fileName): Promise<HTMLScriptElement> {
-    log(`JavaScript Blob: processing ${fileName}`)
-    const scriptTag = document.createElement("script");
-    const data = new Blob(
-      [await window.workerManager.fsReadFile(`${dir}${fileName}`)],
-      {
-        type: "text/javascript",
-      }
-    );
-    const url = URL.createObjectURL(data);
-    scriptTag.src = url;
-    scriptTag.async = false;
-    return scriptTag;
   }
 
   workerManager: WorkerManager;

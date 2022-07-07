@@ -18,7 +18,7 @@ build_pyodide: pyodide/dist/repodata.json
 
 pyodide/dist/repodata.json: pyodide/.gitignore
 	cd pyodide; \
-	./run_docker --non-interactive PYODIDE_PACKAGES="brotli,flask,plotly,dash,dash-uploader,pandas,jinja2,markupsafe,werkzeug,click,itsdangerous,flask_compress,sklearn,scikit-learn,matplotlib" make
+	./run_docker --non-interactive PYODIDE_PACKAGES="brotli,flask,flask-caching,cachelib,plotly,dash,dash-extensions,more-itertools,pandas,jinja2,markupsafe,werkzeug,click,itsdangerous,flask_compress,sklearn,scikit-learn,matplotlib" make
 
 pyodide: install_pyodide patch_pyodide build_pyodide
 
@@ -49,6 +49,7 @@ deploy: pyodide dashapp
 	cp -r pyodide/dist/* dist/
 	cp dashapp/dist/dashapp-0.1.0-py3-none-any.whl dist/
 	cp -r dashapp/data dist/
+	cp -r dashapp/dashapp/assets/* dist/
 
 clean:
 	rm -rf dist

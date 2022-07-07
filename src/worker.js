@@ -1,30 +1,14 @@
 importScripts("pyodide.js");
 
 
-async function loadPyodideAndPackages() {
+async function initialisePyodide() {
   self.pyodide = await loadPyodide({
     homedir: "/",
     indexURL: "",
   });
-  await self.pyodide.loadPackage(["pandas", "numpy", "dash", "dash-uploader", "plotly", "sklearn", "matplotlib", "dashapp-0.1.0-py3-none-any.whl"], postConsoleMessage, postConsoleMessage);
-
-  self.pyodide.FS.mkdir("data");
-
-  for (const dataset of [
-    "autompg-B.csv", "autompg.csv", "auto-mpg.data",
-    "Wang-B.csv", "Wang-dataframe.csv",
-  ]) {
-    self.pyodide.FS.createLazyFile("data", dataset, "data/" + dataset, true, false);
-  }
 }
 
-let pyodideReadyPromise = loadPyodideAndPackages();
-
-function fileSystemCall(msgType, param) {
-  console.log("fileSystemCall()", msgType, param);
-  const output = pyodide._module.FS[msgType](param);
-  return output;
-}
+let pyodideReadyPromise = initialisePyodide();
 
 function generateResponseObject(pythonResponse) {
   const responseBody = pythonResponse.get_data((as_text = true)) || null;
@@ -46,10 +30,14 @@ function generateResponseObject(pythonResponse) {
   return returnObject;
 }
 
-function handleFsCommands(fsCommands) {
-  const { msgType, param } = fsCommands;
+function handleFsCommand(fsCommand) {
+  const { msgType, param } = fsCommand;
+
+  console.debug(`wasm: handleFsCommand(${msgType}, ...)`);
+
   try {
-    const result = fileSystemCall(msgType, param);
+    const result = pyodide._module.FS[msgType](param);
+
     msgType === "readFile"
       ? postMessageTransferable(result, [result.buffer])
       : postMessageRegular(result);
@@ -59,8 +47,10 @@ function handleFsCommands(fsCommands) {
 }
 
 async function handlePythonCode(python) {
+  console.debug(`wasm: handlePythonCode(...)`);
+
   // Load any imports
-  await self.pyodide.loadPackagesFromImports(python, console.log, console.err);
+  await self.pyodide.loadPackagesFromImports(python, postConsoleMessage, postConsoleMessage);
 
   let result = await self.pyodide.runPython(python);
 
@@ -80,13 +70,12 @@ onmessage = async (event) => {
   // Making sure we don't arrive early at the party.
   await pyodideReadyPromise;
 
-  const { python, fsCommands, ...context } = event.data;
+  const { python, fsCommand, ...context } = event.data;
 
-  // Uncomment for debugging pureposes
-  console.log("[3. Worker onmessage]");
+  console.debug("wasm: onmessage");
 
-  if (fsCommands) {
-    handleFsCommands(fsCommands);
+  if (fsCommand) {
+    handleFsCommand(fsCommand);
   } else {
     // The worker copies the context in its own "memory" (an object mapping name to values)
     for (const key of Object.keys(context)) {
@@ -101,13 +90,16 @@ onmessage = async (event) => {
  */
 
 function postMessageRegular(object) {
-  console.log("postMessageRegular");
+  console.debug("wasm: postMessageRegular");
+
   self.postMessage({
     results: object,
   });
 }
 
 function postMessageTransferable(object, transferable) {
+  console.debug("wasm: postMessageTransferable");
+
   self.postMessage(
     {
       results: object,
@@ -117,12 +109,16 @@ function postMessageTransferable(object, transferable) {
 }
 
 function postMessageError(error) {
+  console.debug("wasm: postMessageError");
+
   self.postMessage({
     error: error.message,
   });
 }
 
 function postConsoleMessage(consoleMessage) {
+  console.debug("wasm: postConsoleMessage");
+
   self.postMessage({
     consoleMessage,
   });

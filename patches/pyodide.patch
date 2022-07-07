@@ -18,6 +18,26 @@ index 00000000..8d5da3a7
 +  PyPI: https://pypi.org/project/brotli
 +  summary: Python bindings for the Brotli compression library
 +  license: MIT
+diff --git a/packages/cachelib/meta.yaml b/packages/cachelib/meta.yaml
+new file mode 100644
+index 00000000..6392a241
+--- /dev/null
++++ b/packages/cachelib/meta.yaml
+@@ -0,0 +1,14 @@
++package:
++  name: cachelib
++  version: 0.9.0
++source:
++  url: https://files.pythonhosted.org/packages/93/70/58e525451478055b0fd2859b22226888a6985d404fe65e014fc4893d3b75/cachelib-0.9.0-py3-none-any.whl
++  sha256: 811ceeb1209d2fe51cd2b62810bd1eccf70feba5c52641532498be5c675493b3
++test:
++  imports:
++    - cachelib
++about:
++  home: https://github.com/pallets/cachelib/
++  PyPI: https://pypi.org/project/cachelib
++  summary: A collection of cache libraries in the same API interface.
++  license: BSD-3-Clause
 diff --git a/packages/click/meta.yaml b/packages/click/meta.yaml
 new file mode 100644
 index 00000000..cedec332
@@ -38,6 +58,30 @@ index 00000000..cedec332
 +  PyPI: https://pypi.org/project/click
 +  summary: Composable command line interface toolkit
 +  license: BSD-3-Clause
+diff --git a/packages/dash-extensions/meta.yaml b/packages/dash-extensions/meta.yaml
+new file mode 100644
+index 00000000..01320f6d
+--- /dev/null
++++ b/packages/dash-extensions/meta.yaml
+@@ -0,0 +1,18 @@
++package:
++  name: dash-extensions
++  version: 0.1.3
++source:
++  url: https://files.pythonhosted.org/packages/23/a2/162f4732e90d04181af7b40b246d4ec7793a37f70073b578bf0e44ff328d/dash_extensions-0.1.3-py3-none-any.whl
++  sha256: 5bef3cdbf420777c89fec4570ddca6dfbb7842b44f3e8e888002db4078ba3a2f
++requirements:
++  run:
++    - flask-caching
++    - more-itertools
++test:
++  imports:
++    - dash-extensions
++about:
++  home: https://dash-extensions.com
++  PyPI: https://pypi.org/project/dash-extensions
++  summary: Extensions for Plotly Dash.
++  license: MIT
 diff --git a/packages/dash-uploader/meta.yaml b/packages/dash-uploader/meta.yaml
 new file mode 100644
 index 00000000..7df62c74
@@ -83,6 +127,29 @@ index 00000000..360f67a2
 +  PyPI: https://pypi.org/project/dash
 +  summary: A Python framework for building reactive web-apps. Developed by Plotly.
 +  license: MIT
+diff --git a/packages/flask-caching/meta.yaml b/packages/flask-caching/meta.yaml
+new file mode 100644
+index 00000000..4a4cafb9
+--- /dev/null
++++ b/packages/flask-caching/meta.yaml
+@@ -0,0 +1,17 @@
++package:
++  name: flask-caching
++  version: 2.0.0
++source:
++  url: https://files.pythonhosted.org/packages/5f/67/ffd79c257a83db37b373bcc18c8fa777b00f4775762b20f9925417e220e8/Flask_Caching-2.0.0-py3-none-any.whl
++  sha256: e5ff99af4a0208bd93a24fe48b24e9b47a77236c38c5d6a6aa3d688334040027
++requirements:
++  run:
++    - cachelib
++test:
++  imports:
++    - flask-caching
++about:
++  home: https://github.com/pallets-eco/flask-caching
++  PyPI: https://pypi.org/project/flask-caching
++  summary: Adds caching support to Flask applications.
++  license: BSD
 diff --git a/packages/flask/meta.yaml b/packages/flask/meta.yaml
 new file mode 100644
 index 00000000..4a06ec96
