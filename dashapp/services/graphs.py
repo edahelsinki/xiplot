@@ -59,29 +59,25 @@ class Scatterplot:
                     # Make color scale discrete
                     df["Clusters"] = df["Clusters"].astype(str)
             columns = df.columns.to_list()
-            if x_axis:
-                jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
-                if jitter:
-                    jitter = float(jitter)
-                if type(jitter) == float:
-                    if jitter > 0:
-                        Z = df[[x_axis, y_axis]].to_numpy("float64")
-                        Z = np.random.normal(Z, jitter)
-                        jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
-                        df[[x_axis, y_axis]] = jitter_df[[x_axis, y_axis]]
-            else:
-                jitter_max = 0
+
+            jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
+            if jitter:
+                jitter = float(jitter)
+            if type(jitter) == float:
+                if jitter > 0:
+                    Z = df[[x_axis, y_axis]].to_numpy("float64")
+                    Z = np.random.normal(Z, jitter)
+                    jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
+                    df[[x_axis, y_axis]] = jitter_df[[x_axis, y_axis]]
+
             # fig = Scatterplot(
             #    df=df, x_axis=x_axis, y_axis=y_axis, color=color, symbol=symbol
             # )
-            if not (x_axis or y_axis):
-                fig = {}
-            else:
-                fig = px.scatter(
-                    data_frame=df, x=x_axis, y=y_axis, color=color, symbol=symbol
-                )
-                fig.update_layout(legend=dict(orientation="h", y=-0.15))
-                fig.update_layout(coloraxis_colorbar=dict(orientation="h", y=-0.5))
+            fig = px.scatter(
+                data_frame=df, x=x_axis, y=y_axis, color=color, symbol=symbol
+            )
+            fig.update_layout(legend=dict(orientation="h", y=-0.15))
+            fig.update_layout(coloraxis_colorbar=dict(orientation="h", y=-0.5))
 
             style = {"width": "32%", "display": "inline-block", "float": "left"}
             return fig, style, jitter_max, columns, columns, columns, columns
