@@ -6,7 +6,7 @@ import numpy as np
 
 from io import BytesIO
 
-from dash import Output, Input, State, ctx
+from dash import Output, Input, State, ctx, ALL
 from dash.exceptions import PreventUpdate
 
 from dashapp.services.data_frame import (
@@ -164,14 +164,22 @@ class Callbacks:
             Output("clusters_created_message-container", "style"),
             Output("clusters_created_message", "children"),
             Input("cluster-button", "n_clicks"),
+            Input({"type": "scatterplot", "index": ALL}, "selectedData"),
             State("cluster_amount", "value"),
             State("cluster_feature", "value"),
             State("data_frame_store", "data"),
+            State("clusters_column_store", "data"),
             prevent_initial_call=True,
         )
-        def set_clusters(n_clicks, n_clusters, features, df):
+        def set_clusters(n_clicks, selected_data, n_clusters, features, df, kmeans_col):
             df = pd.read_json(df, orient="split")
-            kmeans_col = get_kmean(df, int(n_clusters), features)
-            style = {"display": "inline"}
-            message = "Clusters created!"
-            return kmeans_col, style, message
+            if ctx.triggered_id == "cluster-button":
+                kmeans_col = get_kmean(df, int(n_clusters), features)
+                style = {"display": "inline"}
+                message = "Clusters created!"
+                return kmeans_col, style, message
+            points = [point["pointIndex"] for point in selected_data[0]["points"]]
+            n = max(kmeans_col)
+            for i in points:
+                kmeans_col[i] = n + 1
+            return kmeans_col, None, None
