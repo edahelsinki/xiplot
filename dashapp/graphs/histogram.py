@@ -4,7 +4,7 @@ import plotly.express as px
 
 from dash import html, dcc, Output, Input, State, MATCH
 
-from dashapp.services.dash_layouts import layout_wrapper
+from dashapp.utils.layouts import layout_wrapper
 from dashapp.graphs import Graph
 
 

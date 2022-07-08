@@ -5,7 +5,7 @@ import pandas as pd
 from dash import html, dcc, Output, Input, State, MATCH
 from sklearn.cluster import KMeans
 
-from dashapp.services.dash_layouts import layout_wrapper
+from dashapp.utils.layouts import layout_wrapper
 from dashapp.graphs import Graph
 
 

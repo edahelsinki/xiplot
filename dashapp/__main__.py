@@ -2,8 +2,8 @@ import pandas as pd
 
 from dash_extensions.enrich import DashProxy, ServersideOutputTransform
 
-from dashapp.services.dash import DashApp
-from dashapp.services.store import ServerSideStoreBackend
+from dashapp.app import DashApp
+from dashapp.utils.store import ServerSideStoreBackend
 
 dash_transforms = []
 

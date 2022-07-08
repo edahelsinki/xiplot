@@ -1,50 +1,30 @@
 import base64
 import os
 
-import pandas as pd
+import plotly.express as px
 
 from io import BytesIO
 from pathlib import Path
 
-from dash import Output, Input, State, ctx, ALL, html
+from dash import Output, Input, State, ctx, html, dcc
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
 
-from dashapp.services.dataframe import (
+from dashapp.utils.dataframe import (
     read_dataframe_with_extension,
     get_data_filepaths,
 )
-from dashapp.services.dash_layouts import (
-    control_data_content,
-    control_plots_content,
-    control_clusters_content,
-)
+from dashapp.tabs import Tab
+from dashapp.utils.layouts import layout_wrapper
 
 
-class Callbacks:
-    def __init__(self, plot_types) -> None:
-        self.__plot_types = plot_types
+class DataTab(Tab):
+    @staticmethod
+    def name() -> str:
+        return "Data"
 
-    def init_callbacks(self, app, df_from_store, df_to_store):
-        @app.callback(
-            Output("control_data_content-container", "style"),
-            Output("control_plots_content-container", "style"),
-            Output("control_clusters_content-container", "style"),
-            Input("control-tabs", "value"),
-        )
-        def control(tab):
-            style = {"padding-left": "2%"}
-            hide_style = {"display": "none"}
-            if tab == "control-data-tab":
-                return style, hide_style, hide_style
-            elif tab == "control-plots-tab":
-                return hide_style, style, hide_style
-            elif tab == "control-clusters-tab":
-                style["padding-top"] = "2%"
-                return hide_style, hide_style, style
-
+    @staticmethod
+    def register_callbacks(app, df_from_store, df_to_store):
         try:
             import dash_uploader as du
 
@@ -163,60 +143,72 @@ class Callbacks:
                 columns,
             )
 
-        @app.callback(
-            Output("main", "children"),
-            Input("new_plot-button", "n_clicks"),
-            State("main", "children"),
-            State("plot_type", "value"),
-            State("data_frame_store", "data"),
-            State("clusters_column_store", "data"),
-            prevent_initial_call=True,
-        )
-        def add_new_plot(n_clicks, children, plot_type, df, kmeans_col):
-            # read df from store
-            df = df_from_store(df)
-            # create column for clusters if needed
-            if kmeans_col:
-                if len(kmeans_col) == df.shape[0]:
-                    df["Clusters"] = kmeans_col
-            columns = df.columns.to_list()
-            layout = self.__plot_types[plot_type].create_new_layout(
-                n_clicks, df, columns
+    @staticmethod
+    def create_layout():
+        try:
+            import dash_uploader as du
+
+            uploader = du.Upload(
+                id="file_uploader", text="Drag and Drop or Select a File to upload"
             )
-            children.append(layout)
-            return children
+        except ImportError:
+            uploader = dcc.Upload(
+                id="file_uploader",
+                children=html.Div(
+                    [
+                        "Drag and Drop or ",
+                        html.A("Select a File"),
+                        " to upload",
+                    ]
+                ),
+                style={
+                    "width": "100%",
+                    "height": "60px",
+                    "lineHeight": "60px",
+                    "borderWidth": "1px",
+                    "borderStyle": "dashed",
+                    "borderRadius": "5px",
+                    "textAlign": "center",
+                    "margin": "10px",
+                },
+            )
 
-        @app.callback(
-            ServersideOutput("clusters_column_store", "data"),
-            Output("clusters_created_message-container", "style"),
-            Output("clusters_created_message", "children"),
-            Input("cluster-button", "n_clicks"),
-            Input({"type": "scatterplot", "index": ALL}, "selectedData"),
-            State("cluster_amount", "value"),
-            State("cluster_feature", "value"),
-            State("data_frame_store", "data"),
-            State("clusters_column_store", "data"),
-            State("selection_cluster_dropdown", "value"),
-            prevent_initial_call=True,
+        return html.Div(
+            [
+                layout_wrapper(
+                    component=dcc.Dropdown(
+                        [
+                            {"label": fp.name, "value": str(fp)}
+                            for fp in get_data_filepaths()
+                        ],
+                        id="data_files",
+                        clearable=False,
+                    ),
+                    title="Choose a data file",
+                    style={"width": "98%"},
+                ),
+                html.Div(
+                    [
+                        html.Button(
+                            "Load the data file",
+                            id="submit-button",
+                            n_clicks=0,
+                            className="btn btn-primary",
+                        ),
+                    ],
+                    style={
+                        "padding-top": "2%",
+                    },
+                ),
+                html.Div(
+                    [html.H4(id="data_file_load_message")],
+                    id="data_file_load_message-container",
+                    style={"display": "none"},
+                ),
+                html.Div([uploader], style={"padding-top": "2%"}),
+            ],
+            id="control_data_content-container",
         )
-        def set_clusters(
-            n_clicks, selected_data, n_clusters, features, df, kmeans_col, cluster_id
-        ):
-            df = df_from_store(df)
-            if ctx.triggered_id == "cluster-button":
-                scaler = StandardScaler()
-                scale = scaler.fit_transform(df[features])
-                km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
-                kmeans_col = [f"c{c+1}" for c in km]
-
-                style = {"display": "inline"}
-                message = "Clusters created!"
-                return kmeans_col, style, message
-            if kmeans_col is None:
-                kmeans_col = ["bg"] * len(df)
-            for p in selected_data[0]["points"]:
-                kmeans_col[p["customdata"][0]["index"]] = cluster_id
-            return kmeans_col, None, None
 
 
 def generate_dataframe_options(upload_path):
