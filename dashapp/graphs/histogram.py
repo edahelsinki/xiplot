@@ -21,11 +21,11 @@ class Histogram(Graph):
             Input({"type": "x_axis_histo", "index": MATCH}, "value"),
             Input("selection_cluster_dropdown", "value"),
             Input("comparison_cluster_dropdown", "value"),
+            Input("clusters_column_store", "data"),
             State("data_frame_store", "data"),
-            State("clusters_column_store", "data"),
             prevent_initial_call=True,
         )
-        def render_histogram(x_axis, selection, comparison, df, kmeans_col):
+        def render_histogram(x_axis, selection, comparison, kmeans_col, df):
             df = df_from_store(df)
             if kmeans_col:
                 if len(kmeans_col) == df.shape[0]:
