@@ -1,8 +1,8 @@
+import numpy as np
+import pandas as pd
 import plotly.express as px
 
 from dash import html, dcc, Output, Input, State, MATCH
-import pandas as pd
-import numpy as np
 
 from dashapp.services.dash_layouts import layout_wrapper
 from dashapp.graphs import Graph
@@ -14,7 +14,7 @@ class Scatterplot(Graph):
         return "Scatterplot"
 
     @staticmethod
-    def register_callbacks(app):
+    def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "scatterplot", "index": MATCH}, "figure"),
             Output({"type": "scatterplot-container", "index": MATCH}, "style"),
@@ -33,7 +33,7 @@ class Scatterplot(Graph):
             prevent_initial_call=True,
         )
         def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
-            df = pd.read_json(df, orient="split")
+            df = df_from_store(df)
 
             if kmeans_col:
                 if len(kmeans_col) == df.shape[0]:

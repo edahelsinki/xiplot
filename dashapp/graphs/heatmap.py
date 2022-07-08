@@ -1,11 +1,11 @@
+import numpy as np
 import plotly.express as px
+import pandas as pd
 
 from dash import html, dcc, Output, Input, State, MATCH
-import pandas as pd
-import numpy as np
+from sklearn.cluster import KMeans
 
 from dashapp.services.dash_layouts import layout_wrapper
-from dashapp.services.data_frame import get_cluster_centers
 from dashapp.graphs import Graph
 
 
@@ -15,7 +15,7 @@ class Heatmap(Graph):
         return "Heatmap"
 
     @staticmethod
-    def register_callbacks(app):
+    def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "heatmap", "index": MATCH}, "figure"),
             Output({"type": "heatmap-container", "index": MATCH}, "style"),
@@ -24,8 +24,12 @@ class Heatmap(Graph):
             prevent_initial_call=True,
         )
         def render_heatmap(n_clusters, df):
-            df = pd.read_json(df, orient="split")
-            cluster_centers = get_cluster_centers(df=df, k=n_clusters, random_state=42)
+            df = df_from_store(df)
+
+            km = KMeans(n_clusters=n_clusters, random_state=42)
+            km.fit(df)
+            cluster_centers = km.cluster_centers_
+
             fig = px.imshow(
                 cluster_centers,
                 x=df.columns.to_list(),

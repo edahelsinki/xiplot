@@ -14,7 +14,7 @@ class Barplot(Graph):
         return "Barplot"
 
     @staticmethod
-    def register_callbacks(app):
+    def register_callbacks(app, df_from_store, df_to_store):
         warnings.warn("Barplot is unimplemented")
 
     @staticmethod

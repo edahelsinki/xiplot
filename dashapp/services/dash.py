@@ -9,7 +9,7 @@ from dashapp.ui.dash_callbacks import Callbacks
 
 
 class DashApp:
-    def __init__(self, app) -> None:
+    def __init__(self, app, df_from_store, df_to_store) -> None:
         self.app = app
 
         try:
@@ -24,7 +24,6 @@ class DashApp:
         self.app.layout = html.Div(
             [
                 dash_layouts.control(PLOT_TYPES),
-                dcc.Store(id="data_file_store"),
                 dcc.Store(id="data_frame_store"),
                 dcc.Store(id="clusters_column_store"),
                 dcc.Store(id="uploaded_data_file_store"),
@@ -33,7 +32,11 @@ class DashApp:
         )
 
         self.cb = Callbacks(PLOT_TYPES)
-        self.cb.init_callbacks(self.app)
+        self.cb.init_callbacks(
+            self.app, df_from_store=df_from_store, df_to_store=df_to_store
+        )
 
         for plot_name, plot_type in PLOT_TYPES.items():
-            plot_type.register_callbacks(app)
+            plot_type.register_callbacks(
+                app, df_from_store=df_from_store, df_to_store=df_to_store
+            )

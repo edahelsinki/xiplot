@@ -4,16 +4,17 @@ import os
 import pandas as pd
 
 from io import BytesIO
+from pathlib import Path
 
-from dash import Output, Input, State, ctx, ALL
+from dash import Output, Input, State, ctx, ALL, html
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
 
-from dashapp.services.data_frame import (
-    read_data_file,
+from dashapp.services.dataframe import (
     read_dataframe_with_extension,
-    get_kmean,
-    get_data_files,
+    get_data_filepaths,
 )
 from dashapp.services.dash_layouts import (
     control_data_content,
@@ -26,7 +27,7 @@ class Callbacks:
     def __init__(self, plot_types) -> None:
         self.__plot_types = plot_types
 
-    def init_callbacks(self, app):
+    def init_callbacks(self, app, df_from_store, df_to_store):
         @app.callback(
             Output("control_data_content-container", "style"),
             Output("control_plots_content-container", "style"),
@@ -56,12 +57,17 @@ class Callbacks:
                 id="file_uploader",
             )
             def upload(status):
-                filename = os.path.split(status[0])[1]
-                df = read_dataframe_with_extension(f"uploads/{filename}", filename)
-                files = get_data_files() + [filename + " (Uploaded)"]
-                df = df.to_json(date_format="iso", orient="split")
-                os.remove(os.path.join("uploads", filename))
-                return df, files, filename + " (Uploaded)"
+                upload_path = Path("uploads") / Path(status[0]).name
+
+                df = read_dataframe_with_extension(upload_path, upload_path.name)
+
+                upload_path.unlink()
+
+                return (
+                    df_to_store(df),
+                    generate_dataframe_options(upload_path),
+                    str(Path("uploads") / upload_path.name),
+                )
 
         except ImportError:
 
@@ -74,25 +80,29 @@ class Callbacks:
                 Input("file_uploader", "contents"),
                 State("file_uploader", "filename"),
             )
-            def upload(contents, filename):
+            def upload(contents, upload_name):
                 if contents is None:
                     raise PreventUpdate()
 
-                content_type, content_string = contents.split(",")
+                upload_name = Path(upload_name)
+                _content_type, content_string = contents.split(",")
                 decoded = base64.b64decode(content_string)
 
-                df = read_dataframe_with_extension(BytesIO(decoded), filename)
+                df = read_dataframe_with_extension(BytesIO(decoded), upload_name)
 
                 if df is None:
                     raise PreventUpdate()
                 else:
-                    files = get_data_files() + [filename + " (Uploaded)"]
-                    df = df.to_json(date_format="iso", orient="split")
-                    return df, files, filename + " (Uploaded)", None, None
+                    return (
+                        df_to_store(df),
+                        generate_dataframe_options(upload_name),
+                        str(Path("uploads") / upload_name),
+                        None,
+                        None,
+                    )
 
         @app.callback(
             ServersideOutput("data_frame_store", "data"),
-            ServersideOutput("data_file_store", "data"),
             Output("data_file_load_message-container", "style"),
             Output("data_file_load_message", "children"),
             Output("cluster_feature", "options"),
@@ -104,34 +114,50 @@ class Callbacks:
         def choose_file(
             data_btn,
             uploaded_data,
-            filename,
+            filepath,
         ):
             trigger = ctx.triggered_id
-            if trigger == "submit-button":
 
-                if filename.endswith(" (Uploaded)"):
-                    df = pd.read_json(uploaded_data, orient="split")
+            filepath = Path(filepath)
+
+            if trigger == "submit-button":
+                if str(list(filepath.parents)[-2]) == "uploads":
+                    df = df_from_store(uploaded_data)
                     df_store = uploaded_data
 
+                    file_message = html.Div(
+                        [
+                            f"Data file {filepath.name} ",
+                            html.I("(upload)"),
+                            " loaded successfully!",
+                        ]
+                    )
                 else:
-                    df = read_data_file(filename)
-                    df_store = df.to_json(date_format="iso", orient="split")
-                file_message = f"Data file {filename} loaded successfully!"
+                    filepath = Path("data") / filepath.name
 
+                    df = read_dataframe_with_extension(filepath, filepath.name)
+                    df_store = df_to_store(df)
+
+                    file_message = f"Data file {filepath.name} loaded successfully!"
             elif trigger == "uploaded_data_file_store":
                 df_store = uploaded_data
-                df = pd.read_json(uploaded_data, orient="split")
-                filename = filename[:-11]
-                file_message = f"Data file {filename} loaded successfully!"
+                df = df_from_store(uploaded_data)
+
+                file_message = html.Div(
+                    [
+                        f"Data file {filepath.name} ",
+                        html.I("(upload)"),
+                        " loaded successfully!",
+                    ]
+                )
 
             file_style = {"display": "inline"}
             columns = df.columns.to_list()
-            df_store = pd.read_json(df_store, orient="split")
+            df_store = df_from_store(df_store)
             df_store["auxiliary"] = [{"index": i} for i in range(len(df))]
-            df_store = df_store.to_json(date_format="iso", orient="split")
+
             return (
-                df_store,
-                filename,
+                df_to_store(df_store),
                 file_style,
                 file_message,
                 columns,
@@ -148,7 +174,7 @@ class Callbacks:
         )
         def add_new_plot(n_clicks, children, plot_type, df, kmeans_col):
             # read df from store
-            df = pd.read_json(df, orient="split")
+            df = df_from_store(df)
             # create column for clusters if needed
             if kmeans_col:
                 if len(kmeans_col) == df.shape[0]:
@@ -176,9 +202,13 @@ class Callbacks:
         def set_clusters(
             n_clicks, selected_data, n_clusters, features, df, kmeans_col, cluster_id
         ):
-            df = pd.read_json(df, orient="split")
+            df = df_from_store(df)
             if ctx.triggered_id == "cluster-button":
-                kmeans_col = get_kmean(df, int(n_clusters), features)
+                scaler = StandardScaler()
+                scale = scaler.fit_transform(df[features])
+                km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
+                kmeans_col = [f"c{c+1}" for c in km]
+
                 style = {"display": "inline"}
                 message = "Clusters created!"
                 return kmeans_col, style, message
@@ -187,3 +217,12 @@ class Callbacks:
             for p in selected_data[0]["points"]:
                 kmeans_col[p["customdata"][0]["index"]] = cluster_id
             return kmeans_col, None, None
+
+
+def generate_dataframe_options(upload_path):
+    return [
+        {
+            "label": html.Div([upload_path.name, " ", html.I("(upload)")]),
+            "value": str(Path("uploads") / upload_path.name),
+        }
+    ] + [{"label": fp.name, "value": str(fp)} for fp in get_data_filepaths()]

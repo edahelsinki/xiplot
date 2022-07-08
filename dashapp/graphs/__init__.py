@@ -10,7 +10,7 @@ class Graph(ABC):
         pass
 
     @abstractstaticmethod
-    def register_callbacks(app):
+    def register_callbacks(app, df_from_store, df_to_store):
         pass
 
     @abstractstaticmethod

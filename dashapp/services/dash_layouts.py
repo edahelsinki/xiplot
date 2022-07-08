@@ -1,7 +1,7 @@
 from dash import html, dcc
 import plotly.express as px
 
-from dashapp.services.data_frame import get_data_files
+from dashapp.services.dataframe import get_data_filepaths
 
 
 TABS = [
@@ -72,7 +72,12 @@ def control_data_content():
         [
             layout_wrapper(
                 component=dcc.Dropdown(
-                    get_data_files(), id="data_files", clearable=False
+                    [
+                        {"label": fp.name, "value": str(fp)}
+                        for fp in get_data_filepaths()
+                    ],
+                    id="data_files",
+                    clearable=False,
                 ),
                 title="Choose a data file",
                 style={"width": "98%"},
