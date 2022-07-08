@@ -154,8 +154,9 @@ class Callbacks:
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col
             columns = df.columns.to_list()
-            plot = self.__plot_types[plot_type](df)
-            layout = plot.get_layout(n_clicks, df, columns)
+            layout = self.__plot_types[plot_type].create_new_layout(
+                n_clicks, df, columns
+            )
             children.append(layout)
             return children
 
@@ -181,6 +182,8 @@ class Callbacks:
                 style = {"display": "inline"}
                 message = "Clusters created!"
                 return kmeans_col, style, message
-            for p in selected_data[0]["points"]:
-                kmeans_col[p["customdata"][0]["index"]] = cluster_id
+            if kmeans_col is None:
+                kmeans_col = ["bg"] * len(df)
+            # for p in selected_data[0]["points"]:
+            #     kmeans_col[p["customdata"][0]["index"]] = cluster_id
             return kmeans_col, None, None
