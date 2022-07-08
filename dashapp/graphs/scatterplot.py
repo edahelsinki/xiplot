@@ -79,7 +79,9 @@ class Scatterplot(Graph):
             children=[
                 dcc.Graph(
                     id={"type": "scatterplot", "index": index},
-                    figure=px.scatter(df, columns[0], columns[1]),
+                    figure=px.scatter(
+                        df, columns[0], columns[1], custom_data=["auxiliary"]
+                    ),
                 ),
                 layout_wrapper(
                     component=dcc.Dropdown(
