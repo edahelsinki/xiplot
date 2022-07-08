@@ -19,28 +19,20 @@ class Histogram(Graph):
             Output({"type": "histogram", "index": MATCH}, "figure"),
             Output({"type": "histogram-container", "index": MATCH}, "style"),
             Input({"type": "x_axis_histo", "index": MATCH}, "value"),
-            Input("clusters_column_store", "data"),
+            Input("selection_cluster_dropdown", "value"),
+            Input("comparison_cluster_dropdown", "value"),
             State("data_frame_store", "data"),
+            State("clusters_column_store", "data"),
             prevent_initial_call=True,
         )
-        def render_histogram(x_axis, kmeans_col, df):
+        def render_histogram(x_axis, selection, comparison, df, kmeans_col):
             df = pd.read_json(df, orient="split")
             if kmeans_col:
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col
-            fig = px.histogram(
-                df,
-                x_axis,
-                color="Clusters" if "Clusters" in df.columns else None,
-                color_discrete_map={
-                    "bg": px.colors.qualitative.Plotly[0],
-                    **{
-                        f"c{i+1}": c
-                        for i, c in enumerate(px.colors.qualitative.Plotly[1:])
-                    },
-                    "*": "#000000",
-                },
-            )
+                fig = make_fig_property(df, x_axis, selection, comparison, kmeans_col)
+            else:
+                fig = px.histogram(df, x_axis)
             style = {"widthe": "32%", "display": "inline-block", "float": "left"}
             return fig, style
 
@@ -66,3 +58,53 @@ class Histogram(Graph):
             id={"type": "histogram-container", "index": index},
             style={"width": "32%", "display": "inline-block", "float": "left"},
         )
+
+
+def make_fig_property(df, property, cluster, comparison, clusters):
+    props_a = []
+    props_b = []
+
+    for c, p in zip(clusters, df[property]):
+        if c == cluster or cluster == "bg":
+            props_a.append(p)
+
+        if c == comparison or comparison == "bg":
+            props_b.append(p)
+
+    if cluster == comparison:
+        props_b = []
+
+    props = pd.DataFrame(
+        {
+            "Clusters": [cluster for _ in props_a] + [comparison for _ in props_b],
+            property: props_a + props_b,
+        }
+    )
+
+    fig_property = px.histogram(
+        props,
+        x=property,
+        color="Clusters",
+        hover_data={
+            "Clusters": False,
+            property: False,
+        },
+        color_discrete_map={
+            "bg": px.colors.qualitative.Plotly[0],
+            **{f"c{i+1}": c for i, c in enumerate(px.colors.qualitative.Plotly[1:])},
+        },
+        opacity=0.75,
+        histnorm="probability density",
+    )
+
+    fig_property.update_layout(
+        hovermode="x unified",
+        margin=dict(l=10, r=10, t=10, b=10),
+        showlegend=False,
+        barmode="overlay",
+        yaxis=dict(
+            tickformat=".2%",
+        ),
+    )
+
+    return fig_property
