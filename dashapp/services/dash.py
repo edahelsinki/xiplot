@@ -1,6 +1,9 @@
 from dash import html, dcc
 
-from dashapp.services.graphs import Scatterplot, Histogram, Heatmap, Barplot
+from dashapp.graphs.scatterplot import Scatterplot
+from dashapp.graphs.histogram import Histogram
+from dashapp.graphs.heatmap import Heatmap
+from dashapp.graphs.barplot import Barplot
 from dashapp.services import dash_layouts
 from dashapp.ui.dash_callbacks import Callbacks
 
@@ -16,12 +19,7 @@ class DashApp:
         except ImportError:
             pass
 
-        PLOT_TYPES = {
-            "Scatterplot": Scatterplot,
-            "Histogram": Histogram,
-            "Heatmap": Heatmap,
-            "Barplot": Barplot,
-        }
+        PLOT_TYPES = {p.name(): p for p in [Scatterplot, Histogram, Heatmap, Barplot]}
 
         self.app.layout = html.Div(
             [
@@ -37,5 +35,5 @@ class DashApp:
         self.cb = Callbacks(PLOT_TYPES)
         self.cb.init_callbacks(self.app)
 
-        for plot_type, plot in PLOT_TYPES.items():
-            plot.init_callback(app)
+        for plot_name, plot_type in PLOT_TYPES.items():
+            plot_type.register_callbacks(app)

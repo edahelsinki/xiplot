@@ -154,8 +154,9 @@ class Callbacks:
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col
             columns = df.columns.to_list()
-            plot = self.__plot_types[plot_type](df)
-            layout = plot.get_layout(n_clicks, df, columns)
+            layout = self.__plot_types[plot_type].create_new_layout(
+                n_clicks, df, columns
+            )
             children.append(layout)
             return children
 
