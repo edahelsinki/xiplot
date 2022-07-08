@@ -1,10 +1,10 @@
+import numpy as np
+import pandas as pd
 import plotly.express as px
 
 from dash import html, dcc, Output, Input, State, MATCH
-import pandas as pd
-import numpy as np
 
-from dashapp.services.dash_layouts import layout_wrapper
+from dashapp.utils.layouts import layout_wrapper
 from dashapp.graphs import Graph
 
 
@@ -14,7 +14,7 @@ class Histogram(Graph):
         return "Histogram"
 
     @staticmethod
-    def register_callbacks(app):
+    def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "histogram", "index": MATCH}, "figure"),
             Output({"type": "histogram-container", "index": MATCH}, "style"),
@@ -26,7 +26,7 @@ class Histogram(Graph):
             prevent_initial_call=True,
         )
         def render_histogram(x_axis, selection, comparison, df, kmeans_col):
-            df = pd.read_json(df, orient="split")
+            df = df_from_store(df)
             if kmeans_col:
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col

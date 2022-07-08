@@ -1,9 +1,9 @@
 from abc import ABC, abstractstaticmethod
 
 
-class Graph(ABC):
+class Tab(ABC):
     def __init__(self):
-        raise TypeError("Graphs should not be constructed")
+        raise TypeError("Tabs should not be constructed")
 
     @abstractstaticmethod
     def name() -> str:
@@ -14,5 +14,5 @@ class Graph(ABC):
         pass
 
     @abstractstaticmethod
-    def create_new_layout(index, df, columns):
+    def create_layout():
         pass

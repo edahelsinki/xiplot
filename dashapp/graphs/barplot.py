@@ -4,7 +4,7 @@ import plotly.express as px
 
 from dash import html, dcc
 
-from dashapp.services.dash_layouts import layout_wrapper
+from dashapp.utils.layouts import layout_wrapper
 from dashapp.graphs import Graph
 
 
@@ -14,7 +14,7 @@ class Barplot(Graph):
         return "Barplot"
 
     @staticmethod
-    def register_callbacks(app):
+    def register_callbacks(app, df_from_store, df_to_store):
         warnings.warn("Barplot is unimplemented")
 
     @staticmethod
