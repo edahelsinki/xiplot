@@ -19,12 +19,28 @@ class Histogram(Graph):
             Output({"type": "histogram", "index": MATCH}, "figure"),
             Output({"type": "histogram-container", "index": MATCH}, "style"),
             Input({"type": "x_axis_histo", "index": MATCH}, "value"),
+            Input("clusters_column_store", "data"),
             State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def render_histogram(x_axis, df):
+        def render_histogram(x_axis, kmeans_col, df):
             df = pd.read_json(df, orient="split")
-            fig = px.histogram(df, x_axis)
+            if kmeans_col:
+                if len(kmeans_col) == df.shape[0]:
+                    df["Clusters"] = kmeans_col
+            fig = px.histogram(
+                df,
+                x_axis,
+                color="Clusters" if "Clusters" in df.columns else None,
+                color_discrete_map={
+                    "bg": px.colors.qualitative.Plotly[0],
+                    **{
+                        f"c{i+1}": c
+                        for i, c in enumerate(px.colors.qualitative.Plotly[1:])
+                    },
+                    "*": "#000000",
+                },
+            )
             style = {"widthe": "32%", "display": "inline-block", "float": "left"}
             return fig, style
 
