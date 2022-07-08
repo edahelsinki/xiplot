@@ -182,9 +182,8 @@ class Callbacks:
                 style = {"display": "inline"}
                 message = "Clusters created!"
                 return kmeans_col, style, message
-            points = [point["pointIndex"] for point in selected_data[0]["points"]]
-            for i in points:
-                kmeans_col[i] = cluster_id
-            for p in selected_data[0]["points"]:
-                kmeans_col[p["customdata"][0]["index"]] = cluster_id
+            if kmeans_col is None:
+                kmeans_col = ["bg"] * len(df)
+            # for p in selected_data[0]["points"]:
+            #     kmeans_col[p["customdata"][0]["index"]] = cluster_id
             return kmeans_col, None, None
