@@ -75,8 +75,8 @@ class Scatterplot(Graph):
 
     @staticmethod
     def create_new_layout(index, df, columns):
-        x = ""
-        y = ""
+        x = None
+        y = None
         for column in columns:
             if type(column) != str:
                 continue
