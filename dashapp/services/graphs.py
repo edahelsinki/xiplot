@@ -56,8 +56,6 @@ class Scatterplot:
             if kmeans_col:
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col
-                    # Make color scale discrete
-                    df["Clusters"] = df["Clusters"].astype(str)
             columns = df.columns.to_list()
 
             jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
@@ -74,7 +72,20 @@ class Scatterplot:
             #    df=df, x_axis=x_axis, y_axis=y_axis, color=color, symbol=symbol
             # )
             fig = px.scatter(
-                data_frame=df, x=x_axis, y=y_axis, color=color, symbol=symbol
+                data_frame=df,
+                x=x_axis,
+                y=y_axis,
+                color=color,
+                symbol=symbol,
+                color_discrete_map={
+                    "bg": px.colors.qualitative.Plotly[0],
+                    **{
+                        f"c{i+1}": c
+                        for i, c in enumerate(px.colors.qualitative.Plotly[1:])
+                    },
+                    "*": "#000000",
+                },
+                custom_data=["auxiliary"],
             )
             fig.update_layout(legend=dict(orientation="h", y=-0.15))
             fig.update_layout(coloraxis_colorbar=dict(orientation="h", y=-0.5))

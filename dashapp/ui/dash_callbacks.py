@@ -2,7 +2,6 @@ import base64
 import os
 
 import pandas as pd
-import numpy as np
 
 from io import BytesIO
 
@@ -129,6 +128,9 @@ class Callbacks:
 
             file_style = {"display": "inline"}
             columns = df.columns.to_list()
+            df_store = pd.read_json(df_store, orient="split")
+            df_store["auxiliary"] = [{"index": i} for i in range(len(df))]
+            df_store = df_store.to_json(date_format="iso", orient="split")
             return (
                 df_store,
                 filename,
@@ -153,7 +155,6 @@ class Callbacks:
             if kmeans_col:
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col
-                    df["Clusters"] = df["Clusters"].astype(str)
             columns = df.columns.to_list()
             plot = self.__plot_types[plot_type](df)
             layout = plot.get_layout(n_clicks, df, columns)
@@ -170,9 +171,12 @@ class Callbacks:
             State("cluster_feature", "value"),
             State("data_frame_store", "data"),
             State("clusters_column_store", "data"),
+            State("selection_cluster_dropdown", "value"),
             prevent_initial_call=True,
         )
-        def set_clusters(n_clicks, selected_data, n_clusters, features, df, kmeans_col):
+        def set_clusters(
+            n_clicks, selected_data, n_clusters, features, df, kmeans_col, cluster_id
+        ):
             df = pd.read_json(df, orient="split")
             if ctx.triggered_id == "cluster-button":
                 kmeans_col = get_kmean(df, int(n_clusters), features)
@@ -180,7 +184,8 @@ class Callbacks:
                 message = "Clusters created!"
                 return kmeans_col, style, message
             points = [point["pointIndex"] for point in selected_data[0]["points"]]
-            n = max(kmeans_col)
             for i in points:
-                kmeans_col[i] = n + 1
+                kmeans_col[i] = cluster_id
+            for p in selected_data[0]["points"]:
+                kmeans_col[p["customdata"][0]["index"]] = cluster_id
             return kmeans_col, None, None

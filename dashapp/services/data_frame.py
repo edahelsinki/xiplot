@@ -121,6 +121,7 @@ def get_kmean(df, k: int, features):
     scaler = StandardScaler()
     scale = scaler.fit_transform(df[features])
     km = KMeans(n_clusters=k).fit_predict(scale)
+    km = [f"c{c+1}" for c in km]
 
     return km
 
