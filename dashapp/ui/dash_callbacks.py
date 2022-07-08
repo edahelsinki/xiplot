@@ -16,13 +16,11 @@ from dashapp.services.data_frame import (
     get_kmean,
     get_data_files,
 )
-from dashapp.services.graphs import *
 from dashapp.services.dash_layouts import (
     control_data_content,
     control_plots_content,
     control_clusters_content,
 )
-from dashapp.ui.dash_renderer import render_smiles
 
 
 class Callbacks:

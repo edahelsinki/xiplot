@@ -1,7 +1,6 @@
 from dash import html, dcc
 
-from dashapp.services.data_frame import read_data_file, get_data_files
-from dashapp.services.graphs import *
+from dashapp.services.graphs import Scatterplot, Histogram, Heatmap, Barplot
 from dashapp.services import dash_layouts
 from dashapp.ui.dash_callbacks import Callbacks
 
