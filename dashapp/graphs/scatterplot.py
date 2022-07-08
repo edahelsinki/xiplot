@@ -75,19 +75,27 @@ class Scatterplot(Graph):
 
     @staticmethod
     def create_new_layout(index, df, columns):
+        x = ""
+        y = ""
+        for column in columns:
+            if type(column) != str:
+                continue
+            if "x-" in column or " 1" in column:
+                x = column
+            elif "y-" in column or " 2" in column:
+                y = column
+                break
         return html.Div(
             children=[
                 dcc.Graph(
                     id={"type": "scatterplot", "index": index},
-                    figure=px.scatter(
-                        df, columns[0], columns[1], custom_data=["auxiliary"]
-                    ),
+                    figure=px.scatter(df, x, y, custom_data=["auxiliary"]),
                 ),
                 layout_wrapper(
                     component=dcc.Dropdown(
                         id={"type": "scatter_x_axis", "index": index},
                         options=columns,
-                        value=columns[0],
+                        value=x,
                         clearable=False,
                     ),
                     title="x",
@@ -96,7 +104,7 @@ class Scatterplot(Graph):
                     component=dcc.Dropdown(
                         id={"type": "scatter_y_axis", "index": index},
                         options=columns,
-                        value=columns[1],
+                        value=y,
                         clearable=False,
                     ),
                     title="y",
