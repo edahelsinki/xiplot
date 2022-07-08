@@ -66,8 +66,8 @@ class Scatterplot(Graph):
                 },
                 custom_data=["auxiliary"],
             )
-            fig.update_layout(legend=dict(orientation="h", y=-0.15))
-            fig.update_layout(coloraxis_colorbar=dict(orientation="h", y=-0.5))
+            fig.update_layout(showlegend=False)
+            fig.update(layout_coloraxis_showscale=False)
 
             style = {"width": "32%", "display": "inline-block", "float": "left"}
 
