@@ -4,8 +4,8 @@ import dashapp
 
 from dash_extensions.enrich import DashProxy, ServersideOutputTransform
 
-from dashapp.services.dash import DashApp
-from dashapp.services.store import ServerSideStoreBackend
+from dashapp.app import DashApp
+from dashapp.utils.store import ServerSideStoreBackend
 
 # FIXME: hotfix until https://github.com/thedirtyfew/dash-extensions/issues/188 is fixed
 import dash_extensions
@@ -30,12 +30,12 @@ from pathlib import Path
 os.mkdir("data")
 
 for dataset in [
-    "autompg-B.csv", "autompg.csv", "auto-mpg.data",
+    "autompg-B.csv", "autompg.csv", "auto-mpg.csv",
     "Wang-B.csv", "Wang-dataframe.csv",
 ]:
     with open(Path("data") / dataset, "w") as file:
         shutil.copyfileobj(pyodide.http.open_url("data/" + dataset), file)
 
 
-app = DashApp(app=app).app
+app = DashApp(app=app, df_from_store=lambda df: df, df_to_store=lambda df: df).app
 `;

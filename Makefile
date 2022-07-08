@@ -1,4 +1,4 @@
-.PHONY: pyodide install_pyodide patch_pyodide build_pyodide dashapp install_dashapp patch_dashapp build_dashapp deploy run all clean nuke
+.PHONY: pyodide install_pyodide patch_pyodide build_pyodide dashapp install_dashapp build_dashapp deploy run all clean nuke
 
 all: run
 
@@ -28,12 +28,6 @@ dashapp/.gitignore:
 	git submodule init dashapp
 	git submodule update dashapp
 
-patch_dashapp: dashapp/patch.marker
-
-dashapp/patch.marker: dashapp/.gitignore
-	cd dashapp; \
-	git apply ../patches/dashapp.patch
-
 build_dashapp: dashapp/dist/dashapp-0.1.0-py3-none-any.whl
 
 dashapp/dist/dashapp-0.1.0-py3-none-any.whl: dashapp/.gitignore
@@ -41,7 +35,7 @@ dashapp/dist/dashapp-0.1.0-py3-none-any.whl: dashapp/.gitignore
 	cd dashapp; \
 	python3 -m build
 
-dashapp: install_dashapp patch_dashapp build_dashapp
+dashapp: install_dashapp build_dashapp
 
 deploy: pyodide dashapp
 	rm -rf dist

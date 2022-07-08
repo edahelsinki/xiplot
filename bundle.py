@@ -37,8 +37,8 @@ import dashapp
 
 from dash_extensions.enrich import DashProxy, ServersideOutputTransform
 
-from dashapp.services.dash import DashApp
-from dashapp.services.store import ServerSideStoreBackend
+from dashapp.app import DashApp
+from dashapp.utils.store import ServerSideStoreBackend
 
 
 dash = DashProxy(
@@ -54,7 +54,7 @@ dash = DashProxy(
         )
     ],
 )
-app = DashApp(app=dash).app
+app = DashApp(app=dash, df_from_store=lambda df: df, df_to_store=lambda df: df).app
 
 
 # FIXME: hotfix until https://github.com/thedirtyfew/dash-extensions/issues/188 is fixed
@@ -131,7 +131,6 @@ repodata["packages"]["dashapp"] = {
         "flask",
         "pandas",
         "sklearn",
-        "matplotlib",
     ],
     "imports": ["dashapp"],
 }
