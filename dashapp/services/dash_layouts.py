@@ -151,6 +151,7 @@ def control_clusters_content():
                 component=dcc.Dropdown(
                     id="selection_cluster_dropdown",
                     clearable=False,
+                    value="c1",
                     options=[
                         {
                             "label": html.Div(
@@ -209,6 +210,7 @@ def control_clusters_content():
                 component=dcc.Dropdown(
                     id="comparison_cluster_dropdown",
                     clearable=False,
+                    value="bg",
                     options=[
                         {
                             "label": html.Div(
