@@ -34,9 +34,8 @@ class Scatterplot(Graph):
         def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
             df = df_from_store(df)
 
-            if kmeans_col:
-                if len(kmeans_col) == df.shape[0]:
-                    df["Clusters"] = kmeans_col
+            if len(kmeans_col) == df.shape[0]:
+                df["Clusters"] = kmeans_col
             columns = df.columns.to_list()
 
             jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05

@@ -46,8 +46,6 @@ class ClusterTab(Tab):
                 style = {"display": "inline"}
                 message = "Clusters created!"
                 return kmeans_col, style, message
-            if kmeans_col is None:
-                kmeans_col = ["bg"] * len(df)
             for p in selected_data[0]["points"]:
                 kmeans_col[p["customdata"][0]["index"]] = cluster_id
             return kmeans_col, None, None

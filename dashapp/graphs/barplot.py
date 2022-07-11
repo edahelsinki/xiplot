@@ -30,10 +30,9 @@ class Barplot(Graph):
         )
         def render_barplot(selection, comparison, df, kmeans_col):
             df = df_from_store(df)
-            if kmeans_col:
-                if len(kmeans_col) == df.shape[0]:
-                    df["Clusters"] = kmeans_col
-                fig = make_fig_fgs(df, selection, comparison, "reldiff", kmeans_col)
+            if len(kmeans_col) == df.shape[0]:
+                df["Clusters"] = kmeans_col
+            fig = make_fig_fgs(df, selection, comparison, "reldiff", kmeans_col)
             return fig
 
         @app.callback(
