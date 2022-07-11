@@ -3,7 +3,7 @@ import plotly.express as px
 from dash import html, dcc, Output, Input, State, MATCH
 from sklearn.cluster import KMeans
 
-from dashapp.utils.layouts import layout_wrapper
+from dashapp.utils.layouts import layout_wrapper, delete_button
 from dashapp.graphs import Graph
 
 
@@ -16,7 +16,6 @@ class Heatmap(Graph):
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "heatmap", "index": MATCH}, "figure"),
-            Output({"type": "heatmap-container", "index": MATCH}, "style"),
             Input({"type": "heatmap_cluster_amount", "index": MATCH}, "value"),
             State("data_frame_store", "data"),
             prevent_initial_call=True,
@@ -39,10 +38,19 @@ class Heatmap(Graph):
             style = {"widthe": "32%", "display": "inline-block", "float": "left"}
             return fig, style
 
+        @app.callback(
+            Output({"type": "heatmap-container", "index": MATCH}, "style"),
+            Input({"type": "heatmap-delete", "index": MATCH}, "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def delete_heatmap(n_clicks):
+            return {"display": "none"}
+
     @staticmethod
     def create_new_layout(index, df, columns):
         return html.Div(
             [
+                delete_button("heatmap-delete", index),
                 dcc.Graph(
                     id={"type": "heatmap", "index": index},
                     figure=px.imshow(df, color_continuous_scale="RdBu", origin="lower"),

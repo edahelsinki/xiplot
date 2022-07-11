@@ -1,10 +1,9 @@
-import numpy as np
 import pandas as pd
 import plotly.express as px
 
 from dash import html, dcc, Output, Input, State, MATCH
 
-from dashapp.utils.layouts import layout_wrapper
+from dashapp.utils.layouts import layout_wrapper, delete_button
 from dashapp.graphs import Graph
 
 
@@ -17,7 +16,6 @@ class Histogram(Graph):
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "histogram", "index": MATCH}, "figure"),
-            Output({"type": "histogram-container", "index": MATCH}, "style"),
             Input({"type": "x_axis_histo", "index": MATCH}, "value"),
             Input("selection_cluster_dropdown", "value"),
             Input("comparison_cluster_dropdown", "value"),
@@ -33,13 +31,22 @@ class Histogram(Graph):
                 fig = make_fig_property(df, x_axis, selection, comparison, kmeans_col)
             else:
                 fig = px.histogram(df, x_axis)
-            style = {"widthe": "32%", "display": "inline-block", "float": "left"}
-            return fig, style
+
+            return fig
+
+        @app.callback(
+            Output({"type": "histogram-container", "index": MATCH}, "style"),
+            Input({"type": "histogram-delete", "index": MATCH}, "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def delete_histogram(n_clicks):
+            return {"display": "none"}
 
     @staticmethod
     def create_new_layout(index, df, columns):
         return html.Div(
             [
+                delete_button("histogram-delete", index),
                 dcc.Graph(
                     id={"type": "histogram", "index": index},
                     figure=px.histogram(df, columns[0]),

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from dash import html, dcc, Output, Input, State, MATCH, ctx
+from dash import html, dcc, Output, Input, State, MATCH
 
 from dashapp.utils.layouts import layout_wrapper, delete_button
 from dashapp.graphs import Graph
@@ -17,7 +17,6 @@ class Scatterplot(Graph):
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "scatterplot", "index": MATCH}, "figure"),
-            Output({"type": "scatterplot-container", "index": MATCH}, "style"),
             Output({"type": "jitter-slider", "index": MATCH}, "max"),
             Output({"type": "scatter_x_axis", "index": MATCH}, "options"),
             Output({"type": "scatter_y_axis", "index": MATCH}, "options"),
@@ -29,7 +28,6 @@ class Scatterplot(Graph):
             Input({"type": "scatter_target_symbol", "index": MATCH}, "value"),
             Input({"type": "jitter-slider", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
-            Input({"type": "scatter-remove", "index": MATCH}, "n_clicks"),
             State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
@@ -73,21 +71,17 @@ class Scatterplot(Graph):
             fig.update_layout(showlegend=False)
             fig.update(layout_coloraxis_showscale=False)
 
-            if ctx.triggered_id != "clusters_column_store":
-                if ctx.triggered_id["type"] == "scatter-remove":
-                    return (
-                        fig,
-                        {"display": "none"},
-                        jitter_max,
-                        columns,
-                        columns,
-                        columns,
-                        columns,
-                    )
-
             style = {"width": "32%", "display": "inline-block", "float": "left"}
 
             return fig, style, jitter_max, columns, columns, columns, columns
+
+        @app.callback(
+            Output({"type": "scatterplot-container", "index": MATCH}, "style"),
+            Input({"type": "scatter-delete", "index": MATCH}, "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def delete_scatterplot(n_clicks):
+            return {"display": "none"}
 
     @staticmethod
     def create_new_layout(index, df, columns):
@@ -103,7 +97,7 @@ class Scatterplot(Graph):
                 break
         return html.Div(
             children=[
-                delete_button("scatter-remove", index),
+                delete_button("scatter-delete", index),
                 dcc.Graph(
                     id={"type": "scatterplot", "index": index},
                     figure=px.scatter(df, x, y, custom_data=["auxiliary"]),

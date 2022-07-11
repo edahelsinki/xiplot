@@ -4,7 +4,7 @@ import plotly.express as px
 
 from dash import html, dcc
 
-from dashapp.utils.layouts import layout_wrapper
+from dashapp.utils.layouts import layout_wrapper, delete_button
 from dashapp.graphs import Graph
 
 
@@ -21,6 +21,7 @@ class Barplot(Graph):
     def create_new_layout(index, df, columns):
         return html.Div(
             [
+                delete_button("barplot-delete", index),
                 dcc.Graph(
                     id={"type": "barplot", "index": index},
                     figure=px.bar(df, columns[6], columns[3]),
