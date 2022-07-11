@@ -48,7 +48,8 @@ class Scatterplot(Graph):
                     Z = df[[x_axis, y_axis]].to_numpy("float64")
                     Z = np.random.normal(Z, jitter)
                     jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
-                    df[[x_axis, y_axis]] = jitter_df[[x_axis, y_axis]]
+                    df[["jitter-x", "jitter-y"]] = jitter_df[[x_axis, y_axis]]
+                    x_axis, y_axis = "jitter-x", "jitter-y"
 
             fig = px.scatter(
                 data_frame=df,
