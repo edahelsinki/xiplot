@@ -21,19 +21,22 @@ class ClusterTab(Tab):
             ServersideOutput("clusters_column_store", "data"),
             Output("clusters_created_message-container", "style"),
             Output("clusters_created_message", "children"),
+            Input("data_frame_store", "data"),
             Input("cluster-button", "n_clicks"),
             Input({"type": "scatterplot", "index": ALL}, "selectedData"),
             State("cluster_amount", "value"),
-            State("cluster_feature", "value"),
             State("data_frame_store", "data"),
             State("clusters_column_store", "data"),
             State("selection_cluster_dropdown", "value"),
             prevent_initial_call=True,
         )
         def set_clusters(
-            n_clicks, selected_data, n_clusters, features, df, kmeans_col, cluster_id
+            df, n_clicks, selected_data, n_clusters, features, kmeans_col, cluster_id
         ):
             df = df_from_store(df)
+            if ctx.triggered_id == "data_frame_store":
+                kmeans_col = ["bg"] * len(df)
+                return kmeans_col, None, None
             if ctx.triggered_id == "cluster-button":
                 scaler = StandardScaler()
                 scale = scaler.fit_transform(df[features])
