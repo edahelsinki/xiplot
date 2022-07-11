@@ -25,12 +25,9 @@ class Histogram(Graph):
         )
         def render_histogram(x_axis, selection, comparison, kmeans_col, df):
             df = df_from_store(df)
-            if kmeans_col:
-                if len(kmeans_col) == df.shape[0]:
-                    df["Clusters"] = kmeans_col
-                fig = make_fig_property(df, x_axis, selection, comparison, kmeans_col)
-            else:
-                fig = px.histogram(df, x_axis)
+            if len(kmeans_col) == df.shape[0]:
+                df["Clusters"] = kmeans_col
+            fig = make_fig_property(df, x_axis, selection, comparison, kmeans_col)
 
             return fig
 
