@@ -31,9 +31,7 @@ class Scatterplot(Graph):
             State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def render_scatterplot(
-            x_axis, y_axis, color, symbol, jitter, kmeans_col, n_clicks, df
-        ):
+        def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
             df = df_from_store(df)
 
             if kmeans_col:
@@ -71,9 +69,7 @@ class Scatterplot(Graph):
             fig.update_layout(showlegend=False)
             fig.update(layout_coloraxis_showscale=False)
 
-            style = {"width": "32%", "display": "inline-block", "float": "left"}
-
-            return fig, style, jitter_max, columns, columns, columns, columns
+            return fig, jitter_max, columns, columns, columns, columns
 
         @app.callback(
             Output({"type": "scatterplot-container", "index": MATCH}, "style"),
