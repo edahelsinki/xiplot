@@ -16,3 +16,9 @@ def layout_wrapper(component, id="", style=None, css_class=None, title=None):
     )
 
     return layout
+
+
+def delete_button(type, index):
+    return html.Button(
+        "x", id={"type": type, "index": index}, style={"background-color": "red"}
+    )

@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from dash import html, dcc, Output, Input, State, MATCH
+from dash import html, dcc, Output, Input, State, MATCH, ctx
 
-from dashapp.utils.layouts import layout_wrapper
+from dashapp.utils.layouts import layout_wrapper, delete_button
 from dashapp.graphs import Graph
 
 
@@ -29,10 +29,13 @@ class Scatterplot(Graph):
             Input({"type": "scatter_target_symbol", "index": MATCH}, "value"),
             Input({"type": "jitter-slider", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
+            Input({"type": "scatter-remove", "index": MATCH}, "n_clicks"),
             State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
+        def render_scatterplot(
+            x_axis, y_axis, color, symbol, jitter, kmeans_col, n_clicks, df
+        ):
             df = df_from_store(df)
 
             if kmeans_col:
@@ -70,6 +73,18 @@ class Scatterplot(Graph):
             fig.update_layout(showlegend=False)
             fig.update(layout_coloraxis_showscale=False)
 
+            if ctx.triggered_id != "clusters_column_store":
+                if ctx.triggered_id["type"] == "scatter-remove":
+                    return (
+                        fig,
+                        {"display": "none"},
+                        jitter_max,
+                        columns,
+                        columns,
+                        columns,
+                        columns,
+                    )
+
             style = {"width": "32%", "display": "inline-block", "float": "left"}
 
             return fig, style, jitter_max, columns, columns, columns, columns
@@ -88,6 +103,7 @@ class Scatterplot(Graph):
                 break
         return html.Div(
             children=[
+                delete_button("scatter-remove", index),
                 dcc.Graph(
                     id={"type": "scatterplot", "index": index},
                     figure=px.scatter(df, x, y, custom_data=["auxiliary"]),
