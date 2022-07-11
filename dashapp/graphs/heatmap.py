@@ -1,6 +1,4 @@
-import numpy as np
 import plotly.express as px
-import pandas as pd
 
 from dash import html, dcc, Output, Input, State, MATCH
 from sklearn.cluster import KMeans
@@ -25,14 +23,15 @@ class Heatmap(Graph):
         )
         def render_heatmap(n_clusters, df):
             df = df_from_store(df)
+            columns = df.columns.to_list()
 
             km = KMeans(n_clusters=n_clusters, random_state=42)
-            km.fit(df)
+            km.fit(df.drop("auxiliary", axis=1))
             cluster_centers = km.cluster_centers_
 
             fig = px.imshow(
                 cluster_centers,
-                x=df.columns.to_list(),
+                x=columns.remove("auxiliary"),
                 y=[str(n + 1) for n in range(n_clusters)],
                 color_continuous_scale="RdBu",
                 origin="lower",
