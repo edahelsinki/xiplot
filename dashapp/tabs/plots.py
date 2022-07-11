@@ -39,6 +39,7 @@ class PlotsTab(Tab):
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col
             columns = df.columns.to_list()
+            columns.remove("auxiliary")
             layout = PlotsTab.plot_types[plot_type].create_new_layout(
                 n_clicks, df, columns
             )
