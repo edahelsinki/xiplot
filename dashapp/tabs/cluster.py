@@ -1,6 +1,7 @@
 import plotly.express as px
 
 from dash import Output, Input, State, ctx, ALL, html, dcc
+from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
@@ -48,6 +49,34 @@ class ClusterTab(Tab):
                 kmeans_col[p["customdata"][0]["index"]] = cluster_id
             return kmeans_col, None, None
 
+        @app.callback(
+            Output("cluster_feature", "value"),
+            Input("add_by_keyword-button", "n_clicks"),
+            State("data_frame_store", "data"),
+            State("feature_keyword-input", "value"),
+            State("cluster_feature", "value"),
+            prevent_initial_call=True,
+        )
+        def add_matching_values(n_clicks, df, keyword, features):
+            df = df_from_store(df)
+            columns = df.columns.to_list()
+            if not features:
+                features = []
+            for column in columns:
+                if keyword in column and column not in features:
+                    features.append(column)
+            return features
+
+        @app.callback(
+            Output("feature_keyword-input", "value"),
+            Input("cluster_feature", "search_value"),
+            prevent_initial_call=True,
+        )
+        def sync_with_input(keyword):
+            if not keyword:
+                raise PreventUpdate()
+            return keyword
+
     @staticmethod
     def create_layout():
         return html.Div(
@@ -71,6 +100,13 @@ class ClusterTab(Tab):
                         "display": "inline-block",
                         "padding-left": "2%",
                     },
+                ),
+                layout_wrapper(
+                    component=dcc.Input(id="feature_keyword-input"),
+                    style={"display": "none"},
+                ),
+                html.Button(
+                    "Add", id="add_by_keyword-button", style={"padding-top": "20"}
                 ),
                 html.Div(
                     [html.Button("Run", id="cluster-button")],
