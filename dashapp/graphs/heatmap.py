@@ -41,9 +41,10 @@ class Heatmap(Graph):
         @app.callback(
             Output({"type": "heatmap-container", "index": MATCH}, "style"),
             Input({"type": "heatmap-delete", "index": MATCH}, "n_clicks"),
+            Input("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def delete_heatmap(n_clicks):
+        def delete_heatmap(n_clicks, df):
             return {"display": "none"}
 
     @staticmethod

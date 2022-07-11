@@ -38,9 +38,10 @@ class Barplot(Graph):
         @app.callback(
             Output({"type": "barplot-container", "index": MATCH}, "style"),
             Input({"type": "barplot-delete", "index": MATCH}, "n_clicks"),
+            Input("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def delete_barplot(n_clicks):
+        def delete_barplot(n_clicks, df):
             return {"display": "none"}
 
     @staticmethod

@@ -34,9 +34,10 @@ class Histogram(Graph):
         @app.callback(
             Output({"type": "histogram-container", "index": MATCH}, "style"),
             Input({"type": "histogram-delete", "index": MATCH}, "n_clicks"),
+            Input("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def delete_histogram(n_clicks):
+        def delete_histogram(n_clicks, df):
             return {"display": "none"}
 
     @staticmethod

@@ -73,9 +73,10 @@ class Scatterplot(Graph):
         @app.callback(
             Output({"type": "scatterplot-container", "index": MATCH}, "style"),
             Input({"type": "scatter-delete", "index": MATCH}, "n_clicks"),
+            Input("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def delete_scatterplot(n_clicks):
+        def delete_scatterplot(n_clicks, df):
             return {"display": "none"}
 
     @staticmethod
