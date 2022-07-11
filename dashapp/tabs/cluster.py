@@ -54,8 +54,9 @@ class ClusterTab(Tab):
                 style = {"display": "inline"}
                 message = "Clusters created!"
                 return kmeans_col, style, message
-            for p in selected_data[0]["points"]:
-                kmeans_col[p["customdata"][0]["index"]] = cluster_id
+            if selected_data and selected_data[0] and selected_data[0]["points"]:
+                for p in selected_data[0]["points"]:
+                    kmeans_col[p["customdata"][0]["index"]] = cluster_id
             return kmeans_col, None, None
 
         @app.callback(

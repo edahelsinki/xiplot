@@ -35,20 +35,11 @@ class Barplot(Graph):
             fig = make_fig_fgs(df, selection, comparison, "reldiff", kmeans_col)
             return fig
 
-        @app.callback(
-            Output({"type": "barplot-container", "index": MATCH}, "style"),
-            Input({"type": "barplot-delete", "index": MATCH}, "n_clicks"),
-            Input("data_frame_store", "data"),
-            prevent_initial_call=True,
-        )
-        def delete_barplot(n_clicks, df):
-            return {"display": "none"}
-
     @staticmethod
     def create_new_layout(index, df, columns):
         return html.Div(
             [
-                delete_button("barplot-delete", index),
+                delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "barplot", "index": index},
                     figure=px.bar(

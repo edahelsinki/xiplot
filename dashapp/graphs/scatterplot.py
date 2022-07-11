@@ -70,15 +70,6 @@ class Scatterplot(Graph):
 
             return fig, jitter_max, columns, columns, columns, columns
 
-        @app.callback(
-            Output({"type": "scatterplot-container", "index": MATCH}, "style"),
-            Input({"type": "scatter-delete", "index": MATCH}, "n_clicks"),
-            Input("data_frame_store", "data"),
-            prevent_initial_call=True,
-        )
-        def delete_scatterplot(n_clicks, df):
-            return {"display": "none"}
-
     @staticmethod
     def create_new_layout(index, df, columns):
         x = None
@@ -93,7 +84,7 @@ class Scatterplot(Graph):
                 break
         return html.Div(
             children=[
-                delete_button("scatter-delete", index),
+                delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "scatterplot", "index": index},
                     figure=px.scatter(df, x, y, custom_data=["auxiliary"]),

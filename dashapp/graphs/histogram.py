@@ -31,20 +31,11 @@ class Histogram(Graph):
 
             return fig
 
-        @app.callback(
-            Output({"type": "histogram-container", "index": MATCH}, "style"),
-            Input({"type": "histogram-delete", "index": MATCH}, "n_clicks"),
-            Input("data_frame_store", "data"),
-            prevent_initial_call=True,
-        )
-        def delete_histogram(n_clicks, df):
-            return {"display": "none"}
-
     @staticmethod
     def create_new_layout(index, df, columns):
         return html.Div(
             [
-                delete_button("histogram-delete", index),
+                delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "histogram", "index": index},
                     figure=px.histogram(df, columns[0]),

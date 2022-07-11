@@ -38,20 +38,11 @@ class Heatmap(Graph):
             style = {"widthe": "32%", "display": "inline-block", "float": "left"}
             return fig, style
 
-        @app.callback(
-            Output({"type": "heatmap-container", "index": MATCH}, "style"),
-            Input({"type": "heatmap-delete", "index": MATCH}, "n_clicks"),
-            Input("data_frame_store", "data"),
-            prevent_initial_call=True,
-        )
-        def delete_heatmap(n_clicks, df):
-            return {"display": "none"}
-
     @staticmethod
     def create_new_layout(index, df, columns):
         return html.Div(
             [
-                delete_button("heatmap-delete", index),
+                delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "heatmap", "index": index},
                     figure=px.imshow(df, color_continuous_scale="RdBu", origin="lower"),

@@ -44,6 +44,7 @@ class DashApp:
                         "border-radius": "8px",
                     },
                 ),
+                html.Div(id="graphs"),
                 dcc.Store(id="data_frame_store"),
                 dcc.Store(id="clusters_column_store"),
                 dcc.Store(id="uploaded_data_file_store"),
