@@ -7,11 +7,6 @@ from dash_extensions.enrich import DashProxy, ServersideOutputTransform
 from dashapp.app import DashApp
 from dashapp.utils.store import ServerSideStoreBackend
 
-# FIXME: hotfix until https://github.com/thedirtyfew/dash-extensions/issues/188 is fixed
-import dash_extensions
-dash_extensions.async_resources.remove("burger")
-dash_extensions._js_dist = [ext for ext in dash_extensions._js_dist if ext["relative_package_path"] not in ["async-burger.js", "async-burger.min.js"]]
-
 app = DashProxy(
     __name__, suppress_callback_exceptions=True, compress=False, eager_loading=True,
     transforms=[ServersideOutputTransform(

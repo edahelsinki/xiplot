@@ -60,16 +60,16 @@ index 00000000..cedec332
 +  license: BSD-3-Clause
 diff --git a/packages/dash-extensions/meta.yaml b/packages/dash-extensions/meta.yaml
 new file mode 100644
-index 00000000..01320f6d
+index 00000000..afe17b3c
 --- /dev/null
 +++ b/packages/dash-extensions/meta.yaml
 @@ -0,0 +1,18 @@
 +package:
 +  name: dash-extensions
-+  version: 0.1.3
++  version: 0.1.4
 +source:
-+  url: https://files.pythonhosted.org/packages/23/a2/162f4732e90d04181af7b40b246d4ec7793a37f70073b578bf0e44ff328d/dash_extensions-0.1.3-py3-none-any.whl
-+  sha256: 5bef3cdbf420777c89fec4570ddca6dfbb7842b44f3e8e888002db4078ba3a2f
++  url: https://files.pythonhosted.org/packages/31/51/ddd80de58f06aa74120f80c0cdabcd077ab90ddd7b796fe16df32dc25b42/dash_extensions-0.1.4-py3-none-any.whl
++  sha256: f658a34bad7ef2da927d17c0e97c2fd9f4fa8c34ab2a9af9c348ff2c9f41c0ab
 +requirements:
 +  run:
 +    - flask-caching

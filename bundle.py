@@ -57,17 +57,6 @@ dash = DashProxy(
 app = DashApp(app=dash, df_from_store=lambda df: df, df_to_store=lambda df: df).app
 
 
-# FIXME: hotfix until https://github.com/thedirtyfew/dash-extensions/issues/188 is fixed
-import dash_extensions
-
-dash_extensions.async_resources.remove("burger")
-dash_extensions._js_dist = [
-    ext
-    for ext in dash_extensions._js_dist
-    if ext["relative_package_path"] not in ["async-burger.js", "async-burger.min.js"]
-]
-
-
 import re
 
 from pathlib import Path
@@ -76,6 +65,12 @@ SRC_PATTERN = re.compile(r"src=\"([^\"]+)\"")
 
 dist = Path.cwd().parent / "dist"
 
+
+@app.server.errorhandler(Exception)
+def server_error(err):
+    return str(err), 500
+
+
 for script in app._generate_scripts_html().split("\n"):
     src = SRC_PATTERN.search(script).group(1)
 
@@ -83,7 +78,12 @@ for script in app._generate_scripts_html().split("\n"):
 
     with app.server.app_context():
         with app.server.test_client() as client:
-            content = client.get(src).text
+            response = client.get(src)
+
+            if response.status_code != 200:
+                raise Exception(response.text)
+
+            content = response.text
 
     path = dist / src.strip("/")
 
@@ -92,21 +92,23 @@ for script in app._generate_scripts_html().split("\n"):
     with open(path, "w") as file:
         file.write(content)
 
-    try:
-        src_map = src + ".map"
+    src_map = src + ".map"
 
-        with app.server.app_context():
-            with app.server.test_client() as client:
-                content = client.get(src_map).text
+    with app.server.app_context():
+        with app.server.test_client() as client:
+            response = client.get(src_map)
 
-        path_map = dist / src_map.strip("/")
+            if response.status_code != 200:
+                continue
 
-        with open(path_map, "w") as file:
-            file.write(content)
+            content = response.text
 
-        print(src_map)
-    except:
-        pass
+    path_map = dist / src_map.strip("/")
+
+    with open(path_map, "w") as file:
+        file.write(content)
+
+    print(src_map)
 
 
 import hashlib
