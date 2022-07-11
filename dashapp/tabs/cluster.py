@@ -24,17 +24,25 @@ class ClusterTab(Tab):
             Input("data_frame_store", "data"),
             Input("cluster-button", "n_clicks"),
             Input({"type": "scatterplot", "index": ALL}, "selectedData"),
+            Input("clusters_reset-button", "n_clicks"),
             State("cluster_amount", "value"),
-            State("data_frame_store", "data"),
+            State("cluster_feature", "value"),
             State("clusters_column_store", "data"),
             State("selection_cluster_dropdown", "value"),
             prevent_initial_call=True,
         )
         def set_clusters(
-            df, n_clicks, selected_data, n_clusters, features, kmeans_col, cluster_id
+            df,
+            n_clicks,
+            selected_data,
+            m_clicks,
+            n_clusters,
+            features,
+            kmeans_col,
+            cluster_id,
         ):
             df = df_from_store(df)
-            if ctx.triggered_id == "data_frame_store":
+            if ctx.triggered_id in ("data_frame_store", "clusters_reset-button"):
                 kmeans_col = ["bg"] * len(df)
                 return kmeans_col, None, None
             if ctx.triggered_id == "cluster-button":
@@ -109,9 +117,18 @@ class ClusterTab(Tab):
                 html.Button(
                     "Add", id="add_by_keyword-button", style={"padding-top": "20"}
                 ),
+                html.Div(),
                 html.Div(
                     [html.Button("Run", id="cluster-button")],
-                    style={"padding-left": "2%", "padding-top": "2%"},
+                    style={
+                        "padding-left": "2%",
+                        "padding-top": "2%",
+                        "display": "inline-block",
+                    },
+                ),
+                html.Div(
+                    [html.Button("Reset", id="clusters_reset-button")],
+                    style={"display": "inline-block"},
                 ),
                 html.Div(
                     [html.H4(id="clusters_created_message")],
