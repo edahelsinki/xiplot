@@ -7,11 +7,12 @@ from dashapp.graphs.histogram import Histogram
 from dashapp.graphs.heatmap import Heatmap
 from dashapp.graphs.barplot import Barplot
 from dashapp.graphs.table import Table
+from dashapp.graphs.smiles import Smiles
 
 
 class PlotsTab(Tab):
     plot_types = {
-        p.name(): p for p in [Scatterplot, Histogram, Heatmap, Barplot, Table]
+        p.name(): p for p in [Scatterplot, Histogram, Heatmap, Barplot, Table, Smiles]
     }
 
     @staticmethod
