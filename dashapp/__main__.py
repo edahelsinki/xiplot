@@ -33,7 +33,6 @@ else:
 dash = DashProxy(
     __name__, suppress_callback_exceptions=True, transforms=dash_transforms
 )
-dash._favicon = "favicon.ico"
 
 app = DashApp(app=dash, df_from_store=df_from_store, df_to_store=df_to_store)
 dash.run_server(debug=True)
