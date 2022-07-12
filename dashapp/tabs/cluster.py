@@ -43,7 +43,7 @@ class ClusterTab(Tab):
         ):
             df = df_from_store(df)
             if ctx.triggered_id in ("data_frame_store", "clusters_reset-button"):
-                kmeans_col = ["bg"] * len(df)
+                kmeans_col = ["all"] * len(df)
                 return kmeans_col, None, None
             if ctx.triggered_id == "cluster-button":
                 scaler = StandardScaler()
@@ -172,7 +172,7 @@ class ClusterTab(Tab):
                                             }
                                         ),
                                         html.Div(
-                                            "background",
+                                            "everything",
                                             style={
                                                 "display": "inline-block",
                                                 "padding-left": 10,
@@ -180,7 +180,7 @@ class ClusterTab(Tab):
                                         ),
                                     ]
                                 ),
-                                "value": "bg",
+                                "value": "all",
                             }
                         ]
                         + [
@@ -215,7 +215,7 @@ class ClusterTab(Tab):
                     component=dcc.Dropdown(
                         id="comparison_cluster_dropdown",
                         clearable=False,
-                        value="bg",
+                        value="all",
                         options=[
                             {
                                 "label": html.Div(
@@ -231,7 +231,7 @@ class ClusterTab(Tab):
                                             }
                                         ),
                                         html.Div(
-                                            "background",
+                                            "everything",
                                             style={
                                                 "display": "inline-block",
                                                 "padding-left": 10,
@@ -239,7 +239,7 @@ class ClusterTab(Tab):
                                         ),
                                     ]
                                 ),
-                                "value": "bg",
+                                "value": "all",
                             }
                         ]
                         + [

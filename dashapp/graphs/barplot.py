@@ -81,10 +81,10 @@ def make_fig_fgs(df, cluster, comparison, order, clusters):
     fgs_b = Counter()
 
     for c, fgs in zip(clusters, df["fgs"]):
-        if c == cluster or cluster == "bg":
+        if c == cluster or cluster == "all":
             fgs_a.update(fgs)
 
-        if c == comparison or comparison == "bg":
+        if c == comparison or comparison == "all":
             fgs_b.update(fgs)
 
     comparison += "\u00A0"
@@ -139,7 +139,7 @@ def make_fig_fgs(df, cluster, comparison, order, clusters):
             "frequency": ":.2%",
         },
         color_discrete_map={
-            "bg": px.colors.qualitative.Plotly[0],
+            "all": px.colors.qualitative.Plotly[0],
             **{f"c{i+1}": c for i, c in enumerate(px.colors.qualitative.Plotly[1:])},
             "bg\u00A0": px.colors.qualitative.Plotly[0],
             **{

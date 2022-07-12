@@ -56,7 +56,7 @@ class Scatterplot(Graph):
                 color=color,
                 symbol=symbol,
                 color_discrete_map={
-                    "bg": px.colors.qualitative.Plotly[0],
+                    "all": px.colors.qualitative.Plotly[0],
                     **{
                         f"c{i+1}": c
                         for i, c in enumerate(px.colors.qualitative.Plotly[1:])
@@ -111,6 +111,7 @@ class Scatterplot(Graph):
                     component=dcc.Dropdown(
                         id={"type": "scatter_target_color", "index": index},
                         options=columns,
+                        value="Clusters",
                     ),
                     title="target (color)",
                 ),

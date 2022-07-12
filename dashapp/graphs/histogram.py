@@ -61,10 +61,10 @@ def make_fig_property(df, property, cluster, comparison, clusters):
     props_b = []
 
     for c, p in zip(clusters, df[property]):
-        if c == cluster or cluster == "bg":
+        if c == cluster or cluster == "all":
             props_a.append(p)
 
-        if c == comparison or comparison == "bg":
+        if c == comparison or comparison == "all":
             props_b.append(p)
 
     if cluster == comparison:
@@ -86,7 +86,7 @@ def make_fig_property(df, property, cluster, comparison, clusters):
             property: False,
         },
         color_discrete_map={
-            "bg": px.colors.qualitative.Plotly[0],
+            "all": px.colors.qualitative.Plotly[0],
             **{f"c{i+1}": c for i, c in enumerate(px.colors.qualitative.Plotly[1:])},
         },
         opacity=0.75,

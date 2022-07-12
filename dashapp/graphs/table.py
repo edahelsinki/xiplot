@@ -66,7 +66,7 @@ class Table(Graph):
                     style_data_conditional=[
                         {
                             "if": {
-                                "filter_query": '{Clusters} = "bg"',
+                                "filter_query": '{Clusters} = "all"',
                             },
                             "backgroundColor": px.colors.qualitative.Plotly[0],
                             "color": "white",
