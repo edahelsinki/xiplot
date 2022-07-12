@@ -106,7 +106,10 @@ class ClusterTab(Tab):
             [
                 layout_wrapper(
                     component=dcc.Dropdown(
-                        options=[i for i in range(2, 11)], id="cluster_amount"
+                        options=[
+                            i for i in range(2, len(px.colors.qualitative.Plotly))
+                        ],
+                        id="cluster_amount",
                     ),
                     title="cluster amount",
                     style={
