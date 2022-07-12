@@ -85,7 +85,6 @@ class DataTab(Tab):
             ServersideOutput("data_frame_store", "data"),
             Output("data_file_load_message-container", "style"),
             Output("data_file_load_message", "children"),
-            Output("cluster_feature", "options"),
             Input("submit-button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
             State("data_files", "value"),
@@ -132,7 +131,6 @@ class DataTab(Tab):
                 )
 
             file_style = {"display": "inline"}
-            columns = df.columns.to_list()
             df_store = df_from_store(df_store)
             df_store["auxiliary"] = [{"index": i} for i in range(len(df))]
 
@@ -140,7 +138,6 @@ class DataTab(Tab):
                 df_to_store(df_store),
                 file_style,
                 file_message,
-                columns,
             )
 
     @staticmethod

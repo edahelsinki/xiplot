@@ -87,6 +87,19 @@ class ClusterTab(Tab):
                 raise PreventUpdate()
             return keyword
 
+        @app.callback(
+            Output("cluster_feature", "options"),
+            Input("data_frame_store", "data"),
+            prevent_initial_call=True,
+        )
+        def update_cluster_columns(df):
+            df = df_from_store(df)
+
+            columns = df.columns.to_list()
+            columns.remove("auxiliary")
+
+            return columns
+
     @staticmethod
     def create_layout():
         return html.Div(

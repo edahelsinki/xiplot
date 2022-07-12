@@ -6,10 +6,13 @@ from dashapp.graphs.scatterplot import Scatterplot
 from dashapp.graphs.histogram import Histogram
 from dashapp.graphs.heatmap import Heatmap
 from dashapp.graphs.barplot import Barplot
+from dashapp.graphs.table import Table
 
 
 class PlotsTab(Tab):
-    plot_types = {p.name(): p for p in [Scatterplot, Histogram, Heatmap, Barplot]}
+    plot_types = {
+        p.name(): p for p in [Scatterplot, Histogram, Heatmap, Barplot, Table]
+    }
 
     @staticmethod
     def name() -> str:
