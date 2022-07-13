@@ -11,11 +11,20 @@ async function initialisePyodide() {
 let pyodideReadyPromise = initialisePyodide();
 
 function generateResponseObject(pythonResponse) {
-  const responseBody = pythonResponse.get_data((as_text = true)) || null;
+  const responseBytes = pythonResponse.get_data((as_text = false)).toJs();
+  const decoder = new TextDecoder("utf-8", {fatal: true});
+  let responseBody
+  if (responseBytes) {
+    try {
+      responseBody = decoder.decode(responseBytes);
+    } catch (_) {
+      responseBody = responseBytes;
+    }
+  }
   const headerKeys = pythonResponse.headers.keys();
   const responseStatus = pythonResponse.status_code;
   const returnObject = {
-    response: responseBody,
+    response: responseBody || null,
     status: responseStatus,
     headers: Array.from(headerKeys).reduce(
       (acc, val) => ((acc[val] = pythonResponse.headers.get(val)), acc),

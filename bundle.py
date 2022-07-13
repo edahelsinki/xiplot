@@ -56,6 +56,11 @@ dash = DashProxy(
 )
 app = DashApp(app=dash, df_from_store=lambda df: df, df_to_store=lambda df: df).app
 
+# Dummy request to ensure the server is setup when we request the index
+with app.server.app_context():
+    with app.server.test_client() as client:
+        client.get("_favicon.ico")
+
 
 import re
 
@@ -71,8 +76,11 @@ def server_error(err):
     return str(err), 500
 
 
-for script in app._generate_scripts_html().split("\n"):
-    src = SRC_PATTERN.search(script).group(1)
+for script in app._generate_scripts_html().split("</script>"):
+    src = SRC_PATTERN.search(script)
+    if src is None:
+        continue
+    src = src.group(1)
 
     print(src)
 

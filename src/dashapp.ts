@@ -8,21 +8,19 @@ from dashapp.app import DashApp
 from dashapp.utils.store import ServerSideStoreBackend
 
 app = DashProxy(
-    __name__, suppress_callback_exceptions=True, compress=False, eager_loading=True,
+    "dashapp.app", suppress_callback_exceptions=True, compress=False, eager_loading=True,
     transforms=[ServersideOutputTransform(
         backend=ServerSideStoreBackend(), session_check=False, arg_check=False,
     )],
 )
-app._favicon = "favicon.ico"
 
 
-import os
 import pyodide
 import shutil
 
 from pathlib import Path
 
-os.mkdir("data")
+Path("data").mkdir(exist_ok=True, parents=True)
 
 for dataset in [
     "autompg-B.csv", "autompg.csv", "auto-mpg.csv",
@@ -33,4 +31,9 @@ for dataset in [
 
 
 app = DashApp(app=app, df_from_store=lambda df: df, df_to_store=lambda df: df).app
+
+# Dummy request to ensure the server is setup when we request the index
+with app.server.app_context():
+    with app.server.test_client() as client:
+        client.get("_favicon.ico")
 `;

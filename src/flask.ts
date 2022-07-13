@@ -40,7 +40,7 @@ export class WebFlask {
         x = client.open('${req}',
           data=${data},
           content_type=${content_type},
-          method="${init.method}",
+          method="${init.method || 'GET'}",
         )
     x`;
   }

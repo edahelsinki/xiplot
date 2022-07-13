@@ -43,7 +43,8 @@ deploy: pyodide dashapp
 	cp -r pyodide/dist/* dist/
 	cp dashapp/dist/dashapp-0.1.0-py3-none-any.whl dist/
 	cp -r dashapp/data dist/
-	cp -r dashapp/dashapp/assets/* dist/
+	cp -r dashapp/dashapp/assets/favicon.ico dist/
+	cp -r dashapp/dashapp/assets/ dist/
 	cp bundle.py dashapp/
 	cd dashapp; \
 	pip install -r requirements.txt; \
@@ -60,6 +61,7 @@ clean:
 	mkdir dist
 	rm -rf .cache
 	rm -rf dashapp/dist
+	rm -rf dashapp/dashapp.egg-info
 
 nuke: clean
 	rm -rf node_modules

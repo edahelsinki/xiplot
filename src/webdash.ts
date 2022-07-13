@@ -110,8 +110,16 @@ ${await this.workerManager.asyncRun("app._generate_css_dist_html()", {})}
 
     const scriptChunk = await this.workerManager.asyncRun("app._generate_scripts_html()", {});
 
-    for (const script of scriptChunk.split("\n")) {
-      const src = script.match(/src="(?<src>[^"]+)"/).groups.src;
+    for (const script of scriptChunk.split("</script>")) {
+      let src = script.match(/src="(?<src>[^"]+)"/);
+      if (src) {
+        src = src.groups.src;
+      }
+      let content = script.replace("<script>", "");
+
+      if (content.replace(/\s/, "").length == 0) {
+        continue;
+      }
 
       const promise = new Promise((resolve, reject) => {
         log(`Parsing script tag with src ${src}`);
@@ -119,7 +127,12 @@ ${await this.workerManager.asyncRun("app._generate_css_dist_html()", {})}
         const scriptTag = document.createElement("script");
 
         scriptTag.type = 'text/javascript';
-        scriptTag.src = src;
+
+        if (src) {
+          scriptTag.src = src;
+        } else {
+          scriptTag.text = content;
+        }
 
         scriptTag.onerror = (err) => reject(err);
 
@@ -133,6 +146,10 @@ ${await this.workerManager.asyncRun("app._generate_css_dist_html()", {})}
         };
 
         footer.appendChild(scriptTag);
+
+        if (!src) {
+          resolve(null);
+        }
       });
 
       await promise;
@@ -144,7 +161,7 @@ ${await this.workerManager.asyncRun("app._generate_css_dist_html()", {})}
     const rendererScriptTag = document.createElement("script");
     rendererScriptTag.id = "_dash-renderer";
     rendererScriptTag.type = "application/javascript";
-    rendererScriptTag.innerHTML = await self.workerManager.asyncRun("app.renderer", {});
+    rendererScriptTag.text = await self.workerManager.asyncRun("app.renderer", {});
     footer.appendChild(rendererScriptTag);
   }
 
