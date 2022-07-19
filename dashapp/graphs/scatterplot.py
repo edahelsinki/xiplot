@@ -10,10 +10,6 @@ from dashapp.graphs import Graph
 
 class Scatterplot(Graph):
     @staticmethod
-    def name() -> str:
-        return "Scatterplot"
-
-    @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "scatterplot", "index": MATCH}, "figure"),

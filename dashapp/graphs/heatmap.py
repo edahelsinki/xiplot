@@ -9,10 +9,6 @@ from dashapp.graphs import Graph
 
 class Heatmap(Graph):
     @staticmethod
-    def name() -> str:
-        return "Heatmap"
-
-    @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "heatmap", "index": MATCH}, "figure"),

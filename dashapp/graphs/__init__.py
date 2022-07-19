@@ -5,9 +5,9 @@ class Graph(ABC):
     def __init__(self):
         raise TypeError("Graphs should not be constructed")
 
-    @abstractstaticmethod
-    def name() -> str:
-        pass
+    @classmethod
+    def name(cls) -> str:
+        return cls.__name__
 
     @abstractstaticmethod
     def register_callbacks(app, df_from_store, df_to_store):

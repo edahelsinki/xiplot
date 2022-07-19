@@ -8,10 +8,6 @@ from dashapp.graphs import Graph
 
 class Table(Graph):
     @staticmethod
-    def name() -> str:
-        return "Table"
-
-    @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "table", "index": MATCH}, "data"),

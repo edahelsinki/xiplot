@@ -15,10 +15,6 @@ from collections import Counter
 
 class Barplot(Graph):
     @staticmethod
-    def name() -> str:
-        return "Barplot"
-
-    @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "barplot", "index": MATCH}, "figure"),

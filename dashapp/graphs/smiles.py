@@ -6,10 +6,6 @@ from dashapp.graphs import Graph
 
 class Smiles(Graph):
     @staticmethod
-    def name() -> str:
-        return "Smiles"
-
-    @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         app.clientside_callback(
             """
