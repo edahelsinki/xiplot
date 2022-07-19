@@ -149,6 +149,7 @@ class ClusterTab(Tab):
                     id="clusters_created_message-container",
                     style={"display": "none"},
                 ),
+                html.Div(),
                 layout_wrapper(
                     component=dcc.Dropdown(
                         id="selection_cluster_dropdown",
@@ -207,65 +208,6 @@ class ClusterTab(Tab):
                         ],
                     ),
                     title="Selection Cluster:",
-                ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id="comparison_cluster_dropdown",
-                        clearable=False,
-                        value="all",
-                        options=[
-                            {
-                                "label": html.Div(
-                                    [
-                                        html.Div(
-                                            style={
-                                                "width": 20,
-                                                "height": 20,
-                                                "display": "inline-block",
-                                                "background-color": px.colors.qualitative.Plotly[
-                                                    0
-                                                ],
-                                            }
-                                        ),
-                                        html.Div(
-                                            "everything",
-                                            style={
-                                                "display": "inline-block",
-                                                "padding-left": 10,
-                                            },
-                                        ),
-                                    ]
-                                ),
-                                "value": "all",
-                            }
-                        ]
-                        + [
-                            {
-                                "label": html.Div(
-                                    [
-                                        html.Div(
-                                            style={
-                                                "width": 20,
-                                                "height": 20,
-                                                "display": "inline-block",
-                                                "background-color": c,
-                                            }
-                                        ),
-                                        html.Div(
-                                            f"cluster #{i+1}",
-                                            style={
-                                                "display": "inline-block",
-                                                "padding-left": 10,
-                                            },
-                                        ),
-                                    ]
-                                ),
-                                "value": f"c{i+1}",
-                            }
-                            for i, c in enumerate(px.colors.qualitative.Plotly[1:])
-                        ],
-                    ),
-                    title="Comparison Cluster:",
                 ),
             ],
             id="control_clusters_content-container",
