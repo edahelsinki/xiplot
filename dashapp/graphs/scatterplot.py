@@ -92,6 +92,11 @@ class Scatterplot(Graph):
                         value=x,
                         clearable=False,
                     ),
+                    style={
+                        "margin-left": "10%",
+                        "display": "inline-block",
+                        "width": "40%",
+                    },
                     title="x",
                 ),
                 layout_wrapper(
@@ -109,6 +114,11 @@ class Scatterplot(Graph):
                         options=columns,
                         value="Clusters",
                     ),
+                    style={
+                        "margin-left": "10%",
+                        "display": "inline-block",
+                        "width": "40%",
+                    },
                     title="target (color)",
                 ),
                 layout_wrapper(

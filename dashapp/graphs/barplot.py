@@ -49,6 +49,11 @@ class Barplot(Graph):
                         clearable=False,
                         options=columns,
                     ),
+                    style={
+                        "margin-left": "10%",
+                        "display": "inline-block",
+                        "width": "40%",
+                    },
                     title="x axis",
                 ),
                 layout_wrapper(
