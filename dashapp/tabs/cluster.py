@@ -1,6 +1,7 @@
 import plotly.express as px
 
 from dash import Output, Input, State, ctx, ALL, html, dcc
+import dash_daq as daq
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
 from sklearn.preprocessing import StandardScaler
@@ -58,10 +59,10 @@ class ClusterTab(Tab):
                 message = "Clusters created!"
                 return kmeans_col, style, message
             if selected_data and selected_data[0] and selected_data[0]["points"]:
-                if selection_mode == "edit mode":
+                if selection_mode:
                     for p in selected_data[0]["points"]:
                         kmeans_col[p["customdata"][0]["index"]] = cluster_id
-                elif selection_mode == "replace mode":
+                else:
                     kmeans_col = ["c2"] * len(kmeans_col)
                     for p in selected_data[0]["points"]:
                         kmeans_col[p["customdata"][0]["index"]] = "c1"
@@ -217,11 +218,10 @@ class ClusterTab(Tab):
                     title="Selection Cluster:",
                 ),
                 layout_wrapper(
-                    component=dcc.RadioItems(
-                        ["replace mode", "edit mode"],
-                        "edit mode",
+                    component=daq.ToggleSwitch(
                         id="cluster_selection_mode",
-                        inline=True,
+                        value=False,
+                        label="replace mode/edit mode",
                     ),
                     style={"display": "inline-block"},
                 ),
