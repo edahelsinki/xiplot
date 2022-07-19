@@ -7,7 +7,7 @@ import plotly.express as px
 
 from dash import html, dcc, Output, Input, State, MATCH
 
-from dashapp.utils.layouts import layout_wrapper, delete_button
+from dashapp.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
 from dashapp.graphs import Graph
 
 from collections import Counter
@@ -60,11 +60,11 @@ class Barplot(Graph):
                     ),
                     title="y axis",
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "barplot_cluster_amount", "index": index},
-                    ),
-                    title="Cluster amount",
+                cluster_dropdown(
+                    "bp_selection_cluster_dropdown", index, selection=True
+                ),
+                cluster_dropdown(
+                    "bp_comparison_cluster_dropdown", index, selection=False
                 ),
             ],
             id={"type": "barplot-container", "index": index},

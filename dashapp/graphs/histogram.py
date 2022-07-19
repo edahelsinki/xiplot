@@ -3,7 +3,7 @@ import plotly.express as px
 
 from dash import html, dcc, Output, Input, State, MATCH
 
-from dashapp.utils.layouts import layout_wrapper, delete_button
+from dashapp.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
 from dashapp.graphs import Graph
 
 
@@ -45,6 +45,12 @@ class Histogram(Graph):
                     ),
                     title="x axis",
                     style={"margin-top": 10, "margin-left": "10%", "width": "82%"},
+                ),
+                cluster_dropdown(
+                    "hg_selection_cluster_dropdown", index, selection=True
+                ),
+                cluster_dropdown(
+                    "hg_comparison_cluster_dropdown", index, selection=False
                 ),
             ],
             id={"type": "histogram-container", "index": index},
