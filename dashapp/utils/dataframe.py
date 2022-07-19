@@ -7,7 +7,7 @@ def get_data_filepaths():
     return [fp for fp in Path("data").iterdir() if fp.is_file()]
 
 
-def read_dataframe_with_extension(data, filename):
+def read_dataframe_with_extension(data, filename=None):
     """
     Read the given data and convert it to a pandas data frame
 
@@ -20,6 +20,8 @@ def read_dataframe_with_extension(data, filename):
     -------
         df: Pandas data frame
     """
+    if filename is None:
+        filename = data
     file_extension = Path(filename).suffix
 
     if file_extension == ".csv":
