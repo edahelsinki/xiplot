@@ -8,6 +8,7 @@ from sklearn.cluster import KMeans
 
 from dashapp.tabs import Tab
 from dashapp.utils.layouts import layout_wrapper
+from dashapp.utils.dcc import dropdown_multi_selection
 
 
 class ClusterTab(Tab):
@@ -70,11 +71,7 @@ class ClusterTab(Tab):
         def add_matching_values(n_clicks, df, keyword, features):
             df = df_from_store(df)
             columns = df.columns.to_list()
-            if not features:
-                features = []
-            for column in columns:
-                if keyword in column and column not in features:
-                    features.append(column)
+            features = dropdown_multi_selection(columns, features, keyword)
             return features
 
         @app.callback(
