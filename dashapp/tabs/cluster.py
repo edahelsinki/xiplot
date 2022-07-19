@@ -30,6 +30,7 @@ class ClusterTab(Tab):
             State("cluster_feature", "value"),
             State("clusters_column_store", "data"),
             State("selection_cluster_dropdown", "value"),
+            State("cluster_selection_mode", "value"),
             prevent_initial_call=True,
         )
         def set_clusters(
@@ -41,6 +42,7 @@ class ClusterTab(Tab):
             features,
             kmeans_col,
             cluster_id,
+            selection_mode,
         ):
             df = df_from_store(df)
             if ctx.triggered_id in ("data_frame_store", "clusters_reset-button"):
@@ -56,8 +58,13 @@ class ClusterTab(Tab):
                 message = "Clusters created!"
                 return kmeans_col, style, message
             if selected_data and selected_data[0] and selected_data[0]["points"]:
-                for p in selected_data[0]["points"]:
-                    kmeans_col[p["customdata"][0]["index"]] = cluster_id
+                if selection_mode == "edit mode":
+                    for p in selected_data[0]["points"]:
+                        kmeans_col[p["customdata"][0]["index"]] = cluster_id
+                elif selection_mode == "replace mode":
+                    kmeans_col = ["c2"] * len(kmeans_col)
+                    for p in selected_data[0]["points"]:
+                        kmeans_col[p["customdata"][0]["index"]] = "c1"
             return kmeans_col, None, None
 
         @app.callback(
@@ -208,6 +215,15 @@ class ClusterTab(Tab):
                         ],
                     ),
                     title="Selection Cluster:",
+                ),
+                layout_wrapper(
+                    component=dcc.RadioItems(
+                        ["replace mode", "edit mode"],
+                        "edit mode",
+                        id="cluster_selection_mode",
+                        inline=True,
+                    ),
+                    style={"display": "inline-block"},
                 ),
             ],
             id="control_clusters_content-container",
