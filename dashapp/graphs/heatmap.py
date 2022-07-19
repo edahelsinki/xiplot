@@ -55,5 +55,5 @@ class Heatmap(Graph):
                 ),
             ],
             id={"type": "heatmap-container", "index": index},
-            style={"width": "32%", "display": "inline-block", "float": "left"},
+            className="graphs",
         )

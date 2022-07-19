@@ -73,7 +73,7 @@ class Barplot(Graph):
                 ),
             ],
             id={"type": "barplot-container", "index": index},
-            style={"width": "32%", "display": "inline-block", "float": "left"},
+            className="graphs",
         )
 
 

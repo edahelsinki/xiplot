@@ -54,7 +54,7 @@ class Histogram(Graph):
                 ),
             ],
             id={"type": "histogram-container", "index": index},
-            style={"width": "32%", "display": "inline-block", "float": "left"},
+            className="graphs",
         )
 
 

@@ -80,5 +80,5 @@ class Table(Graph):
                 ),
             ],
             id={"type": "table-container", "index": index},
-            style={"width": "32%", "display": "inline-block", "float": "left"},
+            className="graphs",
         )
