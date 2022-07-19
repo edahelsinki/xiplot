@@ -137,7 +137,7 @@ class Scatterplot(Graph):
                         tooltip={"placement": "bottom", "always_visible": True},
                     ),
                     title="jitter",
-                    style={"width": "80%", "padding-left": "2%"},
+                    style={"width": "80%", "marging-left": "10%"},
                 ),
             ],
             id={"type": "scatterplot-container", "index": index},
