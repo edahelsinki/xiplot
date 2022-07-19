@@ -18,10 +18,10 @@ class Barplot(Graph):
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "barplot", "index": MATCH}, "figure"),
-            Input("selection_cluster_dropdown", "value"),
-            Input("comparison_cluster_dropdown", "value"),
+            Input({"type": "bp_selection_cluster_dropdown", "index": MATCH}, "value"),
+            Input({"type": "bp_comparison_cluster_dropdown", "index": MATCH}, "value"),
             State("data_frame_store", "data"),
-            State("clusters_column_store", "data"),
+            Input("clusters_column_store", "data"),
             prevent_initial_call=True,
         )
         def render_barplot(selection, comparison, df, kmeans_col):

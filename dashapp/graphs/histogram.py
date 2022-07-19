@@ -13,8 +13,8 @@ class Histogram(Graph):
         @app.callback(
             Output({"type": "histogram", "index": MATCH}, "figure"),
             Input({"type": "x_axis_histo", "index": MATCH}, "value"),
-            Input("selection_cluster_dropdown", "value"),
-            Input("comparison_cluster_dropdown", "value"),
+            Input({"type": "hg_selection_cluster_dropdown", "index": MATCH}, "value"),
+            Input({"type": "hg_comparison_cluster_dropdown", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
             State("data_frame_store", "data"),
             prevent_initial_call=True,
