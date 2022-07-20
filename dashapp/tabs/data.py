@@ -146,7 +146,9 @@ class DataTab(Tab):
             import dash_uploader as du
 
             uploader = du.Upload(
-                id="file_uploader", text="Drag and Drop or Select a File to upload"
+                id="file_uploader",
+                text="Drag and Drop or Select a File to upload",
+                default_style={"minHeight": 1, "lineHeight": 4, "height": "85px"},
             )
         except ImportError:
             uploader = dcc.Upload(
@@ -158,51 +160,45 @@ class DataTab(Tab):
                         " to upload",
                     ]
                 ),
-                style={
-                    "width": "100%",
-                    "height": "60px",
-                    "lineHeight": "60px",
-                    "borderWidth": "1px",
-                    "borderStyle": "dashed",
-                    "borderRadius": "5px",
-                    "textAlign": "center",
-                    "margin": "10px",
-                },
+                className="dcc-upload",
             )
 
         return html.Div(
             [
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        [
-                            {"label": fp.name, "value": str(fp)}
-                            for fp in get_data_filepaths()
-                        ],
-                        id="data_files",
-                        clearable=False,
-                    ),
-                    title="Choose a data file",
-                    style={"width": "98%"},
-                ),
                 html.Div(
                     [
-                        html.Button(
-                            "Load the data file",
-                            id="submit-button",
-                            n_clicks=0,
-                            className="btn btn-primary",
+                        layout_wrapper(
+                            component=dcc.Dropdown(
+                                [
+                                    {"label": fp.name, "value": str(fp)}
+                                    for fp in get_data_filepaths()
+                                ],
+                                id="data_files",
+                                clearable=False,
+                            ),
+                            title="Choose a data file",
+                            style={"margin-left": "5%", "width": "100%"},
+                        ),
+                        html.Div(
+                            [
+                                html.Button(
+                                    "Load the data file",
+                                    id="submit-button",
+                                    n_clicks=0,
+                                    className="btn btn-primary",
+                                ),
+                            ],
+                            style={"margin-top": "1%", "margin-left": "5%"},
                         ),
                     ],
-                    style={
-                        "padding-top": "2%",
-                    },
+                    style={"float": "left", "width": "40%"},
                 ),
+                html.Div([uploader], className="dash-uploader"),
                 html.Div(
                     [html.H4(id="data_file_load_message")],
                     id="data_file_load_message-container",
                     style={"display": "none"},
                 ),
-                html.Div([uploader], style={"padding-top": "2%"}),
             ],
             id="control_data_content-container",
         )
