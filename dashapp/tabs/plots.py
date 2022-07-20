@@ -16,10 +16,6 @@ class PlotsTab(Tab):
     }
 
     @staticmethod
-    def name() -> str:
-        return "Plots"
-
-    @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         for plot_name, plot_type in PlotsTab.plot_types.items():
             plot_type.register_callbacks(

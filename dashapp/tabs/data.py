@@ -20,10 +20,6 @@ from dashapp.utils.layouts import layout_wrapper
 
 class DataTab(Tab):
     @staticmethod
-    def name() -> str:
-        return "Data"
-
-    @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         try:
             import dash_uploader as du
