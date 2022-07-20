@@ -19,7 +19,7 @@ def delete_button(type, index):
     )
 
 
-def cluster_dropdown(id, index, selection: bool):
+def cluster_dropdown(id, index, selection: bool, style=None):
     layout = layout_wrapper(
         component=dcc.Dropdown(
             id={"type": id, "index": index},
@@ -70,5 +70,6 @@ def cluster_dropdown(id, index, selection: bool):
         ),
         title="Selection Cluster" if selection else "Comparison Cluster",
         css_class="dd-double-left" if selection else "dd-double-right",
+        style=style,
     )
     return layout

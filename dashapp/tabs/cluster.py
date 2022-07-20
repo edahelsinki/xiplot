@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 
 from dashapp.tabs import Tab
-from dashapp.utils.layouts import layout_wrapper
+from dashapp.utils.layouts import layout_wrapper, cluster_dropdown
 from dashapp.utils.dcc import dropdown_multi_selection
 
 
@@ -30,7 +30,7 @@ class ClusterTab(Tab):
             State("cluster_amount", "value"),
             State("cluster_feature", "value"),
             State("clusters_column_store", "data"),
-            State("selection_cluster_dropdown", "value"),
+            State({"type": "selection_cluster_dropdown", "index": 0}, "value"),
             State("cluster_selection_mode", "value"),
             prevent_initial_call=True,
         )
@@ -158,58 +158,8 @@ class ClusterTab(Tab):
                     style={"display": "none"},
                 ),
                 html.Div(),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id="selection_cluster_dropdown",
-                        clearable=False,
-                        value="c1",
-                        options=[
-                            {
-                                "label": html.Div(
-                                    [
-                                        html.Div(
-                                            style={
-                                                "background-color": px.colors.qualitative.Plotly[
-                                                    0
-                                                ]
-                                            },
-                                            className="color-rect",
-                                        ),
-                                        html.Div(
-                                            "everything",
-                                            style={
-                                                "display": "inline-block",
-                                                "padding-left": 10,
-                                            },
-                                        ),
-                                    ]
-                                ),
-                                "value": "all",
-                            }
-                        ]
-                        + [
-                            {
-                                "label": html.Div(
-                                    [
-                                        html.Div(
-                                            style={"background-color": c},
-                                            className="color-rect",
-                                        ),
-                                        html.Div(
-                                            f"cluster #{i+1}",
-                                            style={
-                                                "display": "inline-block",
-                                                "padding-left": 10,
-                                            },
-                                        ),
-                                    ]
-                                ),
-                                "value": f"c{i+1}",
-                            }
-                            for i, c in enumerate(px.colors.qualitative.Plotly[1:])
-                        ],
-                    ),
-                    title="Selection Cluster:",
+                cluster_dropdown(
+                    "selection_cluster_dropdown", 0, True, {"margin-left": "2%"}
                 ),
                 layout_wrapper(
                     component=daq.ToggleSwitch(
