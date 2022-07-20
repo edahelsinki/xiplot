@@ -49,11 +49,7 @@ class Barplot(Graph):
                         clearable=False,
                         options=columns,
                     ),
-                    style={
-                        "margin-left": "10%",
-                        "display": "inline-block",
-                        "width": "40%",
-                    },
+                    css_class="dd-double-left",
                     title="x axis",
                 ),
                 layout_wrapper(
@@ -63,6 +59,7 @@ class Barplot(Graph):
                         clearable=False,
                         options=columns,
                     ),
+                    css_class="dd-double-right",
                     title="y axis",
                 ),
                 cluster_dropdown(

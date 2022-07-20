@@ -43,8 +43,8 @@ class Histogram(Graph):
                         clearable=False,
                         options=columns,
                     ),
+                    css_class="dd-single",
                     title="x axis",
-                    style={"margin-top": 10, "margin-left": "10%", "width": "82%"},
                 ),
                 cluster_dropdown(
                     "hg_selection_cluster_dropdown", index, selection=True

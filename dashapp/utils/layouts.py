@@ -6,13 +6,7 @@ def layout_wrapper(component, id="", style=None, css_class=None, title=None):
     layout = html.Div(
         children=[html.Div(title), component],
         id=id,
-        style=style
-        if style
-        else {
-            "width": "40%",
-            "display": "inline-block",
-            "padding-left": "2%",
-        },
+        style=style,
         className=css_class,
     )
 
@@ -37,11 +31,9 @@ def cluster_dropdown(id, index, selection: bool):
                         [
                             html.Div(
                                 style={
-                                    "width": 20,
-                                    "height": 20,
-                                    "display": "inline-block",
-                                    "background-color": px.colors.qualitative.Plotly[0],
-                                }
+                                    "background-color": px.colors.qualitative.Plotly[0]
+                                },
+                                className="color-rect",
                             ),
                             html.Div(
                                 "everything",
@@ -60,12 +52,7 @@ def cluster_dropdown(id, index, selection: bool):
                     "label": html.Div(
                         [
                             html.Div(
-                                style={
-                                    "width": 20,
-                                    "height": 20,
-                                    "display": "inline-block",
-                                    "background-color": c,
-                                }
+                                style={"background-color": c}, className="color-rect"
                             ),
                             html.Div(
                                 f"cluster #{i+1}",
@@ -82,8 +69,6 @@ def cluster_dropdown(id, index, selection: bool):
             ],
         ),
         title="Selection Cluster" if selection else "Comparison Cluster",
-        style={"margin-left": "10%", "display": "inline-block", "width": "40%"}
-        if selection
-        else None,
+        css_class="dd-double-left" if selection else "dd-double-right",
     )
     return layout

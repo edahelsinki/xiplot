@@ -92,11 +92,7 @@ class Scatterplot(Graph):
                         value=x,
                         clearable=False,
                     ),
-                    style={
-                        "margin-left": "10%",
-                        "display": "inline-block",
-                        "width": "40%",
-                    },
+                    css_class="dd-double-left",
                     title="x",
                 ),
                 layout_wrapper(
@@ -106,6 +102,7 @@ class Scatterplot(Graph):
                         value=y,
                         clearable=False,
                     ),
+                    css_class="dd-double-right",
                     title="y",
                 ),
                 layout_wrapper(
@@ -114,11 +111,7 @@ class Scatterplot(Graph):
                         options=columns,
                         value="Clusters",
                     ),
-                    style={
-                        "margin-left": "10%",
-                        "display": "inline-block",
-                        "width": "40%",
-                    },
+                    css_class="dd-double-left",
                     title="target (color)",
                 ),
                 layout_wrapper(
@@ -126,6 +119,7 @@ class Scatterplot(Graph):
                         id={"type": "scatter_target_symbol", "index": index},
                         options=columns,
                     ),
+                    css_class="dd-double-right",
                     title="target (symbol)",
                 ),
                 layout_wrapper(
@@ -137,7 +131,7 @@ class Scatterplot(Graph):
                         tooltip={"placement": "bottom", "always_visible": True},
                     ),
                     title="jitter",
-                    style={"width": "80%", "marging-left": "10%"},
+                    style={"width": "82%", "padding-left": "10%"},
                 ),
             ],
             id={"type": "scatterplot-container", "index": index},

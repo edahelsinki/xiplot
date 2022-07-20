@@ -169,13 +169,11 @@ class ClusterTab(Tab):
                                     [
                                         html.Div(
                                             style={
-                                                "width": 20,
-                                                "height": 20,
-                                                "display": "inline-block",
                                                 "background-color": px.colors.qualitative.Plotly[
                                                     0
-                                                ],
-                                            }
+                                                ]
+                                            },
+                                            className="color-rect",
                                         ),
                                         html.Div(
                                             "everything",
@@ -194,12 +192,8 @@ class ClusterTab(Tab):
                                 "label": html.Div(
                                     [
                                         html.Div(
-                                            style={
-                                                "width": 20,
-                                                "height": 20,
-                                                "display": "inline-block",
-                                                "background-color": c,
-                                            }
+                                            style={"background-color": c},
+                                            className="color-rect",
                                         ),
                                         html.Div(
                                             f"cluster #{i+1}",

@@ -1,4 +1,27 @@
 .graphs {
-    width: 32%;
     display: inline-block;
+    width: 32%;
+}
+
+.dd-single {
+    margin-left: 10%;
+    width: 82%;
+}
+
+.dd-double-left {
+    margin-left: 10%;
+    display: inline-block;
+    width: 40%;
+}
+
+.dd-double-right {
+    margin-left: 2%;
+    display: inline-block;
+    width: 40%;
+}
+
+.color-rect {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
 }

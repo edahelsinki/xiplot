@@ -31,8 +31,7 @@ class Heatmap(Graph):
                 color_continuous_scale="RdBu",
                 origin="lower",
             )
-            style = {"widthe": "32%", "display": "inline-block", "float": "left"}
-            return fig, style
+            return fig
 
     @staticmethod
     def create_new_layout(index, df, columns):
