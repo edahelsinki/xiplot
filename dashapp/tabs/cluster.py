@@ -14,10 +14,6 @@ from dashapp.utils.dcc import dropdown_multi_selection
 
 class ClusterTab(Tab):
     @staticmethod
-    def name() -> str:
-        return "Clusters"
-
-    @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             ServersideOutput("clusters_column_store", "data"),
