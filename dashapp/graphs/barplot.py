@@ -20,16 +20,21 @@ class Barplot(Graph):
             Output({"type": "barplot", "index": MATCH}, "figure"),
             Input({"type": "bp_selection_cluster_dropdown", "index": MATCH}, "value"),
             Input({"type": "bp_comparison_cluster_dropdown", "index": MATCH}, "value"),
-            State("data_frame_store", "data"),
             Input("clusters_column_store", "data"),
+            State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def render_barplot(selection, comparison, df, kmeans_col):
-            df = df_from_store(df)
-            if len(kmeans_col) == df.shape[0]:
-                df["Clusters"] = kmeans_col
-            fig = make_fig_fgs(df, selection, comparison, "reldiff", kmeans_col)
-            return fig
+        def tmp(selection, comparison, kmeans_col, df):
+            return Barplot.render_barplot(
+                selection, comparison, kmeans_col, df_from_store(df)
+            )
+
+    @staticmethod
+    def render_barplot(selection, comparison, kmeans_col, df):
+        if len(kmeans_col) == df.shape[0]:
+            df["Clusters"] = kmeans_col
+        fig = make_fig_fgs(df, selection, comparison, "reldiff", kmeans_col)
+        return fig
 
     @staticmethod
     def create_new_layout(index, df, columns):

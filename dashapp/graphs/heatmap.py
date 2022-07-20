@@ -16,22 +16,25 @@ class Heatmap(Graph):
             State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def render_heatmap(n_clusters, df):
-            df = df_from_store(df)
-            columns = df.columns.to_list()
+        def tmp(n_clusters, df):
+            return Heatmap.render_heatmap(n_clusters, df_from_store(df))
 
-            km = KMeans(n_clusters=n_clusters, random_state=42)
-            km.fit(df.drop("auxiliary", axis=1))
-            cluster_centers = km.cluster_centers_
+    @staticmethod
+    def render_heatmap(n_clusters, df):
+        columns = df.columns.to_list()
 
-            fig = px.imshow(
-                cluster_centers,
-                x=columns.remove("auxiliary"),
-                y=[str(n + 1) for n in range(n_clusters)],
-                color_continuous_scale="RdBu",
-                origin="lower",
-            )
-            return fig
+        km = KMeans(n_clusters=n_clusters, random_state=42)
+        km.fit(df.drop(["auxiliary", "Clusters"], axis=1))
+        cluster_centers = km.cluster_centers_
+
+        fig = px.imshow(
+            cluster_centers,
+            x=columns.remove("auxiliary"),
+            y=[str(n + 1) for n in range(n_clusters)],
+            color_continuous_scale="RdBu",
+            origin="lower",
+        )
+        return fig
 
     @staticmethod
     def create_new_layout(index, df, columns):

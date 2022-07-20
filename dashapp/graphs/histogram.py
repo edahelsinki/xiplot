@@ -19,13 +19,18 @@ class Histogram(Graph):
             State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def render_histogram(x_axis, selection, comparison, kmeans_col, df):
-            df = df_from_store(df)
-            if len(kmeans_col) == df.shape[0]:
-                df["Clusters"] = kmeans_col
-            fig = make_fig_property(df, x_axis, selection, comparison, kmeans_col)
+        def tmp(x_axis, selection, comparison, kmeans_col, df):
+            return Histogram.render_histogram(
+                x_axis, selection, comparison, kmeans_col, df_from_store(df)
+            )
 
-            return fig
+    @staticmethod
+    def render_histogram(x_axis, selection, comparison, kmeans_col, df):
+        if len(kmeans_col) == df.shape[0]:
+            df["Clusters"] = kmeans_col
+        fig = make_fig_property(df, x_axis, selection, comparison, kmeans_col)
+
+        return fig
 
     @staticmethod
     def create_new_layout(index, df, columns):
