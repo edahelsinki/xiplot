@@ -18,7 +18,7 @@ from dashapp.tabs import Tab
 from dashapp.utils.layouts import layout_wrapper
 
 
-class DataTab(Tab):
+class Data(Tab):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         try:

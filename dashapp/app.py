@@ -1,8 +1,8 @@
 from dash import html, dcc
 
-from dashapp.tabs.data import DataTab
-from dashapp.tabs.plots import PlotsTab
-from dashapp.tabs.cluster import ClusterTab
+from dashapp.tabs.data import Data
+from dashapp.tabs.plots import Plots
+from dashapp.tabs.cluster import Cluster
 
 
 class DashApp:
@@ -16,7 +16,7 @@ class DashApp:
         except ImportError:
             pass
 
-        TABS = [DataTab, PlotsTab, ClusterTab]
+        TABS = [Data, Plots, Cluster]
 
         self.app.layout = html.Div(
             [

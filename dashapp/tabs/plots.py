@@ -10,14 +10,14 @@ from dashapp.graphs.table import Table
 from dashapp.graphs.smiles import Smiles
 
 
-class PlotsTab(Tab):
+class Plots(Tab):
     plot_types = {
         p.name(): p for p in [Scatterplot, Histogram, Heatmap, Barplot, Table, Smiles]
     }
 
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
-        for plot_name, plot_type in PlotsTab.plot_types.items():
+        for plot_name, plot_type in Plots.plot_types.items():
             plot_type.register_callbacks(
                 app, df_from_store=df_from_store, df_to_store=df_to_store
             )
@@ -66,7 +66,7 @@ class PlotsTab(Tab):
             [
                 layout_wrapper(
                     component=dcc.Dropdown(
-                        options=list(PlotsTab.plot_types.keys()), id="plot_type"
+                        options=list(Plots.plot_types.keys()), id="plot_type"
                     ),
                     title="Select a plot type",
                     style={"width": "98%"},

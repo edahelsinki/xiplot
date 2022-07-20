@@ -12,7 +12,7 @@ from dashapp.utils.layouts import layout_wrapper, cluster_dropdown
 from dashapp.utils.dcc import dropdown_multi_selection
 
 
-class ClusterTab(Tab):
+class Cluster(Tab):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
