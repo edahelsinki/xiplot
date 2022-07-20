@@ -43,25 +43,13 @@ class ClusterTab(Tab):
         ):
             df = df_from_store(df)
             if ctx.triggered_id in ("data_frame_store", "clusters_reset-button"):
-                kmeans_col = ["all"] * len(df)
-                return kmeans_col, None, None
+                return ClusterTab.initialize(df)
             if ctx.triggered_id == "cluster-button":
-                scaler = StandardScaler()
-                scale = scaler.fit_transform(df[features])
-                km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
-                kmeans_col = [f"c{c+1}" for c in km]
-
-                style = {"display": "inline"}
-                message = "Clusters created!"
-                return kmeans_col, style, message
+                return ClusterTab.create_by_input(df, features, n_clusters)
             if selected_data and selected_data[0] and selected_data[0]["points"]:
-                if selection_mode:
-                    for p in selected_data[0]["points"]:
-                        kmeans_col[p["customdata"][0]["index"]] = cluster_id
-                else:
-                    kmeans_col = ["c2"] * len(kmeans_col)
-                    for p in selected_data[0]["points"]:
-                        kmeans_col[p["customdata"][0]["index"]] = "c1"
+                return ClusterTab.create_by_drawing(
+                    selected_data, kmeans_col, cluster_id, selection_mode
+                )
             return kmeans_col, None, None
 
         @app.callback(
@@ -100,6 +88,33 @@ class ClusterTab(Tab):
             columns.remove("auxiliary")
 
             return columns
+
+    @staticmethod
+    def initialize(df):
+        kmeans_col = ["all"] * df.shape[0]
+        return kmeans_col, None, None
+
+    @staticmethod
+    def create_by_input(df, features, n_clusters):
+        scaler = StandardScaler()
+        scale = scaler.fit_transform(df[features])
+        km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
+        kmeans_col = [f"c{c+1}" for c in km]
+
+        style = {"display": "inline"}
+        message = "Clusters created!"
+        return kmeans_col, style, message
+
+    @staticmethod
+    def create_by_drawing(selected_data, kmeans_col, cluster_id, selection_mode):
+        if selection_mode:
+            for p in selected_data[0]["points"]:
+                kmeans_col[p["customdata"][0]["index"]] = cluster_id
+        else:
+            kmeans_col = ["c2"] * len(kmeans_col)
+            for p in selected_data[0]["points"]:
+                kmeans_col[p["customdata"][0]["index"]] = "c1"
+        return kmeans_col, None, None
 
     @staticmethod
     def create_layout():
