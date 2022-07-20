@@ -63,6 +63,8 @@ class Scatterplot(Graph):
                 "*": "#000000",
             },
             custom_data=["auxiliary"] if "auxiliary" in df.columns else None,
+            hover_data={"Clusters": False},
+            render_mode="webgl",
         )
         fig.update_layout(showlegend=False)
         fig.update(layout_coloraxis_showscale=False)

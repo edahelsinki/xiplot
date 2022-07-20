@@ -44,7 +44,7 @@ class Plots(Tab):
                     df["Clusters"] = kmeans_col
                 columns = df.columns.to_list()
                 columns.remove("auxiliary")
-                layout = PlotsTab.plot_types[plot_type].create_new_layout(
+                layout = Plots.plot_types[plot_type].create_new_layout(
                     n_clicks, df, columns
                 )
                 children.append(layout)

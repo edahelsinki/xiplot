@@ -43,11 +43,11 @@ class Cluster(Tab):
         ):
             df = df_from_store(df)
             if ctx.triggered_id in ("data_frame_store", "clusters_reset-button"):
-                return ClusterTab.initialize(df)
+                return Cluster.initialize(df)
             if ctx.triggered_id == "cluster-button":
-                return ClusterTab.create_by_input(df, features, n_clusters)
+                return Cluster.create_by_input(df, features, n_clusters)
             if selected_data and selected_data[0] and selected_data[0]["points"]:
-                return ClusterTab.create_by_drawing(
+                return Cluster.create_by_drawing(
                     selected_data, kmeans_col, cluster_id, selection_mode
                 )
             return kmeans_col, None, None
