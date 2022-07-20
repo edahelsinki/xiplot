@@ -24,12 +24,15 @@ class Heatmap(Graph):
         columns = df.columns.to_list()
 
         km = KMeans(n_clusters=n_clusters, random_state=42)
-        km.fit(df.drop(["auxiliary", "Clusters"], axis=1))
+        df.drop("auxiliary", axis=1) if "auxiliary" in df.columns else None
+        df.drop("Clusters", axis=1) if "Clusters" in df.columns else None
+        km.fit(df)
+
         cluster_centers = km.cluster_centers_
 
         fig = px.imshow(
             cluster_centers,
-            x=columns.remove("auxiliary"),
+            x=columns.remove("auxiliary") if "auxiliary" in columns else columns,
             y=[str(n + 1) for n in range(n_clusters)],
             color_continuous_scale="RdBu",
             origin="lower",
