@@ -116,21 +116,13 @@ class ClusterTab(Tab):
                         ],
                         id="cluster_amount",
                     ),
+                    css_class="dd-double-right",
                     title="cluster amount",
-                    style={
-                        "width": "23%",
-                        "display": "inline-block",
-                        "padding-left": "2%",
-                    },
                 ),
                 layout_wrapper(
                     component=dcc.Dropdown(id="cluster_feature", multi=True),
+                    css_class="dd-double-right",
                     title="features",
-                    style={
-                        "width": "50%",
-                        "display": "inline-block",
-                        "padding-left": "2%",
-                    },
                 ),
                 layout_wrapper(
                     component=dcc.Input(id="feature_keyword-input"),
