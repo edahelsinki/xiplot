@@ -27,44 +27,47 @@ class Scatterplot(Graph):
             State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
-            df = df_from_store(df)
-
-            if len(kmeans_col) == df.shape[0]:
-                df["Clusters"] = kmeans_col
-            columns = df.columns.to_list()
-
-            jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
-            if jitter:
-                jitter = float(jitter)
-            if type(jitter) == float:
-                if jitter > 0:
-                    Z = df[[x_axis, y_axis]].to_numpy("float64")
-                    Z = np.random.normal(Z, jitter)
-                    jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
-                    df[["jitter-x", "jitter-y"]] = jitter_df[[x_axis, y_axis]]
-                    x_axis, y_axis = "jitter-x", "jitter-y"
-
-            fig = px.scatter(
-                data_frame=df,
-                x=x_axis,
-                y=y_axis,
-                color=color,
-                symbol=symbol,
-                color_discrete_map={
-                    "all": px.colors.qualitative.Plotly[0],
-                    **{
-                        f"c{i+1}": c
-                        for i, c in enumerate(px.colors.qualitative.Plotly[1:])
-                    },
-                    "*": "#000000",
-                },
-                custom_data=["auxiliary"],
+        def tmp(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
+            return Scatterplot.render_scatterplot(
+                x_axis, y_axis, color, symbol, jitter, kmeans_col, df=df_from_store(df)
             )
-            fig.update_layout(showlegend=False)
-            fig.update(layout_coloraxis_showscale=False)
 
-            return fig, jitter_max, columns, columns, columns, columns
+    @staticmethod
+    def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
+        if len(kmeans_col) == df.shape[0]:
+            df["Clusters"] = kmeans_col
+        columns = df.columns.to_list()
+
+        jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
+        if jitter:
+            jitter = float(jitter)
+        if type(jitter) == float:
+            if jitter > 0:
+                Z = df[[x_axis, y_axis]].to_numpy("float64")
+                Z = np.random.normal(Z, jitter)
+                jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
+                df[["jitter-x", "jitter-y"]] = jitter_df[[x_axis, y_axis]]
+                x_axis, y_axis = "jitter-x", "jitter-y"
+
+        fig = px.scatter(
+            data_frame=df,
+            x=x_axis,
+            y=y_axis,
+            color=color,
+            symbol=symbol,
+            color_discrete_map={
+                "all": px.colors.qualitative.Plotly[0],
+                **{
+                    f"c{i+1}": c for i, c in enumerate(px.colors.qualitative.Plotly[1:])
+                },
+                "*": "#000000",
+            },
+            custom_data=["auxiliary"] if "auxiliary" in df.columns else None,
+        )
+        fig.update_layout(showlegend=False)
+        fig.update(layout_coloraxis_showscale=False)
+
+        return fig, jitter_max, columns, columns, columns, columns
 
     @staticmethod
     def create_new_layout(index, df, columns):
