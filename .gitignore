@@ -131,3 +131,6 @@ dmypy.json
 # OWN
 .vscode/
 *.tmp
+Untitled.ipynb
+data/combined.ft
+uploads/
