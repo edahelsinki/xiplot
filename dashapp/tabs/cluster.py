@@ -45,7 +45,7 @@ class Cluster(Tab):
             if ctx.triggered_id in ("data_frame_store", "clusters_reset-button"):
                 return Cluster.initialize(df)
             if ctx.triggered_id == "cluster-button":
-                return Cluster.create_by_input(df, features, n_clusters)
+                return Cluster.create_by_input(df, features, n_clusters, kmeans_col)
             if selected_data and selected_data[0] and selected_data[0]["points"]:
                 return Cluster.create_by_drawing(
                     selected_data, kmeans_col, cluster_id, selection_mode
@@ -95,13 +95,17 @@ class Cluster(Tab):
         return kmeans_col, None, None
 
     @staticmethod
-    def create_by_input(df, features, n_clusters):
+    def create_by_input(df, features, n_clusters, kmeans_col):
+        if features is None or n_clusters is None:
+            style = {"display": "block"}
+            message = "Cluster creation failed..."
+            return kmeans_col, style, message
         scaler = StandardScaler()
         scale = scaler.fit_transform(df[features])
         km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
         kmeans_col = [f"c{c+1}" for c in km]
 
-        style = {"display": "inline"}
+        style = {"display": "block"}
         message = "Clusters created!"
         return kmeans_col, style, message
 
@@ -158,7 +162,7 @@ class Cluster(Tab):
                 html.Div(
                     [html.H4(id="clusters_created_message")],
                     id="clusters_created_message-container",
-                    style={"display": "none"},
+                    className="cluster-message",
                 ),
                 html.Div(),
                 cluster_dropdown(
