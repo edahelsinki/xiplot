@@ -1,6 +1,7 @@
 import plotly.express as px
+import numpy as np
 
-from dash import html, dcc, Output, Input, State, MATCH, dash_table
+from dash import html, Output, Input, State, MATCH, dash_table
 
 from dashapp.utils.layouts import delete_button
 from dashapp.graphs import Graph
@@ -24,10 +25,17 @@ class Table(Graph):
             columns = df.columns.to_list()
             columns.remove("auxiliary")
 
+            for c in columns:
+                if type(df[c][0]) == np.ndarray:
+                    df = df.astype({c: str})
+
             return df[columns].to_dict("records")
 
     @staticmethod
     def create_new_layout(index, df, columns):
+        for c in columns:
+            if type(df[c][0]) == np.ndarray:
+                df = df.astype({c: str})
         return html.Div(
             children=[
                 delete_button("plot-delete", index),
