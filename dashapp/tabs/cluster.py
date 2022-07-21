@@ -1,4 +1,5 @@
 import plotly.express as px
+import numpy as np
 
 from dash import Output, Input, State, ctx, ALL, html, dcc
 import dash_daq as daq
@@ -85,7 +86,7 @@ class Cluster(Tab):
             df = df_from_store(df)
 
             columns = df.columns.to_list()
-            columns.remove("auxiliary")
+            columns = [c for c in columns if type(df[c][0]) in (int, float, np.float_)]
 
             return columns
 
