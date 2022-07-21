@@ -5,6 +5,7 @@ import plotly.express as px
 from dash import html, dcc, Output, Input, State, MATCH
 
 from dashapp.utils.layouts import layout_wrapper, delete_button
+from dashapp.utils.dataframe import get_numeric_columns
 from dashapp.graphs import Graph
 
 
@@ -14,10 +15,6 @@ class Scatterplot(Graph):
         @app.callback(
             Output({"type": "scatterplot", "index": MATCH}, "figure"),
             Output({"type": "jitter-slider", "index": MATCH}, "max"),
-            Output({"type": "scatter_x_axis", "index": MATCH}, "options"),
-            Output({"type": "scatter_y_axis", "index": MATCH}, "options"),
-            Output({"type": "scatter_target_color", "index": MATCH}, "options"),
-            Output({"type": "scatter_target_symbol", "index": MATCH}, "options"),
             Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
             Input({"type": "scatter_y_axis", "index": MATCH}, "value"),
             Input({"type": "scatter_target_color", "index": MATCH}, "value"),
@@ -36,7 +33,6 @@ class Scatterplot(Graph):
     def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
-        columns = df.columns.to_list()
 
         jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
         if jitter:
@@ -69,19 +65,18 @@ class Scatterplot(Graph):
         fig.update_layout(showlegend=False)
         fig.update(layout_coloraxis_showscale=False)
 
-        return fig, jitter_max, columns, columns, columns, columns
+        return fig, jitter_max
 
     @staticmethod
     def create_new_layout(index, df, columns):
         x = None
         y = None
-        for column in columns:
-            if type(column) != str:
-                continue
-            if "x-" in column or " 1" in column:
-                x = column
-            elif "y-" in column or " 2" in column:
-                y = column
+        num_columns = get_numeric_columns(df, columns)
+        for c in num_columns:
+            if "x-" in c or " 1" in c:
+                x = c
+            elif "y-" in c or " 2" in c:
+                y = c
                 break
         return html.Div(
             children=[
@@ -93,7 +88,7 @@ class Scatterplot(Graph):
                 layout_wrapper(
                     component=dcc.Dropdown(
                         id={"type": "scatter_x_axis", "index": index},
-                        options=columns,
+                        options=num_columns,
                         value=x,
                         clearable=False,
                     ),
@@ -103,7 +98,7 @@ class Scatterplot(Graph):
                 layout_wrapper(
                     component=dcc.Dropdown(
                         id={"type": "scatter_y_axis", "index": index},
-                        options=columns,
+                        options=num_columns,
                         value=y,
                         clearable=False,
                     ),

@@ -1,5 +1,4 @@
 import plotly.express as px
-import numpy as np
 
 from dash import Output, Input, State, ctx, ALL, html, dcc
 import dash_daq as daq
@@ -11,6 +10,7 @@ from sklearn.cluster import KMeans
 from dashapp.tabs import Tab
 from dashapp.utils.layouts import layout_wrapper, cluster_dropdown
 from dashapp.utils.dcc import dropdown_multi_selection
+from dashapp.utils.dataframe import get_numeric_columns
 
 
 class Cluster(Tab):
@@ -86,7 +86,7 @@ class Cluster(Tab):
             df = df_from_store(df)
 
             columns = df.columns.to_list()
-            columns = [c for c in columns if type(df[c][0]) in (int, float, np.float_)]
+            columns = get_numeric_columns(df, columns)
 
             return columns
 

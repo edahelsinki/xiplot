@@ -4,6 +4,7 @@ from dash import html, dcc, Output, Input, State, MATCH
 from sklearn.cluster import KMeans
 
 from dashapp.utils.layouts import layout_wrapper, delete_button
+from dashapp.utils.dataframe import get_numeric_columns
 from dashapp.graphs import Graph
 
 
@@ -22,17 +23,16 @@ class Heatmap(Graph):
     @staticmethod
     def render_heatmap(n_clusters, df):
         columns = df.columns.to_list()
+        num_columns = get_numeric_columns(df, columns)
 
         km = KMeans(n_clusters=n_clusters, random_state=42)
-        df.drop("auxiliary", axis=1) if "auxiliary" in df.columns else None
-        df.drop("Clusters", axis=1) if "Clusters" in df.columns else None
-        km.fit(df)
+        km.fit(df[num_columns])
 
         cluster_centers = km.cluster_centers_
 
         fig = px.imshow(
             cluster_centers,
-            x=columns.remove("auxiliary") if "auxiliary" in columns else columns,
+            x=num_columns,
             y=[str(n + 1) for n in range(n_clusters)],
             color_continuous_scale="RdBu",
             origin="lower",

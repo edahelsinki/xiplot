@@ -4,6 +4,7 @@ import plotly.express as px
 from dash import html, dcc, Output, Input, State, MATCH
 
 from dashapp.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
+from dashapp.utils.dataframe import get_numeric_columns
 from dashapp.graphs import Graph
 
 
@@ -34,19 +35,20 @@ class Histogram(Graph):
 
     @staticmethod
     def create_new_layout(index, df, columns):
+        num_columns = get_numeric_columns(df, columns)
         return html.Div(
             [
                 delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "histogram", "index": index},
-                    figure=px.histogram(df, columns[0]),
+                    figure=px.histogram(df, num_columns[0]),
                 ),
                 layout_wrapper(
                     component=dcc.Dropdown(
                         id={"type": "x_axis_histo", "index": index},
-                        value=columns[0],
+                        value=num_columns[0],
                         clearable=False,
-                        options=columns,
+                        options=num_columns,
                     ),
                     css_class="dd-single",
                     title="x axis",
