@@ -93,6 +93,9 @@ class Data(Tab):
         ):
             trigger = ctx.triggered_id
 
+            if not filepath:
+                raise PreventUpdate()
+
             filepath = Path(filepath)
 
             if trigger == "submit-button":

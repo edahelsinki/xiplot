@@ -1,4 +1,6 @@
 from dash import html, dcc, Output, Input, State, ctx, ALL
+from dash.exceptions import PreventUpdate
+
 
 from dashapp.tabs import Tab
 from dashapp.utils.layouts import layout_wrapper
@@ -37,6 +39,8 @@ class Plots(Tab):
                 return []
 
             if ctx.triggered_id == "new_plot-button":
+                if not plot_type:
+                    raise PreventUpdate()
                 # read df from store
                 df = df_from_store(df)
                 # create column for clusters if needed
