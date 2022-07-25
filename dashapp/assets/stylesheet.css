@@ -20,6 +20,11 @@
     width: 40%;
 }
 
+.slider-single {
+    width: 88.5%;
+    padding-left: 10%;
+}
+
 .color-rect {
     display: inline-block;
     width: 20px;
