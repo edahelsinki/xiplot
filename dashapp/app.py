@@ -48,6 +48,7 @@ class DashApp:
                 dcc.Store(id="data_frame_store"),
                 dcc.Store(id="clusters_column_store"),
                 dcc.Store(id="uploaded_data_file_store"),
+                dcc.Store(id="selected_rows_store"),
             ],
             id="main",
         )
