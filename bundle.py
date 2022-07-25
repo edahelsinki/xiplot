@@ -136,10 +136,12 @@ repodata["packages"]["dashapp"] = {
     "sha256": sha256,
     "depends": [
         "dash",
-        "plotly",
+        "dash-daq",
         "dash-extensions",
         "flask",
         "pandas",
+        "plotly",
+        "scikit-learn",
         "sklearn",
     ],
     "imports": ["dashapp"],

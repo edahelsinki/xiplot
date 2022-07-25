@@ -3,34 +3,25 @@ rm -rf dist/ && cp pyodide/dist -r . && cp pyodide/dash_app2022/dist/dashapp-0.1
 ./run_docker
 python3 -m build
 python -m pyodide_build mkpkg [PACKAGE]
-PYODIDE_PACKAGES="brotli,flask,flask-caching,cachelib,plotly,dash,dash-extensions,more-itertools,pandas,jinja2,markupsafe,werkzeug,click,itsdangerous,flask_compress,sklearn,scikit-learn,matplotlib" make
+PYODIDE_PACKAGES="brotli,flask,flask-caching,cachelib,plotly,dash,dash-daq,dash-extensions,more-itertools,pandas,jinja2,markupsafe,werkzeug,click,itsdangerous,flask_compress,sklearn,scikit-learn,matplotlib" make
 
 sudo apt-get update && sudo apt-get install clang
 python -m pyodide_build buildpkg meta.yaml
 
-sklearn, flask, jinja2, dash, flask_compress
 
-requirements:
-  run:
-    - scikit-learn
+# wrong commit: git clone https://github.com/pytorch/pytorch.git -b 67ece03
+cd pytorch
+git submodule update --init --recursive --jobs 0
+USE_CUDA=0 USE_CUDNN=0 USE_FBGEMM=0 USE_KINETO=0 BUILD_TEST=0 USE_MKLDNN=0 USE_NNPACK=0 USE_QNNPACK=0 USE_DISTRIBUTED=0 USE_OPENMP=0 USE_TENSORPIPE=0 USE_GLOO=0 USE_MPI=0 USE_SYSTEM_NCCL=0 BUILD_CAFFE2_OPS=0 BUILD_CAFFE2=0 USE_PYTORCH_QNNPACK=0 USE_QNNPACK=0 USE_XNNPACK=0 USE_OBSERVERS=0 USE_NUMPY=0 python3 -m build
 
-requirements:
-  run:
-    - jinja2
-    - werkzeug
-    - itsdangerous
-    - click
 
-requirements:
-  run:
-    - markupsafe
+package:
+  name: torch
+  version: 1.12.0
 
-requirements:
-  run:
-    - flask
-    - flask_compress
-    - setuptools
+source:
+  sha256: 8639f7e6ca884936e4b359ff429ef9cb5ff28d677c07c5e441769cde0ac01359
+  url: https://github.com/pytorch/pytorch/archive/refs/tags/v1.12.0.tar.gz
 
-requirements:
-  run:
-    - brotli
+build:
+  script: git init
