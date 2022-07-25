@@ -79,7 +79,6 @@ class Data(Tab):
 
         @app.callback(
             ServersideOutput("data_frame_store", "data"),
-            Output("data_file_load_message-container", "style"),
             Output("data_file_load_message", "children"),
             Input("submit-button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
@@ -129,13 +128,11 @@ class Data(Tab):
                     ]
                 )
 
-            file_style = {"display": "inline"}
             df_store = df_from_store(df_store)
             df_store["auxiliary"] = [{"index": i} for i in range(len(df))]
 
             return (
                 df_to_store(df_store),
-                file_style,
                 file_message,
             )
 
@@ -196,7 +193,7 @@ class Data(Tab):
                 html.Div(
                     [html.H4(id="data_file_load_message")],
                     id="data_file_load_message-container",
-                    style={"display": "none"},
+                    style={"margin-left": "2%"},
                 ),
             ],
             id="control_data_content-container",
