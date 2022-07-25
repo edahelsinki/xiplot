@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -62,7 +64,7 @@ class Scatterplot(Graph):
             hover_data={"Clusters": False},
             render_mode="webgl",
         )
-        fig.update_layout(showlegend=False)
+        fig.update_layout(showlegend=False, uirevision=json.dumps([x_axis, y_axis]))
         fig.update(layout_coloraxis_showscale=False)
 
         return fig, jitter_max
@@ -83,7 +85,9 @@ class Scatterplot(Graph):
                 delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "scatterplot", "index": index},
-                    figure=px.scatter(df, x, y, custom_data=["auxiliary"]),
+                    figure=px.scatter(
+                        df, x, y, custom_data=["auxiliary"], render_mode="webgl"
+                    ),
                 ),
                 layout_wrapper(
                     component=dcc.Dropdown(

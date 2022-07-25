@@ -4,6 +4,8 @@ version = "0.1.0"
 
 [dependencies]
 dash = "^2.5.1"
+dash-daq = "^0.5.0"
+dash-extensions = "^0.1.4"
 dash-uploader = "^0.6.0"
 flask = "^2.1.2"
 pandas = "^1.4.2"
