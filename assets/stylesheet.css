@@ -1,0 +1,58 @@
+.graphs {
+    display: inline-block;
+    width: 32%;
+}
+
+.dd-single {
+    margin-left: 10%;
+    width: 82%;
+}
+
+.dd-double-left {
+    margin-left: 10%;
+    display: inline-block;
+    width: 40%;
+}
+
+.dd-double-right {
+    margin-left: 2%;
+    display: inline-block;
+    width: 40%;
+}
+
+.slider-single {
+    width: 88.5%;
+    padding-left: 10%;
+}
+
+.color-rect {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+}
+
+.dcc-upload {
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+    border-width: 1px;
+    border-style: dashed;
+    border-radius: 5px;
+    margin: 10px;
+
+    text-align: center;
+}
+
+.dash-uploader {
+    position: relative;
+
+    display: inline-block;
+    width: 40%;
+    margin-left: 16%;
+    top: 10px;
+}
+
+.cluster-message {
+    display: none;
+    margin-left: 2%;
+}
