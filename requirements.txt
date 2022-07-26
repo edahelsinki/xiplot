@@ -1,6 +1,7 @@
 dash==2.5.1
 dash-daq==0.5.0
 dash-extensions==0.1.4
+dash-mantine-components==0.10.2
 dash-uploader==0.6.0
 feather-format==0.4.1
 flask==2.1.2
