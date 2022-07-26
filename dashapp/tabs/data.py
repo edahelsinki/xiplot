@@ -84,12 +84,16 @@ class Data(Tab):
             Input("uploaded_data_file_store", "data"),
             State("data_files", "value"),
             prevent_initial_call=True,
+            log=True,
         )
         def choose_file(
             data_btn,
             uploaded_data,
             filepath,
+            dash_logger,
         ):
+            dash_logger.info("Loaded some file")
+
             trigger = ctx.triggered_id
 
             if not filepath:
