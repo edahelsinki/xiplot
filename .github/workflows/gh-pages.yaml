@@ -25,10 +25,11 @@ jobs:
           key: pyodide-${{ env.PYODIDE_SHA_SHORT }}
 
       - name: Build the Documentation
-        run: make -B dashapp
+        run: make -B deploy
       
       - name: Deploy the Documentation
         uses: peaceiris/actions-gh-pages@v3
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: ./dist
