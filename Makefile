@@ -45,10 +45,10 @@ deploy: pyodide dashapp
 	cp -r dashapp/dashapp/assets/favicon.ico dist/
 	cp -r dashapp/dashapp/assets/ dist/
 	cd dashapp; \
-	cp ../bundle.py .; \
 	pip install -r requirements.txt; \
-	python3 bundle.py; \
-	rm -f bundle.py
+	cp ../patches/bundle-dashapp.py .; \
+	python3 bundle-dashapp.py; \
+	rm -f bundle-dashapp.py
 	npm install
 	npm run build
 
@@ -60,8 +60,8 @@ clean:
 	rm -rf dist
 	mkdir dist
 	rm -rf .cache
-ifneq (,$(wildcard dashapp/bundle.py))
-	rm dashapp/bundle.py
+ifneq (,$(wildcard dashapp/bundle-dashapp.py))
+	rm dashapp/bundle-dashapp.py
 endif
 ifneq (,$(wildcard pyodide/packages/dash/meta.yaml))
 	cd pyodide; \
