@@ -1,0 +1,28 @@
+name: gh-pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: GitHub Pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the Repository
+        uses: actions/checkout@v2
+
+      - uses: actions/cache@v3
+        with:
+          path: ./pyodide
+          key: pyodide-${{ hashFiles('./pyodide') }}
+
+      - name: Build the Documentation
+        run: make -B deploy
+      
+      - name: Deploy the Documentation
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_branch: gh-pages
+          publish_dir: ./dist
