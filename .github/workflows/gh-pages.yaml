@@ -3,7 +3,7 @@ name: gh-pages
 on:
   push:
     branches:
-      - main
+      - wasm
 
 jobs:
   release:
@@ -13,10 +13,14 @@ jobs:
       - name: Checkout the Repository
         uses: actions/checkout@v2
 
+      - name: Check the pyodide version
+        run: |
+          echo "PYODIDE_SHA_SHORT=$(git submodule status pyodide | cut -c 2-8)" >> $GITHUB_ENV
+
       - uses: actions/cache@v3
         with:
           path: ./pyodide
-          key: pyodide-${{ hashFiles('./pyodide') }}
+          key: pyodide-${{ env.PYODIDE_SHA_SHORT }}
 
       - name: Build the Documentation
         run: make -B deploy
