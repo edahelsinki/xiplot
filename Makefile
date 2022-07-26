@@ -40,6 +40,8 @@ deploy: pyodide dashapp
 	rm -rf dist
 	mkdir dist
 	cp -r pyodide/dist/* dist/
+	rm -rf dist/*-tests.tar
+	rm -f dist/tsconfig.tsbuildinfo
 	cp dashapp/dist/dashapp-0.1.0-py3-none-any.whl dist/
 	cp -r dashapp/data dist/
 	cp -r dashapp/dashapp/assets/favicon.ico dist/
