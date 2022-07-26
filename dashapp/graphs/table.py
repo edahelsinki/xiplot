@@ -79,12 +79,14 @@ class Table(Graph):
                 selected_rows = []
             else:
                 selected_rows = selected_rows[0]
-            row = click[0]["points"][0]["customdata"][0]["index"]
+            # go through all the scatterplots to avoid getting NoneType error
+            for c in click:
+                if c:
+                    row = c["points"][0]["customdata"][0]["index"]
             if row not in selected_rows:
                 selected_rows.append(row)
             else:
                 selected_rows.remove(row)
-            print(selected_rows)
             table_amount = len(ctx.outputs_grouping["table"])
             scatter_amount = len(ctx.outputs_grouping["scatter"])
             return dict(
