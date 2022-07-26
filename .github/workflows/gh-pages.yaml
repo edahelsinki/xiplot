@@ -23,7 +23,7 @@ jobs:
           key: pyodide-${{ env.PYODIDE_SHA_SHORT }}
 
       - name: Build the Documentation
-        run: make -B deploy
+        run: make -B dashapp
       
       - name: Deploy the Documentation
         uses: peaceiris/actions-gh-pages@v3
