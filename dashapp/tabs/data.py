@@ -1,6 +1,7 @@
 import base64
 import os
 
+import pandas as pd
 import plotly.express as px
 
 from io import BytesIO
@@ -79,7 +80,6 @@ class Data(Tab):
 
         @app.callback(
             ServersideOutput("data_frame_store", "data"),
-            Output("data_file_load_message", "children"),
             Input("submit-button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
             State("data_files", "value"),
@@ -92,12 +92,16 @@ class Data(Tab):
             filepath,
             dash_logger,
         ):
-            dash_logger.info("Loaded some file")
-
             trigger = ctx.triggered_id
 
             if not filepath:
-                raise PreventUpdate()
+                dash_logger.warning(
+                    message="You have not selected a data file to load.",
+                    autoClose=10000,
+                )
+
+                # Note: no option is only ever chosen on startup
+                return pd.DataFrame()
 
             filepath = Path(filepath)
 
@@ -106,12 +110,19 @@ class Data(Tab):
                     df = df_from_store(uploaded_data)
                     df_store = uploaded_data
 
-                    file_message = html.Div(
-                        [
-                            f"Data file {filepath.name} ",
-                            html.I("(upload)"),
-                            " loaded successfully!",
-                        ]
+                    dash_logger.info(
+                        color="green",
+                        title="Success",
+                        message=[
+                            html.Div(
+                                [
+                                    f"The data file {filepath.name} ",
+                                    html.I("(upload)"),
+                                    " was loaded successfully!",
+                                ]
+                            )
+                        ],
+                        autoClose=5000,
                     )
                 else:
                     filepath = Path("data") / filepath.name
@@ -119,26 +130,35 @@ class Data(Tab):
                     df = read_dataframe_with_extension(filepath, filepath.name)
                     df_store = df_to_store(df)
 
-                    file_message = f"Data file {filepath.name} loaded successfully!"
+                    dash_logger.info(
+                        color="green",
+                        title="Success",
+                        message=f"The data file {filepath.name} was loaded successfully!",
+                        autoClose=5000,
+                    )
             elif trigger == "uploaded_data_file_store":
                 df_store = uploaded_data
                 df = df_from_store(uploaded_data)
 
-                file_message = html.Div(
-                    [
-                        f"Data file {filepath.name} ",
-                        html.I("(upload)"),
-                        " loaded successfully!",
-                    ]
+                dash_logger.info(
+                    color="green",
+                    title="Success",
+                    message=[
+                        html.Div(
+                            [
+                                f"The data file {filepath.name} ",
+                                html.I("(upload)"),
+                                " was uploaded successfully!",
+                            ]
+                        )
+                    ],
+                    autoClose=5000,
                 )
 
             df_store = df_from_store(df_store)
             df_store["auxiliary"] = [{"index": i} for i in range(len(df))]
 
-            return (
-                df_to_store(df_store),
-                file_message,
-            )
+            return df_to_store(df_store)
 
     @staticmethod
     def create_layout():
@@ -194,11 +214,6 @@ class Data(Tab):
                     style={"float": "left", "width": "40%"},
                 ),
                 html.Div([uploader], className="dash-uploader"),
-                html.Div(
-                    [html.H4(id="data_file_load_message")],
-                    id="data_file_load_message-container",
-                    style={"margin-left": "2%"},
-                ),
             ],
             id="control_data_content-container",
         )
