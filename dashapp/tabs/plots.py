@@ -1,6 +1,7 @@
+import dash
+
 from dash import html, dcc, Output, Input, State, ctx, ALL
 from dash.exceptions import PreventUpdate
-
 
 from dashapp.tabs import Tab
 from dashapp.utils.layouts import layout_wrapper
@@ -33,16 +34,35 @@ class Plots(Tab):
             Input("data_frame_store", "data"),
             State("clusters_column_store", "data"),
             prevent_initial_call=True,
+            log=True,
         )
-        def add_new_plot(n_clicks, deletion, children, plot_type, df, kmeans_col):
+        def add_new_plot(
+            n_clicks, deletion, children, plot_type, df, kmeans_col, dash_logger
+        ):
             if ctx.triggered_id == "data_frame_store":
                 return []
 
             if ctx.triggered_id == "new_plot-button":
                 if not plot_type:
-                    raise PreventUpdate()
+                    dash_logger.warning(
+                        message="You have not selected any plot type.",
+                        autoClose=10000,
+                    )
+
+                    return dash.no_update
+
                 # read df from store
                 df = df_from_store(df)
+                kmeans_col = df_from_store(kmeans_col)
+
+                if kmeans_col is None:
+                    dash_logger.warning(
+                        message="You have not yet loaded any data file.",
+                        autoClose=10000,
+                    )
+
+                    return dash.no_update
+
                 # create column for clusters if needed
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col

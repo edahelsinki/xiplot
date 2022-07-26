@@ -1,6 +1,7 @@
 import base64
 import os
 
+import dash
 import pandas as pd
 import plotly.express as px
 
@@ -100,8 +101,7 @@ class Data(Tab):
                     autoClose=10000,
                 )
 
-                # Note: no option is only ever chosen on startup
-                return pd.DataFrame()
+                return dash.no_update
 
             filepath = Path(filepath)
 
@@ -194,7 +194,6 @@ class Data(Tab):
                                     for fp in get_data_filepaths()
                                 ],
                                 id="data_files",
-                                clearable=False,
                             ),
                             title="Choose a data file",
                             style={"margin-left": "5%", "width": "100%"},

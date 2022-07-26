@@ -1,5 +1,6 @@
 import re
 
+import dash
 import plotly.express as px
 
 from dash import Output, Input, State, ctx, ALL, html, dcc
@@ -20,8 +21,6 @@ class Cluster(Tab):
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             ServersideOutput("clusters_column_store", "data"),
-            Output("clusters_created_message-container", "style"),
-            Output("clusters_created_message", "children"),
             Input("data_frame_store", "data"),
             Input("cluster-button", "n_clicks"),
             Input({"type": "scatterplot", "index": ALL}, "selectedData"),
@@ -32,6 +31,7 @@ class Cluster(Tab):
             State({"type": "selection_cluster_dropdown", "index": 0}, "value"),
             State("cluster_selection_mode", "value"),
             prevent_initial_call=True,
+            log=True,
         )
         def set_clusters(
             df,
@@ -43,39 +43,85 @@ class Cluster(Tab):
             kmeans_col,
             cluster_id,
             selection_mode,
+            dash_logger,
         ):
-            df = df_from_store(df)
             if ctx.triggered_id in ("data_frame_store", "clusters_reset-button"):
-                return Cluster.initialize(df)
+                if ctx.triggered_id == "clusters_reset-button":
+                    dash_logger.info(
+                        color="green",
+                        title="Success",
+                        message=f"The clusters were reset successfully!",
+                        autoClose=5000,
+                    )
+
+                return df_to_store(Cluster.initialize(df_from_store(df)))
             if ctx.triggered_id == "cluster-button":
-                return Cluster.create_by_input(df, features, n_clusters, kmeans_col)
-            if selected_data and selected_data[0] and selected_data[0]["points"]:
-                return Cluster.create_by_drawing(
-                    selected_data, kmeans_col, cluster_id, selection_mode
+                return df_to_store(
+                    Cluster.create_by_input(
+                        df_from_store(df),
+                        features,
+                        n_clusters,
+                        df_from_store(kmeans_col),
+                        dash_logger,
+                    )
                 )
-            return kmeans_col, None, None
+            if selected_data and selected_data[0] and selected_data[0]["points"]:
+                return df_to_store(
+                    Cluster.create_by_drawing(
+                        selected_data,
+                        df_from_store(kmeans_col),
+                        cluster_id,
+                        selection_mode,
+                    )
+                )
+            return kmeans_col
 
         @app.callback(
             Output("cluster_feature", "options"),
             Output("cluster_feature", "value"),
+            Output("cluster_feature", "search_value"),
             Input("data_frame_store", "data"),
             Input("add_by_keyword-button", "n_clicks"),
             Input("cluster_feature", "value"),
             State("feature_keyword-input", "value"),
             State("cluster_feature", "options"),
             prevent_initial_call=True,
+            log=True,
         )
-        def add_matching_values(df, n_clicks, features, keyword, options):
+        def add_matching_values(df, n_clicks, features, keyword, options, dash_logger):
             df = df_from_store(df)
             if ctx.triggered_id == "data_frame_store":
                 options = get_numeric_columns(df, df.columns.to_list())
-                return options, None
+                return options, None, dash.no_update
             if ctx.triggered_id == "add_by_keyword-button":
-                options, features = dropdown_regex(options, features, keyword)
+                options, features, hits = dropdown_regex(options, features, keyword)
+
+                if keyword is None:
+                    dash_logger.warning(
+                        message=f"No regular expression was given.",
+                        autoClose=10000,
+                    )
+                elif hits == 0:
+                    dash_logger.warning(
+                        message=f'No new features matched the regular expression r"{keyword}".',
+                        autoClose=10000,
+                    )
+                elif hits == 1:
+                    dash_logger.info(
+                        message=f'One new feature matched the regular expression r"{keyword}".',
+                        autoClose=5000,
+                    )
+                else:
+                    dash_logger.info(
+                        message=f'{hits} new features matched the regular expression r"{keyword}".',
+                        autoClose=5000,
+                    )
+
+                return options, features, None
             if ctx.triggered_id == "cluster_feature":
                 options = get_numeric_columns(df, df.columns.to_list())
-                options, features = dropdown_regex(options, features)
-            return options, features
+                options, features, hits = dropdown_regex(options, features)
+                return options, features, dash.no_update
 
         @app.callback(
             Output("feature_keyword-input", "value"),
@@ -83,21 +129,40 @@ class Cluster(Tab):
             prevent_initial_call=True,
         )
         def sync_with_input(keyword):
-            if not keyword:
+            if keyword == "":
                 raise PreventUpdate()
             return keyword
 
     @staticmethod
     def initialize(df):
         kmeans_col = ["all"] * df.shape[0]
-        return kmeans_col, None, None
+        return kmeans_col
 
     @staticmethod
-    def create_by_input(df, features, n_clusters, kmeans_col):
+    def create_by_input(df, features, n_clusters, kmeans_col, dash_logger=None):
         if features is None or n_clusters is None:
-            style = {"display": "block"}
-            message = "Cluster creation failed..."
-            return kmeans_col, style, message
+            if features is None and dash_logger is not None:
+                dash_logger.warning(
+                    message="You have not selected any features to cluster by.",
+                    autoClose=10000,
+                )
+
+            if n_clusters is None and dash_logger is not None:
+                dash_logger.warning(
+                    message="You have not selected the number of clusters.",
+                    autoClose=10000,
+                )
+
+            return kmeans_col
+
+        # dash_logger.info(
+        #     title="Processing",
+        #     message="The k-means clustering process has started.",
+        #     loading=True,
+        #     autoClose=False,
+        #     disallowClose=True,
+        # )
+
         columns = get_numeric_columns(df, df.columns.to_list())
         new_features = []
         for f in features:
@@ -112,9 +177,14 @@ class Cluster(Tab):
         km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
         kmeans_col = [f"c{c+1}" for c in km]
 
-        style = {"display": "block"}
-        message = "Clusters created!"
-        return kmeans_col, style, message
+        dash_logger.info(
+            color="green",
+            title="Success",
+            message=f"The data was clustered successfully!",
+            autoClose=5000,
+        )
+
+        return kmeans_col
 
     @staticmethod
     def create_by_drawing(selected_data, kmeans_col, cluster_id, selection_mode):
@@ -151,11 +221,13 @@ class Cluster(Tab):
                     style={"display": "none"},
                 ),
                 html.Button(
-                    "Add", id="add_by_keyword-button", style={"padding-top": "20"}
+                    "Add features by regex",
+                    id="add_by_keyword-button",
+                    style={"padding-top": "20"},
                 ),
                 html.Div(),
                 html.Div(
-                    [html.Button("Run", id="cluster-button")],
+                    [html.Button("Compute the clusters", id="cluster-button")],
                     style={
                         "padding-left": "2%",
                         "padding-top": "2%",
@@ -163,13 +235,8 @@ class Cluster(Tab):
                     },
                 ),
                 html.Div(
-                    [html.Button("Reset", id="clusters_reset-button")],
+                    [html.Button("Reset the clusters", id="clusters_reset-button")],
                     style={"display": "inline-block"},
-                ),
-                html.Div(
-                    [html.H4(id="clusters_created_message")],
-                    id="clusters_created_message-container",
-                    className="cluster-message",
                 ),
                 html.Div(),
                 cluster_dropdown(
