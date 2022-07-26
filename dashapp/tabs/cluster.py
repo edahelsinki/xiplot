@@ -1,10 +1,12 @@
 import re
+import uuid
 
 import dash
+import dash_daq as daq
+import dash_mantine_components as dmc
 import plotly.express as px
 
 from dash import Output, Input, State, ctx, ALL, html, dcc
-import dash_daq as daq
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
 from sklearn.preprocessing import StandardScaler
@@ -21,8 +23,11 @@ class Cluster(Tab):
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             ServersideOutput("clusters_column_store", "data"),
+            Output("cluster-tab-main-notify-container", "children"),
+            Output("cluster-tab-compute-done", "children"),
             Input("data_frame_store", "data"),
-            Input("cluster-button", "n_clicks"),
+            Input("cluster-button", "value"),
+            State("cluster-tab-main-notify-container", "children"),
             Input({"type": "scatterplot", "index": ALL}, "selectedData"),
             Input("clusters_reset-button", "n_clicks"),
             State("cluster_amount", "value"),
@@ -31,97 +36,211 @@ class Cluster(Tab):
             State({"type": "selection_cluster_dropdown", "index": 0}, "value"),
             State("cluster_selection_mode", "value"),
             prevent_initial_call=True,
-            log=True,
         )
         def set_clusters(
             df,
-            n_clicks,
+            process_id,
+            done,
             selected_data,
-            m_clicks,
+            n_clicks,
             n_clusters,
             features,
             kmeans_col,
             cluster_id,
             selection_mode,
-            dash_logger,
         ):
             if ctx.triggered_id in ("data_frame_store", "clusters_reset-button"):
-                if ctx.triggered_id == "clusters_reset-button":
-                    dash_logger.info(
-                        color="green",
-                        title="Success",
-                        message=f"The clusters were reset successfully!",
-                        autoClose=5000,
+                df = df_from_store(df)
+
+                if df is None:
+                    return (
+                        dash.no_update,
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message="You have not yet loaded any data file.",
+                            action="show",
+                            autoClose=10000,
+                        ),
+                        dash.no_update,
                     )
 
-                return df_to_store(Cluster.initialize(df_from_store(df)))
+                notifications = []
+
+                if process_id != done and process_id is not None:
+                    notifications.append(
+                        dmc.Notification(
+                            id=process_id,
+                            action="hide",
+                        )
+                    )
+
+                if ctx.triggered_id == "clusters_reset-button":
+                    notifications.append(
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="green",
+                            title="Success",
+                            message="The clusters were reset successfully!",
+                            action="show",
+                            autoClose=5000,
+                        )
+                    )
+
+                return df_to_store(Cluster.initialize(df)), notifications, process_id
             if ctx.triggered_id == "cluster-button":
-                return df_to_store(
+                notifications = []
+
+                kmeans_col = df_to_store(
                     Cluster.create_by_input(
                         df_from_store(df),
                         features,
                         n_clusters,
                         df_from_store(kmeans_col),
-                        dash_logger,
+                        notifications,
+                        process_id,
                     )
                 )
+
+                return kmeans_col, notifications, process_id
             if selected_data and selected_data[0] and selected_data[0]["points"]:
-                return df_to_store(
-                    Cluster.create_by_drawing(
-                        selected_data,
-                        df_from_store(kmeans_col),
-                        cluster_id,
-                        selection_mode,
+                notification = None
+
+                if process_id != done and process_id is not None:
+                    notification = dmc.Notification(
+                        id=process_id,
+                        action="hide",
                     )
+
+                return (
+                    df_to_store(
+                        Cluster.create_by_drawing(
+                            selected_data,
+                            df_from_store(kmeans_col),
+                            cluster_id,
+                            selection_mode,
+                        )
+                    ),
+                    notification,
+                    process_id,
                 )
-            return kmeans_col
+
+            notification = None
+
+            if process_id != done and process_id is not None:
+                notification = dmc.Notification(
+                    id=process_id,
+                    action="hide",
+                )
+
+            return kmeans_col, notification, process_id
+
+        @app.callback(
+            Output("cluster-button", "value"),
+            Output("cluster-tab-compute-notify-container", "children"),
+            Input("cluster-button", "n_clicks"),
+            State("cluster_amount", "value"),
+            State("cluster_feature", "value"),
+            State("cluster-tab-compute-done", "children"),
+            State("cluster-button", "value"),
+            prevent_initial_call=True,
+        )
+        def compute_clusters(n_clicks, n_clusters, features, done, doing):
+            if done != doing:
+                return dash.no_update, dmc.Notification(
+                    id=str(uuid.uuid4()),
+                    color="yellow",
+                    title="Warning",
+                    message="The k-means clustering process has not yet finished.",
+                    action="show",
+                    autoClose=10000,
+                )
+
+            notifications = []
+
+            if not Cluster.validate_cluster_params(
+                features, n_clusters, notifications=notifications
+            ):
+                return dash.no_update, notifications
+
+            process_id = str(uuid.uuid4())
+
+            return process_id, dmc.Notification(
+                id=process_id,
+                color="blue",
+                title="Processing",
+                message="The k-means clustering process has started.",
+                action="show",
+                loading=True,
+                autoClose=False,
+                disallowClose=True,
+            )
 
         @app.callback(
             Output("cluster_feature", "options"),
             Output("cluster_feature", "value"),
             Output("cluster_feature", "search_value"),
+            Output("cluster-tab-regex-notify-container", "children"),
             Input("data_frame_store", "data"),
             Input("add_by_keyword-button", "n_clicks"),
             Input("cluster_feature", "value"),
             State("feature_keyword-input", "value"),
             State("cluster_feature", "options"),
             prevent_initial_call=True,
-            log=True,
         )
-        def add_matching_values(df, n_clicks, features, keyword, options, dash_logger):
+        def add_matching_values(df, n_clicks, features, keyword, options):
             df = df_from_store(df)
             if ctx.triggered_id == "data_frame_store":
                 options = get_numeric_columns(df, df.columns.to_list())
-                return options, None, dash.no_update
+                return options, None, dash.no_update, None
             if ctx.triggered_id == "add_by_keyword-button":
-                options, features, hits = dropdown_regex(options, features, keyword)
+                options, features, hits = dropdown_regex(
+                    options or [], features, keyword
+                )
 
                 if keyword is None:
-                    dash_logger.warning(
+                    notification = dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
                         message=f"No regular expression was given.",
+                        action="show",
                         autoClose=10000,
                     )
                 elif hits == 0:
-                    dash_logger.warning(
+                    notification = dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
                         message=f'No new features matched the regular expression r"{keyword}".',
+                        action="show",
                         autoClose=10000,
                     )
                 elif hits == 1:
-                    dash_logger.info(
+                    notification = dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="blue",
+                        title="Info",
                         message=f'One new feature matched the regular expression r"{keyword}".',
+                        action="show",
                         autoClose=5000,
                     )
                 else:
-                    dash_logger.info(
+                    notification = dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="blue",
+                        title="Info",
                         message=f'{hits} new features matched the regular expression r"{keyword}".',
+                        action="show",
                         autoClose=5000,
                     )
 
-                return options, features, None
+                return options, features, None, notification
             if ctx.triggered_id == "cluster_feature":
                 options = get_numeric_columns(df, df.columns.to_list())
                 options, features, hits = dropdown_regex(options, features)
-                return options, features, dash.no_update
+                return options, features, dash.no_update, None
 
         @app.callback(
             Output("feature_keyword-input", "value"),
@@ -139,29 +258,54 @@ class Cluster(Tab):
         return kmeans_col
 
     @staticmethod
-    def create_by_input(df, features, n_clusters, kmeans_col, dash_logger=None):
+    def validate_cluster_params(
+        features, n_clusters, notifications=None, process_id=None
+    ):
         if features is None or n_clusters is None:
-            if features is None and dash_logger is not None:
-                dash_logger.warning(
-                    message="You have not selected any features to cluster by.",
-                    autoClose=10000,
+            if notifications is not None and process_id is not None:
+                notifications.append(
+                    dmc.Notification(
+                        id=process_id,
+                        action="hide",
+                    )
                 )
 
-            if n_clusters is None and dash_logger is not None:
-                dash_logger.warning(
-                    message="You have not selected the number of clusters.",
-                    autoClose=10000,
+            if features is None and notifications is not None:
+                notifications.append(
+                    dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message="You have not selected any features to cluster by.",
+                        action="show",
+                        autoClose=10000,
+                    )
                 )
 
+            if n_clusters is None and notifications is not None:
+                notifications.append(
+                    dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message="You have not selected the number of clusters.",
+                        action="show",
+                        autoClose=10000,
+                    )
+                )
+
+            return False
+
+        return True
+
+    @staticmethod
+    def create_by_input(
+        df, features, n_clusters, kmeans_col, notifications=None, process_id=None
+    ):
+        if not Cluster.validate_cluster_params(
+            features, n_clusters, notifications, process_id
+        ):
             return kmeans_col
-
-        # dash_logger.info(
-        #     title="Processing",
-        #     message="The k-means clustering process has started.",
-        #     loading=True,
-        #     autoClose=False,
-        #     disallowClose=True,
-        # )
 
         columns = get_numeric_columns(df, df.columns.to_list())
         new_features = []
@@ -177,11 +321,16 @@ class Cluster(Tab):
         km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
         kmeans_col = [f"c{c+1}" for c in km]
 
-        dash_logger.info(
-            color="green",
-            title="Success",
-            message=f"The data was clustered successfully!",
-            autoClose=5000,
+        notifications.append(
+            dmc.Notification(
+                id=process_id or str(uuid.uuid4()),
+                color="green",
+                title="Success",
+                message=f"The data was clustered successfully!",
+                action="update" if process_id else "show",
+                autoClose=5000,
+                disallowClose=False,
+            )
         )
 
         return kmeans_col
@@ -195,7 +344,7 @@ class Cluster(Tab):
             kmeans_col = ["c2"] * len(kmeans_col)
             for p in selected_data[0]["points"]:
                 kmeans_col[p["customdata"][0]["index"]] = "c1"
-        return kmeans_col, None, None
+        return kmeans_col
 
     @staticmethod
     def create_layout():

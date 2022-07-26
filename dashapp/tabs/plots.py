@@ -1,4 +1,7 @@
+import uuid
+
 import dash
+import dash_mantine_components as dmc
 
 from dash import html, dcc, Output, Input, State, ctx, ALL
 from dash.exceptions import PreventUpdate
@@ -27,6 +30,7 @@ class Plots(Tab):
 
         @app.callback(
             Output("graphs", "children"),
+            Output("plots-tab-notify-container", "children"),
             Input("new_plot-button", "n_clicks"),
             Input({"type": "plot-delete", "index": ALL}, "n_clicks"),
             State("graphs", "children"),
@@ -34,34 +38,42 @@ class Plots(Tab):
             Input("data_frame_store", "data"),
             State("clusters_column_store", "data"),
             prevent_initial_call=True,
-            log=True,
         )
         def add_new_plot(
-            n_clicks, deletion, children, plot_type, df, kmeans_col, dash_logger
+            n_clicks,
+            deletion,
+            children,
+            plot_type,
+            df,
+            kmeans_col,
         ):
             if ctx.triggered_id == "data_frame_store":
-                return []
+                return [], None
 
             if ctx.triggered_id == "new_plot-button":
                 if not plot_type:
-                    dash_logger.warning(
+                    return dash.no_update, dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
                         message="You have not selected any plot type.",
+                        action="show",
                         autoClose=10000,
                     )
-
-                    return dash.no_update
 
                 # read df from store
                 df = df_from_store(df)
                 kmeans_col = df_from_store(kmeans_col)
 
                 if kmeans_col is None:
-                    dash_logger.warning(
+                    return dash.no_update, dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
                         message="You have not yet loaded any data file.",
+                        action="show",
                         autoClose=10000,
                     )
-
-                    return dash.no_update
 
                 # create column for clusters if needed
                 if len(kmeans_col) == df.shape[0]:
@@ -72,7 +84,7 @@ class Plots(Tab):
                     n_clicks, df, columns
                 )
                 children.append(layout)
-                return children
+                return children, None
 
             deletion_id = ctx.triggered_id["index"]
 
@@ -82,7 +94,7 @@ class Plots(Tab):
                 if chart["props"]["id"]["index"] != deletion_id
             ]
 
-            return children
+            return children, None
 
     @staticmethod
     def create_layout():

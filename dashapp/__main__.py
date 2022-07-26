@@ -1,19 +1,11 @@
 import pandas as pd
 
-from functools import partialmethod
-
-from dash_extensions.enrich import DashProxy, ServersideOutputTransform, LogTransform
+from dash_extensions.enrich import DashProxy, ServersideOutputTransform
 
 from dashapp.app import DashApp
 from dashapp.utils.store import ServerSideStoreBackend
 
-import dash_mantine_components
-
-dash_mantine_components.NotificationsProvider.__init__ = partialmethod(
-    dash_mantine_components.NotificationsProvider.__init__, position="top-right"
-)
-
-dash_transforms = [LogTransform()]
+dash_transforms = []
 
 # FIXME: Only enable on local single-user builds
 if True:

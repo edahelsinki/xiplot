@@ -1,3 +1,5 @@
+import dash_mantine_components as dmc
+
 from dash import html, dcc
 
 from dashapp.tabs.data import Data
@@ -18,39 +20,60 @@ class DashApp:
 
         TABS = [Data, Plots, Cluster]
 
-        self.app.layout = html.Div(
-            [
-                html.Div(
-                    [
-                        app_logo(),
-                        dcc.Tabs(
-                            [
-                                dcc.Tab(
-                                    [t.create_layout()],
-                                    label=t.name(),
-                                    value=f"control-{t.name().lower()}-tab",
-                                )
-                                for t in TABS
-                            ],
-                            id="control-tabs",
-                            value=f"control-{TABS[0].name().lower()}-tab",
-                        ),
-                    ],
-                    style={
-                        "width": "100%",
-                        "display": "inline-block",
-                        "background-color": "#dffcde",
-                        "height": "auto",
-                        "border-radius": "8px",
-                    },
-                ),
-                html.Div(id="graphs"),
-                dcc.Store(id="data_frame_store"),
-                dcc.Store(id="clusters_column_store"),
-                dcc.Store(id="uploaded_data_file_store"),
-                dcc.Store(id="selected_rows_store"),
-            ],
-            id="main",
+        self.app.layout = dmc.NotificationsProvider(
+            html.Div(
+                [
+                    html.Div(
+                        [
+                            app_logo(),
+                            dcc.Tabs(
+                                [
+                                    dcc.Tab(
+                                        [t.create_layout()],
+                                        label=t.name(),
+                                        value=f"control-{t.name().lower()}-tab",
+                                    )
+                                    for t in TABS
+                                ],
+                                id="control-tabs",
+                                value=f"control-{TABS[0].name().lower()}-tab",
+                            ),
+                        ],
+                        style={
+                            "width": "100%",
+                            "display": "inline-block",
+                            "background-color": "#dffcde",
+                            "height": "auto",
+                            "border-radius": "8px",
+                        },
+                    ),
+                    html.Div(id="graphs"),
+                    dcc.Store(id="data_frame_store"),
+                    dcc.Store(id="clusters_column_store"),
+                    dcc.Store(id="uploaded_data_file_store"),
+                    dcc.Store(id="selected_rows_store"),
+                    # FIXME: Inject these via tab classmethods instead of hardcoding them
+                    html.Div(
+                        id="cluster-tab-main-notify-container",
+                        style={"display": "none"},
+                    ),
+                    html.Div(
+                        id="cluster-tab-regex-notify-container",
+                        style={"display": "none"},
+                    ),
+                    html.Div(
+                        id="cluster-tab-compute-notify-container",
+                        style={"display": "none"},
+                    ),
+                    html.Div(id="data-tab-notify-container", style={"display": "none"}),
+                    html.Div(
+                        id="plots-tab-notify-container", style={"display": "none"}
+                    ),
+                    html.Div(id="cluster-tab-compute-done", style={"display": "none"}),
+                ],
+                id="main",
+            ),
+            position="top-right",
         )
 
         for tab in TABS:

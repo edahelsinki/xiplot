@@ -1,7 +1,9 @@
 import base64
 import os
+import uuid
 
 import dash
+import dash_mantine_components as dmc
 import pandas as pd
 import plotly.express as px
 
@@ -81,36 +83,40 @@ class Data(Tab):
 
         @app.callback(
             ServersideOutput("data_frame_store", "data"),
+            Output("data-tab-notify-container", "children"),
             Input("submit-button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
             State("data_files", "value"),
             prevent_initial_call=True,
-            log=True,
         )
         def choose_file(
             data_btn,
             uploaded_data,
             filepath,
-            dash_logger,
         ):
             trigger = ctx.triggered_id
 
             if not filepath:
-                dash_logger.warning(
+                return dash.no_update, dmc.Notification(
+                    id=str(uuid.uuid4()),
+                    color="yellow",
+                    title="Warning",
                     message="You have not selected a data file to load.",
+                    action="show",
                     autoClose=10000,
                 )
 
-                return dash.no_update
-
             filepath = Path(filepath)
+
+            notification = None
 
             if trigger == "submit-button":
                 if str(list(filepath.parents)[-2]) == "uploads":
                     df = df_from_store(uploaded_data)
                     df_store = uploaded_data
 
-                    dash_logger.info(
+                    notification = dmc.Notification(
+                        id=str(uuid.uuid4()),
                         color="green",
                         title="Success",
                         message=[
@@ -122,6 +128,7 @@ class Data(Tab):
                                 ]
                             )
                         ],
+                        action="show",
                         autoClose=5000,
                     )
                 else:
@@ -130,17 +137,20 @@ class Data(Tab):
                     df = read_dataframe_with_extension(filepath, filepath.name)
                     df_store = df_to_store(df)
 
-                    dash_logger.info(
+                    notification = dmc.Notification(
+                        id=str(uuid.uuid4()),
                         color="green",
                         title="Success",
                         message=f"The data file {filepath.name} was loaded successfully!",
+                        action="show",
                         autoClose=5000,
                     )
             elif trigger == "uploaded_data_file_store":
                 df_store = uploaded_data
                 df = df_from_store(uploaded_data)
 
-                dash_logger.info(
+                notification = dmc.Notification(
+                    id=str(uuid.uuid4()),
                     color="green",
                     title="Success",
                     message=[
@@ -152,13 +162,14 @@ class Data(Tab):
                             ]
                         )
                     ],
+                    action="show",
                     autoClose=5000,
                 )
 
             df_store = df_from_store(df_store)
             df_store["auxiliary"] = [{"index": i} for i in range(len(df))]
 
-            return df_to_store(df_store)
+            return df_to_store(df_store), notification
 
     @staticmethod
     def create_layout():
