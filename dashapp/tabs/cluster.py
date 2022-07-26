@@ -103,8 +103,10 @@ class Cluster(Tab):
         for f in features:
             if " (regex)" in f:
                 for c in columns:
-                    if re.search(f[:-8], c):
+                    if re.search(f[:-8], c) and c not in new_features:
                         new_features.append(c)
+            elif f not in new_features:
+                new_features.append(f)
         scaler = StandardScaler()
         scale = scaler.fit_transform(df[new_features])
         km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
