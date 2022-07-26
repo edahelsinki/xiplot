@@ -1,3 +1,5 @@
+import re
+
 import plotly.express as px
 
 from dash import Output, Input, State, ctx, ALL, html, dcc
@@ -9,7 +11,7 @@ from sklearn.cluster import KMeans
 
 from dashapp.tabs import Tab
 from dashapp.utils.layouts import layout_wrapper, cluster_dropdown
-from dashapp.utils.dcc import dropdown_multi_selection
+from dashapp.utils.dcc import dropdown_regex
 from dashapp.utils.dataframe import get_numeric_columns
 
 
@@ -54,18 +56,26 @@ class Cluster(Tab):
             return kmeans_col, None, None
 
         @app.callback(
+            Output("cluster_feature", "options"),
             Output("cluster_feature", "value"),
+            Input("data_frame_store", "data"),
             Input("add_by_keyword-button", "n_clicks"),
-            State("data_frame_store", "data"),
+            Input("cluster_feature", "value"),
             State("feature_keyword-input", "value"),
-            State("cluster_feature", "value"),
+            State("cluster_feature", "options"),
             prevent_initial_call=True,
         )
-        def add_matching_values(n_clicks, df, keyword, features):
+        def add_matching_values(df, n_clicks, features, keyword, options):
             df = df_from_store(df)
-            columns = df.columns.to_list()
-            features = dropdown_multi_selection(columns, features, keyword)
-            return features
+            if ctx.triggered_id == "data_frame_store":
+                options = get_numeric_columns(df, df.columns.to_list())
+                return options, None
+            if ctx.triggered_id == "add_by_keyword-button":
+                options, features = dropdown_regex(options, features, keyword)
+            if ctx.triggered_id == "cluster_feature":
+                options = get_numeric_columns(df, df.columns.to_list())
+                options, features = dropdown_regex(options, features)
+            return options, features
 
         @app.callback(
             Output("feature_keyword-input", "value"),
@@ -76,19 +86,6 @@ class Cluster(Tab):
             if not keyword:
                 raise PreventUpdate()
             return keyword
-
-        @app.callback(
-            Output("cluster_feature", "options"),
-            Input("data_frame_store", "data"),
-            prevent_initial_call=True,
-        )
-        def update_cluster_columns(df):
-            df = df_from_store(df)
-
-            columns = df.columns.to_list()
-            columns = get_numeric_columns(df, columns)
-
-            return columns
 
     @staticmethod
     def initialize(df):
@@ -101,8 +98,15 @@ class Cluster(Tab):
             style = {"display": "block"}
             message = "Cluster creation failed..."
             return kmeans_col, style, message
+        columns = get_numeric_columns(df, df.columns.to_list())
+        new_features = []
+        for f in features:
+            if " (regex)" in f:
+                for c in columns:
+                    if re.search(f[:-8], c):
+                        new_features.append(c)
         scaler = StandardScaler()
-        scale = scaler.fit_transform(df[features])
+        scale = scaler.fit_transform(df[new_features])
         km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
         kmeans_col = [f"c{c+1}" for c in km]
 
