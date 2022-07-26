@@ -2,14 +2,22 @@
 window.dashApp = `
 import dashapp
 
-from dash_extensions.enrich import DashProxy, ServersideOutputTransform
+from functools import partialmethod
+
+from dash_extensions.enrich import DashProxy, ServersideOutputTransform, LogTransform
 
 from dashapp.app import DashApp
 from dashapp.utils.store import ServerSideStoreBackend
 
+import dash_mantine_components
+
+dash_mantine_components.NotificationsProvider.__init__ = partialmethod(
+    dash_mantine_components.NotificationsProvider.__init__, position="top-right"
+)
+
 app = DashProxy(
     "dashapp.app", suppress_callback_exceptions=True, compress=False, eager_loading=True,
-    transforms=[ServersideOutputTransform(
+    transforms=[LogTransform(), ServersideOutputTransform(
         backend=ServerSideStoreBackend(), session_check=False, arg_check=False,
     )],
 )

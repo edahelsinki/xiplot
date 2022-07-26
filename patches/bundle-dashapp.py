@@ -35,7 +35,7 @@ dash.dash.check_fingerprint = new_check_fingerprint
 
 import dashapp
 
-from dash_extensions.enrich import DashProxy, ServersideOutputTransform
+from dash_extensions.enrich import DashProxy, ServersideOutputTransform, LogTransform
 
 from dashapp.app import DashApp
 from dashapp.utils.store import ServerSideStoreBackend
@@ -47,11 +47,12 @@ dash = DashProxy(
     compress=False,
     eager_loading=True,
     transforms=[
+        LogTransform(),
         ServersideOutputTransform(
             backend=ServerSideStoreBackend(),
             session_check=False,
             arg_check=False,
-        )
+        ),
     ],
 )
 app = DashApp(app=dash, df_from_store=lambda df: df, df_to_store=lambda df: df).app
@@ -138,6 +139,7 @@ repodata["packages"]["dashapp"] = {
         "dash",
         "dash-daq",
         "dash-extensions",
+        "dash-mantine-components",
         "flask",
         "pandas",
         "plotly",

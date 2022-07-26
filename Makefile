@@ -16,7 +16,7 @@ ifeq (,$(wildcard pyodide/packages/dash/meta.yaml))
 	git apply --whitespace=nowarn ../patches/pyodide.patch
 endif
 	cd pyodide; \
-	./run_docker --non-interactive PYODIDE_PACKAGES="brotli,flask,flask-caching,cachelib,plotly,dash,dash-daq,dash-extensions,more-itertools,pandas,jinja2,markupsafe,werkzeug,click,itsdangerous,flask_compress,sklearn,scikit-learn,matplotlib" make check dist/pyodide.asm.js dist/pyodide.js dist/distutils.tar dist/repodata.json dist/pyodide_py.tar; \
+	./run_docker --non-interactive PYODIDE_PACKAGES="brotli,flask,flask-caching,cachelib,plotly,dash,dash-daq,dash-extensions,dash-mantine-components,more-itertools,pandas,jinja2,markupsafe,werkzeug,click,itsdangerous,flask_compress,sklearn,scikit-learn,matplotlib" make check dist/pyodide.asm.js dist/pyodide.js dist/distutils.tar dist/repodata.json dist/pyodide_py.tar; \
 	git apply --whitespace=nowarn --reverse ../patches/pyodide.patch
 
 pyodide: install_pyodide build_pyodide
