@@ -25,20 +25,23 @@ def read_dataframe_with_extension(data, filename=None):
         filename = data
     file_extension = Path(filename).suffix
 
-    if file_extension == ".csv":
-        return pd.read_csv(data)
+    try:
+        if file_extension == ".csv":
+            return pd.read_csv(data)
 
-    if file_extension == ".json":
-        return pd.read_json(data)
+        if file_extension == ".json":
+            return pd.read_json(data)
 
-    if file_extension == ".pkl":
-        return pd.read_pickle(data)
+        if file_extension == ".pkl":
+            return pd.read_pickle(data)
 
-    if file_extension == ".ft":
-        try:
-            return pd.read_feather(data)
-        except ImportError:
-            return None
+        if file_extension == ".ft":
+            try:
+                return pd.read_feather(data)
+            except ImportError:
+                return None
+    except:
+        return None
 
     return None
 

@@ -33,6 +33,7 @@ class Data(Tab):
                     ServersideOutput("uploaded_data_file_store", "data"),
                     Output("data_files", "options"),
                     Output("data_files", "value"),
+                    Output("data-tab-upload-notify-container", "children"),
                 ],
                 id="file_uploader",
             )
@@ -43,10 +44,34 @@ class Data(Tab):
 
                 upload_path.unlink()
 
+                if df is None:
+                    return (
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message=[
+                                html.Div(
+                                    [
+                                        f"The file {upload_path.name} ",
+                                        html.I("(upload)"),
+                                        " could not be loaded as a data frame.",
+                                    ]
+                                )
+                            ],
+                            action="show",
+                            autoClose=10000,
+                        ),
+                    )
+
                 return (
                     df_to_store(df),
                     generate_dataframe_options(upload_path),
                     str(Path("uploads") / upload_path.name),
+                    None,
                 )
 
         except ImportError:
@@ -57,6 +82,7 @@ class Data(Tab):
                 Output("data_files", "value"),
                 Output("file_uploader", "contents"),
                 Output("file_uploader", "filename"),
+                Output("data-tab-upload-notify-container", "children"),
                 Input("file_uploader", "contents"),
                 State("file_uploader", "filename"),
             )
@@ -71,12 +97,35 @@ class Data(Tab):
                 df = read_dataframe_with_extension(BytesIO(decoded), upload_name)
 
                 if df is None:
-                    raise PreventUpdate()
+                    return (
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message=[
+                                html.Div(
+                                    [
+                                        f"The file {upload_name} ",
+                                        html.I("(upload)"),
+                                        " could not be loaded as a data frame.",
+                                    ]
+                                )
+                            ],
+                            action="show",
+                            autoClose=10000,
+                        ),
+                    )
                 else:
                     return (
                         df_to_store(df),
                         generate_dataframe_options(upload_name),
                         str(Path("uploads") / upload_name),
+                        None,
                         None,
                         None,
                     )
@@ -166,6 +215,26 @@ class Data(Tab):
                     autoClose=5000,
                 )
 
+            if df is None:
+                return dash.no_update, dmc.Notification(
+                    id=str(uuid.uuid4()),
+                    color="yellow",
+                    title="Warning",
+                    message=[
+                        html.Div(
+                            [
+                                f"The data file {filepath.name} ",
+                                html.I("(upload) ")
+                                if trigger == "uploaded_data_file_store"
+                                else None,
+                                "could not be loaded as a data frame.",
+                            ]
+                        )
+                    ],
+                    action="show",
+                    autoClose=10000,
+                )
+
             df_store = df_from_store(df_store)
             df_store["auxiliary"] = [{"index": i} for i in range(len(df))]
 
@@ -230,7 +299,14 @@ class Data(Tab):
 
     @staticmethod
     def create_layout_globals():
-        return html.Div(id="data-tab-notify-container", style={"display": "none"})
+        return html.Div(
+            [
+                html.Div(id="data-tab-notify-container", style={"display": "none"}),
+                html.Div(
+                    id="data-tab-upload-notify-container", style={"display": "none"}
+                ),
+            ]
+        )
 
 
 def generate_dataframe_options(upload_path):
