@@ -252,6 +252,17 @@ class Cluster(Tab):
                 raise PreventUpdate()
             return keyword
 
+        @app.callback(
+            Output({"type": "selection_cluster_dropdown", "index": 0}, "value"),
+            Input("cluster_selection_mode", "value"),
+            State({"type": "selection_cluster_dropdown", "index": 0}, "value"),
+            prevent_initial_call=True,
+        )
+        def pin_selection_cluster(selection_mode, selection_cluster):
+            if not selection_mode:
+                return "c1"
+            return selection_cluster
+
     @staticmethod
     def initialize(df):
         kmeans_col = ["all"] * df.shape[0]
