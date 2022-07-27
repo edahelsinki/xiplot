@@ -402,3 +402,24 @@ class Cluster(Tab):
             ],
             id="control_clusters_content-container",
         )
+
+    @staticmethod
+    def create_layout_globals():
+        return html.Div(
+            [
+                html.Div(
+                    id="cluster-tab-main-notify-container",
+                    style={"display": "none"},
+                ),
+                html.Div(
+                    id="cluster-tab-regex-notify-container",
+                    style={"display": "none"},
+                ),
+                html.Div(
+                    id="cluster-tab-compute-notify-container",
+                    style={"display": "none"},
+                ),
+                html.Div(id="cluster-tab-compute-done", style={"display": "none"}),
+            ],
+            style={"display": "none"},
+        )

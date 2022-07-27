@@ -16,3 +16,7 @@ class Tab(ABC):
     @abstractstaticmethod
     def create_layout():
         pass
+
+    @abstractstaticmethod
+    def create_layout_globals():
+        pass

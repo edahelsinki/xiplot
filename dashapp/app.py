@@ -52,24 +52,10 @@ class DashApp:
                     dcc.Store(id="clusters_column_store"),
                     dcc.Store(id="uploaded_data_file_store"),
                     dcc.Store(id="selected_rows_store"),
-                    # FIXME: Inject these via tab classmethods instead of hardcoding them
                     html.Div(
-                        id="cluster-tab-main-notify-container",
-                        style={"display": "none"},
+                        [t.create_layout_globals() for t in TABS],
+                        id="globals",
                     ),
-                    html.Div(
-                        id="cluster-tab-regex-notify-container",
-                        style={"display": "none"},
-                    ),
-                    html.Div(
-                        id="cluster-tab-compute-notify-container",
-                        style={"display": "none"},
-                    ),
-                    html.Div(id="data-tab-notify-container", style={"display": "none"}),
-                    html.Div(
-                        id="plots-tab-notify-container", style={"display": "none"}
-                    ),
-                    html.Div(id="cluster-tab-compute-done", style={"display": "none"}),
                 ],
                 id="main",
             ),

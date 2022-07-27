@@ -111,3 +111,7 @@ class Plots(Tab):
             ],
             id="control_plots_content-container",
         )
+
+    @staticmethod
+    def create_layout_globals():
+        return html.Div(id="plots-tab-notify-container", style={"display": "none"})

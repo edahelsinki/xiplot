@@ -228,6 +228,10 @@ class Data(Tab):
             id="control_data_content-container",
         )
 
+    @staticmethod
+    def create_layout_globals():
+        return html.Div(id="data-tab-notify-container", style={"display": "none"})
+
 
 def generate_dataframe_options(upload_path):
     return [
