@@ -1,3 +1,6 @@
+import json
+import tarfile
+
 import pandas as pd
 import numpy as np
 
@@ -23,25 +26,60 @@ def read_dataframe_with_extension(data, filename=None):
     """
     if filename is None:
         filename = data
-    file_extension = Path(filename).suffix
 
     try:
-        if file_extension == ".csv":
-            return pd.read_csv(data)
+        if tarfile.is_tarfile(data):
+            stem = Path(filename).name[: -len("".join(Path(filename).suffixes))]
 
-        if file_extension == ".json":
-            return pd.read_json(data)
+            with tarfile.open(data, "r:*") as tar:
+                dfname = None
+                metaname = None
 
-        if file_extension == ".pkl":
-            return pd.read_pickle(data)
+                for name in tar.getnames():
+                    if Path(name).stem == stem:
+                        if Path(name).suffix in [".csv", ".json", ".pkl", ".ft"]:
+                            if dfname is not None:
+                                return None
+                            dfname = name
+                        elif Path(name).suffix == ".viz":
+                            if metaname is not None:
+                                return None
+                            metaname = name
 
-        if file_extension == ".ft":
-            try:
-                return pd.read_feather(data)
-            except ImportError:
-                return None
-    except:
+                if dfname is None or metaname is None:
+                    return None
+
+                metadata = json.load(tar.extractfile(metaname)) or dict()
+                metadata["filename"] = dfname
+
+                print("Loaded metadata for", filename, metadata)
+
+                return read_only_dataframe(tar.extractfile(dfname), dfname)
+
+        return read_only_dataframe(data, filename)
+    except Exception as err:
+        print(err)
+
         return None
+
+
+def read_only_dataframe(data, filename):
+    file_extension = Path(filename).suffix
+
+    if file_extension == ".csv":
+        return pd.read_csv(data)
+
+    if file_extension == ".json":
+        return pd.read_json(data)
+
+    if file_extension == ".pkl":
+        return pd.read_pickle(data)
+
+    if file_extension == ".ft":
+        try:
+            return pd.read_feather(data)
+        except ImportError:
+            return None
 
     return None
 
