@@ -28,33 +28,44 @@ def read_dataframe_with_extension(data, filename=None):
         filename = data
 
     try:
-        if tarfile.is_tarfile(data):
+        if ".tar" in Path(filename).suffixes:
             stem = Path(filename).name[: -len("".join(Path(filename).suffixes))]
 
-            with tarfile.open(data, "r:*") as tar:
-                dfname = None
-                metaname = None
+            with (
+                tarfile.open(name=data)
+                if isinstance(data, (str, Path))
+                else tarfile.open(fileobj=data)
+            ) as tar:
+                df_file = None
+                df_name = None
+                meta_file = None
 
-                for name in tar.getnames():
-                    if Path(name).stem == stem:
-                        if Path(name).suffix in [".csv", ".json", ".pkl", ".ft"]:
-                            if dfname is not None:
-                                return None
-                            dfname = name
-                        elif Path(name).suffix == ".viz":
-                            if metaname is not None:
-                                return None
-                            metaname = name
+                for member in tar.getmembers():
+                    if not member.isfile():
+                        continue
 
-                if dfname is None or metaname is None:
+                    if Path(member.name).stem != stem:
+                        continue
+
+                    if Path(member.name).suffix in [".csv", ".json", ".pkl", ".ft"]:
+                        if df_file is not None:
+                            return None
+                        df_file = tar.extractfile(member)
+                        df_name = member.name
+                    elif Path(member.name).suffix == ".viz":
+                        if meta_file is not None:
+                            return None
+                        meta_file = tar.extractfile(member)
+
+                if df_file is None or meta_file is None:
                     return None
 
-                metadata = json.load(tar.extractfile(metaname)) or dict()
-                metadata["filename"] = dfname
+                metadata = json.load(meta_file) or dict()
+                metadata["filename"] = df_name
 
                 print("Loaded metadata for", filename, metadata)
 
-                return read_only_dataframe(tar.extractfile(dfname), dfname)
+                return read_only_dataframe(df_file, df_name)
 
         return read_only_dataframe(data, filename)
     except Exception as err:
