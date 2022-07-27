@@ -41,6 +41,7 @@ def bootstrap_dashapp(url_base_pathname):
         "auto-mpg.csv",
         "Wang-B.csv",
         "Wang-dataframe.csv",
+        "Wang-dataframe.tar",
     ]:
         with open(Path("data") / dataset, "w") as file:
             shutil.copyfileobj(pyodide.http.open_url("data/" + dataset), file)
@@ -87,3 +88,22 @@ dash.dash.build_fingerprint = new_build_fingerprint
 
 dash.fingerprint.check_fingerprint = new_check_fingerprint
 dash.dash.check_fingerprint = new_check_fingerprint
+
+
+""" Monkey patch for dash_extensions to remove print """
+
+import dash_extensions.enrich
+
+
+def _new_get_cache_id(func, output, args, session_check=None, arg_check=True):
+    all_args = [func.__name__, dash_extensions.enrich._create_callback_id(output)]
+    if arg_check:
+        all_args += list(args)
+    if session_check:
+        all_args += [dash_extensions.enrich._get_session_id()]
+    return dash_extensions.enrich.hashlib.md5(
+        dash_extensions.enrich.json.dumps(all_args).encode()
+    ).hexdigest()
+
+
+dash_extensions.enrich._get_cache_id = _new_get_cache_id
