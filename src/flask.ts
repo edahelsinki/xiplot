@@ -78,7 +78,9 @@ export class WebFlask {
     log("[1. Request Intercepted]", req);
     const url = new URL(new Request(req).url);
 
-    if (url.origin == window.location.origin) {
+    const originLocation = window.location.href.replace(/\/(?:[^\/]+?\.[^\/]*?|index)$/, '/')
+
+    if (url.href.startsWith(originLocation)) {
       const resp = await this.generateResponse(this.postRequest(req, init));
       log(`[6. ${url.pathname} done.]`);
       return resp;
