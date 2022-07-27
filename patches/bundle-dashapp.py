@@ -35,7 +35,7 @@ dash.dash.check_fingerprint = new_check_fingerprint
 
 import dashapp
 
-from dash_extensions.enrich import DashProxy, ServersideOutputTransform, LogTransform
+from dash_extensions.enrich import DashProxy, ServersideOutputTransform
 
 from dashapp.app import DashApp
 from dashapp.utils.store import ServerSideStoreBackend
@@ -47,7 +47,6 @@ dash = DashProxy(
     compress=False,
     eager_loading=True,
     transforms=[
-        LogTransform(),
         ServersideOutputTransform(
             backend=ServerSideStoreBackend(),
             session_check=False,
