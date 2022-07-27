@@ -28,15 +28,19 @@ class Scatterplot(Graph):
             prevent_initial_call=True,
         )
         def tmp(x_axis, y_axis, color, symbol, jitter, selected_rows, kmeans_col, df):
-            return Scatterplot.render_scatterplot(
-                df_from_store(df),
-                x_axis,
-                y_axis,
-                color,
-                symbol,
-                jitter,
-                selected_rows,
-                kmeans_col,
+            jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
+            return (
+                Scatterplot.render_scatterplot(
+                    df_from_store(df),
+                    x_axis,
+                    y_axis,
+                    color,
+                    symbol,
+                    jitter,
+                    selected_rows,
+                    kmeans_col,
+                ),
+                jitter_max,
             )
 
     @staticmethod
@@ -55,7 +59,6 @@ class Scatterplot(Graph):
         else:
             df["Clusters"] = ["all"] * df.shape[0]
 
-        jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
         if jitter:
             jitter = float(jitter)
         if type(jitter) == float:
@@ -101,7 +104,7 @@ class Scatterplot(Graph):
         fig.update(layout_coloraxis_showscale=False)
         fig.update_traces(marker={"line": {"width": 0}})
 
-        return fig, jitter_max
+        return fig
 
     @staticmethod
     def create_new_layout(index, df, columns):
