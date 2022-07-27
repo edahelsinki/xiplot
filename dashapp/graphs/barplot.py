@@ -22,22 +22,29 @@ class Barplot(Graph):
             Input({"type": "barplot_y_axis", "index": MATCH}, "value"),
             Input({"type": "bp_selection_cluster_dropdown", "index": MATCH}, "value"),
             Input({"type": "bp_comparison_cluster_dropdown", "index": MATCH}, "value"),
+            Input({"type": "order_dropdown", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
             State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def tmp(x_axis, y_axis, selection, comparison, kmeans_col, df):
+        def tmp(x_axis, y_axis, selection, comparison, order, kmeans_col, df):
             return Barplot.render_barplot(
-                x_axis, y_axis, selection, comparison, kmeans_col, df_from_store(df)
+                x_axis,
+                y_axis,
+                selection,
+                comparison,
+                order,
+                kmeans_col,
+                df_from_store(df),
             )
 
     @staticmethod
-    def render_barplot(x_axis, y_axis, selection, comparison, kmeans_col, df):
+    def render_barplot(x_axis, y_axis, selection, comparison, order, kmeans_col, df):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
         if y_axis == "frequency":
             fig = make_fig_fgs(
-                df, x_axis, y_axis, selection, comparison, "reldiff", kmeans_col
+                df, x_axis, y_axis, selection, comparison, order, kmeans_col
             )
         else:
             fig = px.bar(
@@ -103,6 +110,16 @@ class Barplot(Graph):
                 ),
                 cluster_dropdown(
                     "bp_comparison_cluster_dropdown", index, selection=False
+                ),
+                layout_wrapper(
+                    component=dcc.Dropdown(
+                        id={"type": "order_dropdown", "index": index},
+                        value="reldiff",
+                        clearable=False,
+                        options=["reldiff", "total", "selection", "comparison"],
+                    ),
+                    css_class="dd-double-left",
+                    title="Comparison Order",
                 ),
             ],
             id={"type": "barplot-container", "index": index},
