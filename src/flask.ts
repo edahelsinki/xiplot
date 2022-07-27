@@ -21,14 +21,14 @@ export class WebFlask {
     log("[POST Request]", req);
 
     let data;
-    if (init.body) {
+    if (init && init.body) {
       data = `r"""${init.body}"""`
     } else {
       data = "None"
     }
 
     let content_type;
-    if (init.body) {
+    if (init && init.body) {
       content_type = `"application/json"`
     } else {
       content_type = "None"
@@ -40,7 +40,7 @@ export class WebFlask {
         x = client.open('${req}',
           data=${data},
           content_type=${content_type},
-          method="${init.method || 'GET'}",
+          method="${(init && init.method) || 'GET'}",
         )
     x`;
   }

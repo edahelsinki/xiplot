@@ -1,6 +1,6 @@
-import dash
-
 import re
+
+import dash
 
 cache_regex = re.compile(r"^v[\w-]+$")
 version_clean = re.compile(r"[^\w-]")

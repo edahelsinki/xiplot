@@ -44,13 +44,13 @@ deploy: pyodide dashapp
 	rm -f dist/tsconfig.tsbuildinfo
 	cp dashapp/dist/dashapp-0.1.0-py3-none-any.whl dist/
 	cp -r dashapp/data dist/
-	cp -r dashapp/dashapp/assets/favicon.ico dist/
 	cp -r dashapp/dashapp/assets/ dist/
 	cd dashapp; \
 	pip install -r requirements.txt; \
 	cp ../patches/bundle-dashapp.py .; \
 	python3 bundle-dashapp.py; \
 	rm -f bundle-dashapp.py
+	cp patches/bootstrap.py dist/
 	npm install
 	npm run build
 

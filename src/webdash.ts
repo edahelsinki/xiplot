@@ -53,41 +53,11 @@ class WebDash {
   async initialiseDashApp() {
     return this.workerManager.asyncRun(
       `
-import dash
-import re
+${await this.webFlask.originalFetch.apply(window, ["bootstrap.py"]).then(response => response.text())}
 
-cache_regex = re.compile(r"^v[\\w-]+$")
-version_clean = re.compile(r"[^\\w-]")
-
-def new_build_fingerprint(path, version, _hash_value):
-  path_parts = path.split("/")
-  filename, extension = path_parts[-1].split(".", 1)
-  file_path = "/".join(path_parts[:-1] + [filename])
-  v_str = re.sub(version_clean, "_", str(version))
-
-  return f"{file_path}.v{v_str}.{extension}"
-
-
-def new_check_fingerprint(path):
-  path_parts = path.split("/")
-  name_parts = path_parts[-1].split(".")
-
-  # Check if the resource has a fingerprint
-  if len(name_parts) > 2 and cache_regex.match(name_parts[1]):
-    original_name = ".".join([name_parts[0]] + name_parts[2:])
-    return "/".join(path_parts[:-1] + [original_name]), True
-
-  return path, False
-
-dash.fingerprint.build_fingerprint = new_build_fingerprint
-dash.dash.build_fingerprint = new_build_fingerprint
-
-dash.fingerprint.check_fingerprint = new_check_fingerprint
-dash.dash.check_fingerprint = new_check_fingerprint
-
-URL_BASE_PATHNAME = "${window.location.pathname.replace(/\/(?:[^\/]+?\.[^\/]*?|index)$/, '/')}";
-
-${window.dashApp}
+app = bootstrap_dashapp(
+  "${window.location.pathname.replace(/\/(?:[^\/]+?\.[^\/]*?|index)$/, '/')}"
+)
       `,
       {}
     );
@@ -98,7 +68,9 @@ ${window.dashApp}
     document.head.innerHTML = `
 ${await this.workerManager.asyncRun("app._generate_meta_html()", {})}
 <title>${await this.workerManager.asyncRun("app.title", {})}</title>
-<link rel="icon" type="image/x-icon" href="favicon.ico">
+<link rel="icon" type="image/x-icon" href="${
+  await this.workerManager.asyncRun("app.get_asset_url(app._favicon)", {})
+}">
 ${await this.workerManager.asyncRun("app._generate_css_dist_html()", {})}
     `;
 
