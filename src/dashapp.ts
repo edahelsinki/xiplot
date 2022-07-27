@@ -8,7 +8,8 @@ from dashapp.app import DashApp
 from dashapp.utils.store import ServerSideStoreBackend
 
 app = DashProxy(
-    "dashapp.app", suppress_callback_exceptions=True, compress=False, eager_loading=True,
+    "dashapp.app", url_base_pathname=URL_BASE_PATHNAME,
+    suppress_callback_exceptions=True, compress=False, eager_loading=True,
     transforms=[ServersideOutputTransform(
         backend=ServerSideStoreBackend(), session_check=False, arg_check=False,
     )],

@@ -85,6 +85,8 @@ dash.dash.build_fingerprint = new_build_fingerprint
 dash.fingerprint.check_fingerprint = new_check_fingerprint
 dash.dash.check_fingerprint = new_check_fingerprint
 
+URL_BASE_PATHNAME = "${window.location.pathname.replace(/\/(?:[^\/]+?\.[^\/]*?|index)$/, '/')}";
+
 ${window.dashApp}
       `,
       {}
