@@ -22,7 +22,10 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: ./pyodide
-          key: pyodide-${{ env.PYODIDE_SHA_SHORT }}
+          key: pyodide-${{ env.PYODIDE_SHA_SHORT }}-${{ hashFiles('patches/pyodide.patch') }}
+          restore-keys: |
+            pyodide-${{ env.PYODIDE_SHA_SHORT }}-${{ hashFiles('patches/pyodide.patch') }}
+            pyodide-${{ env.PYODIDE_SHA_SHORT }}
 
       - name: Build the Documentation
         run: make -B deploy
