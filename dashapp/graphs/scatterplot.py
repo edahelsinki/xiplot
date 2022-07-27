@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from dash import html, dcc, Output, Input, State, MATCH
+from dash import html, dcc, Output, Input, State, MATCH, ctx
 
 from dashapp.utils.layouts import layout_wrapper, delete_button
 from dashapp.utils.dataframe import get_numeric_columns
@@ -22,17 +22,27 @@ class Scatterplot(Graph):
             Input({"type": "scatter_target_color", "index": MATCH}, "value"),
             Input({"type": "scatter_target_symbol", "index": MATCH}, "value"),
             Input({"type": "jitter-slider", "index": MATCH}, "value"),
+            Input("selected_rows_store", "data"),
             Input("clusters_column_store", "data"),
             State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def tmp(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
+        def tmp(x_axis, y_axis, color, symbol, jitter, selected_rows, kmeans_col, df):
             return Scatterplot.render_scatterplot(
-                x_axis, y_axis, color, symbol, jitter, kmeans_col, df=df_from_store(df)
+                x_axis,
+                y_axis,
+                color,
+                symbol,
+                jitter,
+                selected_rows,
+                kmeans_col,
+                df=df_from_store(df),
             )
 
     @staticmethod
-    def render_scatterplot(x_axis, y_axis, color, symbol, jitter, kmeans_col, df):
+    def render_scatterplot(
+        x_axis, y_axis, color, symbol, jitter, selected_rows, kmeans_col, df
+    ):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
 
@@ -46,6 +56,19 @@ class Scatterplot(Graph):
                 jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
                 df[["jitter-x", "jitter-y"]] = jitter_df[[x_axis, y_axis]]
                 x_axis, y_axis = "jitter-x", "jitter-y"
+        sizes = [0.5] * df.shape[0]
+        clusters = df["Clusters"]
+        row_ids = []
+        id = 0
+        if ctx.triggered_id == "selected_rows_store":
+            for row in selected_rows:
+                if not row:
+                    row_ids.append(id)
+                id += 1
+        for id in row_ids:
+            sizes[id] = 5
+            df["Clusters"][id] = "*"
+        df["Sizes"] = sizes
 
         fig = px.scatter(
             data_frame=df,
@@ -53,6 +76,8 @@ class Scatterplot(Graph):
             y=y_axis,
             color=color,
             symbol=symbol,
+            size="Sizes" if 5 in sizes else None,
+            opacity=1,
             color_discrete_map={
                 "all": px.colors.qualitative.Plotly[0],
                 **{
@@ -66,6 +91,7 @@ class Scatterplot(Graph):
         )
         fig.update_layout(showlegend=False, uirevision=json.dumps([x_axis, y_axis]))
         fig.update(layout_coloraxis_showscale=False)
+        fig.update_traces(marker={"line": {"width": 0}})
 
         return fig, jitter_max
 

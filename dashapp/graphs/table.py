@@ -43,11 +43,14 @@ class Table(Graph):
         @app.callback(
             Output("selected_rows_store", "data"),
             Input({"type": "table", "index": ALL}, "selected_rows"),
-            State("data_frame_store", "data"),
+            Input("data_frame_store", "data"),
             State("selected_rows_store", "data"),
             prevent_initial_call=True,
         )
         def update_selected_rows(selected_rows_checkbox, df, selected_rows):
+            df = df_from_store(df)
+            if ctx.triggered_id == "data_frame_store":
+                return [True] * df.shape[0]
             if selected_rows_checkbox == []:
                 raise PreventUpdate()
             if selected_rows_checkbox[-1] is None:
@@ -56,7 +59,6 @@ class Table(Graph):
                 False
             ):
                 raise PreventUpdate()
-            df = df_from_store(df)
             selected_rows = selected_rows_checkbox[0]
             result = [True] * df.shape[0]
             for row in selected_rows:
