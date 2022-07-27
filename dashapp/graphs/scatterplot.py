@@ -29,6 +29,7 @@ class Scatterplot(Graph):
         )
         def tmp(x_axis, y_axis, color, symbol, jitter, selected_rows, kmeans_col, df):
             return Scatterplot.render_scatterplot(
+                df_from_store(df),
                 x_axis,
                 y_axis,
                 color,
@@ -36,15 +37,23 @@ class Scatterplot(Graph):
                 jitter,
                 selected_rows,
                 kmeans_col,
-                df=df_from_store(df),
             )
 
     @staticmethod
     def render_scatterplot(
-        x_axis, y_axis, color, symbol, jitter, selected_rows, kmeans_col, df
+        df,
+        x_axis,
+        y_axis,
+        color=None,
+        symbol=None,
+        jitter=None,
+        selected_rows=None,
+        kmeans_col=[],
     ):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
+        else:
+            df["Clusters"] = ["all"] * df.shape[0]
 
         jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
         if jitter:
@@ -57,17 +66,16 @@ class Scatterplot(Graph):
                 df[["jitter-x", "jitter-y"]] = jitter_df[[x_axis, y_axis]]
                 x_axis, y_axis = "jitter-x", "jitter-y"
         sizes = [0.5] * df.shape[0]
-        clusters = df["Clusters"]
         row_ids = []
         id = 0
-        if ctx.triggered_id == "selected_rows_store":
+        if selected_rows:
             for row in selected_rows:
                 if not row:
                     row_ids.append(id)
                 id += 1
         for id in row_ids:
             sizes[id] = 5
-            df["Clusters"][id] = "*"
+            df.loc[id, "Clusters"] = "*"
         df["Sizes"] = sizes
 
         fig = px.scatter(
