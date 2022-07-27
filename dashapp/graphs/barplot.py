@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 
 from dash import html, dcc, Output, Input, State, MATCH
+from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
 from dashapp.utils.dataframe import get_numeric_columns
@@ -20,32 +21,31 @@ class Barplot(Graph):
             Output({"type": "barplot", "index": MATCH}, "figure"),
             Input({"type": "barplot_x_axis", "index": MATCH}, "value"),
             Input({"type": "barplot_y_axis", "index": MATCH}, "value"),
-            Input({"type": "bp_selection_cluster_dropdown", "index": MATCH}, "value"),
-            Input({"type": "bp_comparison_cluster_dropdown", "index": MATCH}, "value"),
+            Input({"type": "bp_cluster_comparison_dropdown", "index": MATCH}, "value"),
             Input({"type": "order_dropdown", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
             State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def tmp(x_axis, y_axis, selection, comparison, order, kmeans_col, df):
-            return Barplot.render_barplot(
+        def tmp(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
+            fig = Barplot.render_barplot(
                 x_axis,
                 y_axis,
-                selection,
-                comparison,
+                selected_clusters,
                 order,
                 kmeans_col,
                 df_from_store(df),
             )
+            if not fig:
+                raise PreventUpdate()
+            return fig
 
     @staticmethod
-    def render_barplot(x_axis, y_axis, selection, comparison, order, kmeans_col, df):
+    def render_barplot(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
         if y_axis == "frequency":
-            fig = make_fig_fgs(
-                df, x_axis, y_axis, selection, comparison, order, kmeans_col
-            )
+            fig = make_fig_fgs(df, x_axis, y_axis, selected_clusters, order, kmeans_col)
         else:
             fig = px.bar(
                 df,
@@ -104,15 +104,10 @@ class Barplot(Graph):
                     title="y axis",
                 ),
                 cluster_dropdown(
-                    "bp_selection_cluster_dropdown", index, selection=True
-                ),
-                cluster_dropdown(
-                    "bp_comparison_cluster_dropdown", index, selection=False
-                ),
-                cluster_dropdown_tmp(
-                    "cluster_comparison",
+                    "bp_cluster_comparison_dropdown",
                     index,
                     multi=True,
+                    value="all",
                     clearable=True,
                     title="Cluster Comparison",
                     css_class="dd-single",
@@ -122,9 +117,9 @@ class Barplot(Graph):
                         id={"type": "order_dropdown", "index": index},
                         value="reldiff",
                         clearable=False,
-                        options=["reldiff", "total", "selection", "comparison"],
+                        options=["reldiff", "total"],
                     ),
-                    css_class="dd-double-left",
+                    css_class="dd-single",
                     title="Comparison Order",
                 ),
             ],
@@ -133,66 +128,66 @@ class Barplot(Graph):
         )
 
 
-def make_fig_fgs(df, x_axis, y_axis, cluster, comparison, order, clusters):
-    fgs_a = Counter()
-    fgs_b = Counter()
-
+def make_fig_fgs(df, x_axis, y_axis, selected_clusters, order, clusters):
+    if not selected_clusters:
+        return None
+    if type(selected_clusters) == str:
+        selected_clusters = [selected_clusters]
+    fgs_dict = {"all": Counter()}
+    for s in selected_clusters:
+        if s != "all":
+            fgs_dict[s] = Counter()
     if type(df[x_axis][0]) in (int, np.int32, np.int64, str):
         for c, row in zip(clusters, df[x_axis]):
-            if c == cluster or cluster == "all":
-                fgs_a.update([row])
-            if c == comparison or comparison == "all":
-                fgs_b.update([row])
+            if c != "all" and c in selected_clusters:
+                fgs_dict[c].update([row])
+            fgs_dict["all"].update([row])
     else:
         for c, row in zip(clusters, df[x_axis]):
-            if c == cluster or cluster == "all":
-                fgs_a.update(row)
+            if c != "all" and c in selected_clusters:
+                fgs_dict[c].update(row)
+            fgs_dict["all"].update(row)
 
-            if c == comparison or comparison == "all":
-                fgs_b.update(row)
+    fgs_total = Counter()
+    for s in selected_clusters:
+        fgs_total += fgs_dict[s]
 
-    comparison += "\u00A0"
+    fgs_max = {}
+    for s in selected_clusters:
+        fgs_max[s] = 1 if len(fgs_dict[s]) == 0 else fgs_dict[s].most_common(1)[0][1]
 
-    fgs_total = fgs_a + fgs_b
-
-    fgs_a_max = 1 if len(fgs_a) == 0 else fgs_a.most_common(1)[0][1]
-    fgs_b_max = 1 if len(fgs_b) == 0 else fgs_b.most_common(1)[0][1]
-
-    for fg in fgs_a.keys():
-        fgs_a[fg] = fgs_a[fg] / fgs_a_max
-
-    for fg in fgs_b.keys():
-        fgs_b[fg] = fgs_b[fg] / fgs_b_max
+    for s in selected_clusters:
+        for fg in fgs_dict[s]:
+            fgs_dict[s][fg] = fgs_dict[s][fg] / fgs_max[s]
 
     if order == "reldiff":
-        fgs_overall = fgs_a + fgs_b
+        fgs_overall = Counter()
+        for s in selected_clusters:
+            fgs_overall += fgs_dict[s]
 
         for fg in fgs_overall.keys():
+            arr = []
+            for s in selected_clusters:
+                arr.append(fgs_dict[s][fg])
             fgs_overall[fg] = (
-                abs(fgs_a[fg] - fgs_b[fg])
-                / np.sqrt(fgs_total[fg])
-                * np.sqrt(min(fgs_a[fg], fgs_b[fg]))
+                abs(max(arr) - min(arr)) / np.sqrt(fgs_total[fg]) * np.sqrt(min(arr))
             )
-    elif order == "selection":
-        fgs_overall = fgs_a
-    elif order == "comparison":
-        fgs_overall = fgs_b
-    else:
-        fgs_overall = fgs_a + fgs_b
+    elif order == "total":
+        fgs_overall = Counter()
+        for s in selected_clusters:
+            fgs_overall += fgs_dict[s]
 
-    fgs = pd.DataFrame(
-        {
-            "Clusters": [cluster for _ in fgs_overall.most_common(10)]
-            + [comparison for _ in fgs_overall.most_common(10)],
-            x_axis: [fg for fg, _ in fgs_overall.most_common(10)]
-            + [fg for fg, _ in fgs_overall.most_common(10)],
-            y_axis: [fgs_a[fg] for fg, _ in fgs_overall.most_common(10)]
-            + [fgs_b[fg] for fg, _ in fgs_overall.most_common(10)],
-        }
-    )
+    clusters_col = []
+    x = []
+    frequencies = []
+    for s in selected_clusters:
+        clusters_col += [s for _ in fgs_overall.most_common(10)]
+        x += [fg for fg, _ in fgs_overall.most_common(10)]
+        frequencies += [fgs_dict[s][fg] for fg, _ in fgs_overall.most_common(10)]
 
+    dff = pd.DataFrame({"Clusters": clusters_col, x_axis: x, "frequency": frequencies})
     fig_fgs = px.bar(
-        fgs,
+        dff,
         x=x_axis,
         y=y_axis,
         color="Clusters",
@@ -205,7 +200,6 @@ def make_fig_fgs(df, x_axis, y_axis, cluster, comparison, order, clusters):
         color_discrete_map={
             "all": px.colors.qualitative.Plotly[0],
             **{f"c{i+1}": c for i, c in enumerate(px.colors.qualitative.Plotly[1:])},
-            "bg\u00A0": px.colors.qualitative.Plotly[0],
             **{
                 f"c{i+1}\u00A0": c
                 for i, c in enumerate(px.colors.qualitative.Plotly[1:])

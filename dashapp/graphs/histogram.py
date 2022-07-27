@@ -14,22 +14,21 @@ class Histogram(Graph):
         @app.callback(
             Output({"type": "histogram", "index": MATCH}, "figure"),
             Input({"type": "x_axis_histo", "index": MATCH}, "value"),
-            Input({"type": "hg_selection_cluster_dropdown", "index": MATCH}, "value"),
-            Input({"type": "hg_comparison_cluster_dropdown", "index": MATCH}, "value"),
+            Input({"type": "hg_cluster_comparison_dropdown", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
             State("data_frame_store", "data"),
             prevent_initial_call=True,
         )
-        def tmp(x_axis, selection, comparison, kmeans_col, df):
+        def tmp(x_axis, selected_clusters, kmeans_col, df):
             return Histogram.render_histogram(
-                x_axis, selection, comparison, kmeans_col, df_from_store(df)
+                x_axis, selected_clusters, kmeans_col, df_from_store(df)
             )
 
     @staticmethod
-    def render_histogram(x_axis, selection, comparison, kmeans_col, df):
+    def render_histogram(x_axis, selected_clusters, kmeans_col, df):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
-        fig = make_fig_property(df, x_axis, selection, comparison, kmeans_col)
+        fig = make_fig_property(df, x_axis, selected_clusters, kmeans_col)
 
         return fig
 
@@ -54,10 +53,13 @@ class Histogram(Graph):
                     title="x axis",
                 ),
                 cluster_dropdown(
-                    "hg_selection_cluster_dropdown", index, selection=True
-                ),
-                cluster_dropdown(
-                    "hg_comparison_cluster_dropdown", index, selection=False
+                    "hg_cluster_comparison_dropdown",
+                    index,
+                    multi=True,
+                    clearable=True,
+                    value="all",
+                    title="Cluster Comparison",
+                    css_class="dd-single",
                 ),
             ],
             id={"type": "histogram-container", "index": index},
@@ -65,40 +67,42 @@ class Histogram(Graph):
         )
 
 
-def make_fig_property(df, property, cluster, comparison, clusters):
-    props_a = []
-    props_b = []
+def make_fig_property(df, x_axis, selected_clusters, clusters):
+    if not selected_clusters:
+        return None
+    if type(selected_clusters) == str:
+        selected_clusters = [selected_clusters]
+    props_dict = {"all": []}
+    for s in selected_clusters:
+        if s != "all":
+            props_dict[s] = []
 
-    for c, p in zip(clusters, df[property]):
-        if c == cluster or cluster == "all":
-            props_a.append(p)
+    for c, p in zip(clusters, df[x_axis]):
+        if c != "all" and c in selected_clusters:
+            props_dict[c].append(p)
+        props_dict["all"].append(p)
 
-        if c == comparison or comparison == "all":
-            props_b.append(p)
+    clusters_col = []
+    x = []
+    for s in selected_clusters:
+        clusters_col += [s for _ in props_dict[s]]
+        x += props_dict[s]
 
-    if cluster == comparison:
-        props_b = []
-
-    props = pd.DataFrame(
-        {
-            "Clusters": [cluster for _ in props_a] + [comparison for _ in props_b],
-            property: props_a + props_b,
-        }
-    )
+    dff = pd.DataFrame({"Clusters": clusters_col, x_axis: x})
 
     fig_property = px.histogram(
-        props,
-        x=property,
+        dff,
+        x=x_axis,
         color="Clusters",
         hover_data={
             "Clusters": False,
-            property: False,
+            x_axis: False,
         },
         color_discrete_map={
             "all": px.colors.qualitative.Plotly[0],
             **{f"c{i+1}": c for i, c in enumerate(px.colors.qualitative.Plotly[1:])},
         },
-        opacity=0.75,
+        opacity=0.5,
         histnorm="probability density",
     )
 

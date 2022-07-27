@@ -33,7 +33,7 @@ class Cluster(Tab):
             State("cluster_amount", "value"),
             State("cluster_feature", "value"),
             State("clusters_column_store", "data"),
-            State({"type": "selection_cluster_dropdown", "index": 0}, "value"),
+            State("selection_cluster_dropdown", "value"),
             State("cluster_selection_mode", "value"),
             prevent_initial_call=True,
         )
@@ -253,10 +253,10 @@ class Cluster(Tab):
             return keyword
 
         @app.callback(
-            Output({"type": "selection_cluster_dropdown", "index": 0}, "value"),
-            Output({"type": "selection_cluster_dropdown", "index": 0}, "disabled"),
+            Output("selection_cluster_dropdown", "value"),
+            Output("selection_cluster_dropdown", "disabled"),
             Input("cluster_selection_mode", "value"),
-            State({"type": "selection_cluster_dropdown", "index": 0}, "value"),
+            State("selection_cluster_dropdown", "value"),
             prevent_initial_call=True,
         )
         def pin_selection_cluster(selection_mode, selection_cluster):
@@ -401,7 +401,11 @@ class Cluster(Tab):
                 ),
                 html.Div(),
                 cluster_dropdown(
-                    "selection_cluster_dropdown", 0, True, {"margin-left": "2%"}
+                    id="selection_cluster_dropdown",
+                    value="c1",
+                    css_class="dd-double-left",
+                    title="Selection Cluster",
+                    style={"margin-left": "2%"},
                 ),
                 layout_wrapper(
                     component=daq.ToggleSwitch(
