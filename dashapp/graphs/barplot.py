@@ -81,9 +81,7 @@ class Barplot(Graph):
                 delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "barplot", "index": index},
-                    figure=px.bar(
-                        df, columns[6], columns[3]
-                    ),  # make_fig_fgs(df, "cl1", "bg", "reldiff", )
+                    figure=px.bar(df, x[0], y[1]),
                 ),
                 layout_wrapper(
                     component=dcc.Dropdown(
@@ -98,7 +96,7 @@ class Barplot(Graph):
                 layout_wrapper(
                     component=dcc.Dropdown(
                         id={"type": "barplot_y_axis", "index": index},
-                        value=y[0],
+                        value=y[1],
                         clearable=False,
                         options=y,
                     ),
@@ -110,6 +108,14 @@ class Barplot(Graph):
                 ),
                 cluster_dropdown(
                     "bp_comparison_cluster_dropdown", index, selection=False
+                ),
+                cluster_dropdown_tmp(
+                    "cluster_comparison",
+                    index,
+                    multi=True,
+                    clearable=True,
+                    title="Cluster Comparison",
+                    css_class="dd-single",
                 ),
                 layout_wrapper(
                     component=dcc.Dropdown(

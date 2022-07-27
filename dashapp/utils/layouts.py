@@ -74,3 +74,70 @@ def cluster_dropdown(id, index, selection: bool, style=None):
         style=style,
     )
     return layout
+
+
+def cluster_dropdown_tmp(
+    id,
+    index=None,
+    multi=False,
+    clearable=False,
+    value=None,
+    style=None,
+    title=None,
+    css_class=None,
+):
+    layout = layout_wrapper(
+        component=dcc.Dropdown(
+            id={"type": id, "index": index} if index else None,
+            clearable=clearable,
+            multi=multi,
+            value=value,
+            options=[
+                {
+                    "label": html.Div(
+                        [
+                            html.Div(
+                                style={
+                                    "background-color": px.colors.qualitative.Plotly[0]
+                                },
+                                className="color-rect",
+                            ),
+                            html.Div(
+                                "everything",
+                                style={
+                                    "display": "inline-block",
+                                    "padding-left": 10,
+                                },
+                            ),
+                        ]
+                    ),
+                    "value": "all",
+                }
+            ]
+            + [
+                {
+                    "label": html.Div(
+                        [
+                            html.Div(
+                                style={"background-color": c},
+                                className="color-rect",
+                            ),
+                            html.Div(
+                                f"cluster #{i+1}",
+                                style={
+                                    "display": "inline-block",
+                                    "padding-left": 10,
+                                },
+                            ),
+                        ]
+                    ),
+                    "value": f"c{i+1}",
+                }
+                for i, c in enumerate(px.colors.qualitative.Plotly[1:])
+            ],
+        ),
+        title=title,
+        css_class=css_class,
+        style=style,
+    )
+    return layout
