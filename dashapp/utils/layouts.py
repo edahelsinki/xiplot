@@ -52,7 +52,8 @@ def cluster_dropdown(id, index, selection: bool, style=None):
                     "label": html.Div(
                         [
                             html.Div(
-                                style={"background-color": c}, className="color-rect"
+                                style={"background-color": c},
+                                className="color-rect",
                             ),
                             html.Div(
                                 f"cluster #{i+1}",

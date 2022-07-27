@@ -254,14 +254,15 @@ class Cluster(Tab):
 
         @app.callback(
             Output({"type": "selection_cluster_dropdown", "index": 0}, "value"),
+            Output({"type": "selection_cluster_dropdown", "index": 0}, "disabled"),
             Input("cluster_selection_mode", "value"),
             State({"type": "selection_cluster_dropdown", "index": 0}, "value"),
             prevent_initial_call=True,
         )
         def pin_selection_cluster(selection_mode, selection_cluster):
             if not selection_mode:
-                return "c1"
-            return selection_cluster
+                return "c1", True
+            return selection_cluster, False
 
     @staticmethod
     def initialize(df):
@@ -405,7 +406,7 @@ class Cluster(Tab):
                 layout_wrapper(
                     component=daq.ToggleSwitch(
                         id="cluster_selection_mode",
-                        value=False,
+                        value=True,
                         label="replace mode/edit mode",
                     ),
                     style={"display": "inline-block"},
