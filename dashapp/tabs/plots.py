@@ -37,7 +37,6 @@ class Plots(Tab):
             State("plot_type", "value"),
             Input("data_frame_store", "data"),
             State("clusters_column_store", "data"),
-            prevent_initial_call=True,
         )
         def add_new_plot(
             n_clicks,

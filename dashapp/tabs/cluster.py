@@ -35,7 +35,6 @@ class Cluster(Tab):
             State("clusters_column_store", "data"),
             State("selection_cluster_dropdown", "value"),
             State("cluster_selection_mode", "value"),
-            prevent_initial_call=True,
         )
         def set_clusters(
             df,
@@ -144,7 +143,6 @@ class Cluster(Tab):
             State("cluster_feature", "value"),
             State("cluster-tab-compute-done", "children"),
             State("cluster-button", "value"),
-            prevent_initial_call=True,
         )
         def compute_clusters(n_clicks, n_clusters, features, done, doing):
             if done != doing:
@@ -187,7 +185,6 @@ class Cluster(Tab):
             Input("cluster_feature", "value"),
             State("feature_keyword-input", "value"),
             State("cluster_feature", "options"),
-            prevent_initial_call=True,
         )
         def add_matching_values(df, n_clicks, features, keyword, options):
             df = df_from_store(df)
@@ -245,7 +242,6 @@ class Cluster(Tab):
         @app.callback(
             Output("feature_keyword-input", "value"),
             Input("cluster_feature", "search_value"),
-            prevent_initial_call=True,
         )
         def sync_with_input(keyword):
             if keyword == "":
@@ -257,7 +253,6 @@ class Cluster(Tab):
             Output("selection_cluster_dropdown", "disabled"),
             Input("cluster_selection_mode", "value"),
             State("selection_cluster_dropdown", "value"),
-            prevent_initial_call=True,
         )
         def pin_selection_cluster(selection_mode, selection_cluster):
             if not selection_mode:

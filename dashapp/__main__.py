@@ -50,7 +50,10 @@ else:
 
 
 dash = DashProxy(
-    __name__, suppress_callback_exceptions=True, transforms=dash_transforms
+    __name__,
+    suppress_callback_exceptions=True,
+    transforms=dash_transforms,
+    prevent_initial_callbacks=True,
 )
 
 app = DashApp(app=dash, df_from_store=df_from_store, df_to_store=df_to_store)

@@ -17,7 +17,6 @@ class Histogram(Graph):
             Input({"type": "hg_cluster_comparison_dropdown", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
             State("data_frame_store", "data"),
-            prevent_initial_call=True,
         )
         def tmp(x_axis, selected_clusters, kmeans_col, df):
             return Histogram.render(

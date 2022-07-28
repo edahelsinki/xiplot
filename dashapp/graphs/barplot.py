@@ -25,7 +25,6 @@ class Barplot(Graph):
             Input({"type": "order_dropdown", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
             State("data_frame_store", "data"),
-            prevent_initial_call=True,
         )
         def tmp(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
             fig = Barplot.render(

@@ -15,7 +15,6 @@ class Heatmap(Graph):
             Output({"type": "heatmap", "index": MATCH}, "figure"),
             Input({"type": "heatmap_cluster_amount", "index": MATCH}, "value"),
             State("data_frame_store", "data"),
-            prevent_initial_call=True,
         )
         def tmp(n_clusters, df):
             return Heatmap.render(n_clusters, df_from_store(df))

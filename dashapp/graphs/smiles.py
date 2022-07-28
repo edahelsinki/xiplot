@@ -26,7 +26,6 @@ class Smiles(Graph):
             """,
             Output({"type": "smiles-display", "index": MATCH}, "src"),
             Input({"type": "smiles-input", "index": MATCH}, "value"),
-            prevent_initial_call=True,
         )
 
     @staticmethod
