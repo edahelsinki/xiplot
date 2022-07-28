@@ -2,7 +2,10 @@ import { WorkerManager } from "./worker-loader";
 import { log } from "./webdash";
 
 /**
- * A small, virtual web server emulating Flask (Python).
+ * A small, virtual web server wrapping the Flask server in Pyodide.
+ *
+ * It intercepts `fetch` requests and reroutes the ones targeted at
+ * the dash app to Pyodide, while letting others pass through.
  */
 export class WebFlask {
   constructor() {
@@ -13,79 +16,108 @@ export class WebFlask {
   }
 
   /**
-   * Sends a POST request to the Python Flask backend.
+   * Generates the stringified Python code to be run in Pyodide
+   * to perform a request on the Flask server backend.
+   *
+   * Note: assumes request payload is either `null` or `json`.
+   *
    * @param req Request Object
    * @param init request payload
+   *
+   * @returs stringified Python code
    */
-  postRequest(req, init) {
-    log("[POST Request]", req);
-
+  generateRequestPythonCode(req, init) {
     let data;
     if (init && init.body) {
-      data = `r"""${init.body}"""`
+      data = `r"""${init.body}"""`;
     } else {
-      data = "None"
+      data = "None";
     }
 
     let content_type;
     if (init && init.body) {
-      content_type = `"application/json"`
+      content_type = `"application/json"`;
     } else {
-      content_type = "None"
+      content_type = "None";
     }
 
     return `
     with app.server.app_context():
       with app.server.test_client() as client:
-        x = client.open('${req}',
+        response = client.open('${req}',
           data=${data},
           content_type=${content_type},
-          method="${(init && init.method) || 'GET'}",
+          method="${(init && init.method) || "GET"}",
         )
-    x`;
+    response`;
   }
 
   /**
-   * Retrieves a Flask response object and converts it
-   * to a compatible Response object.
-   * @param codeWillRun stringified python code
+   * Executes the given stringified Python code in Pyodide
+   * against the Flask server backend and converts the
+   * response to a an equivalent `Response` object.
+   *
+   * @param requestPythonCode stringified Python code
+   *
+   * @returns JavaScript `Response` object
    */
-  async generateResponse(codeWillRun) {
+  async executeFlaskRequest(requestPythonCode): Promise<Response> {
     log("[2. Flask Request Generated]");
-    const flaskRespone = await this.worker.asyncRun(codeWillRun, {});
-    log("[5. Flask Response Received]");
+
+    const flaskResponse = await this.worker.asyncRun(requestPythonCode, {});
+
+    log("[4. Flask Response Received]");
+
     const options = {};
-    if (flaskRespone["headers"]) {
-      options["headers"] = flaskRespone["headers"];
+    if (flaskResponse["headers"]) {
+      options["headers"] = flaskResponse["headers"];
     }
-    if (flaskRespone["status"]) {
-      options["status"] = flaskRespone["status"];
+    if (flaskResponse["status"]) {
+      options["status"] = flaskResponse["status"];
     }
-    return new Response(flaskRespone["response"], options);
+
+    return new Response(flaskResponse["response"], options);
   }
 
   /**
-   * A custom fetch function which intercepts Flask requests
-   * and routes to the Python backend.
-   * @param req Request object
-   * @param init request payload
+   * A custom `fetch` function which intercepts requests to
+   * the Flask server running the dash app, reroutes them to
+   * the wasm-side Flask server in Pyodide, and then converts
+   * the response to a JavaScript `Response`.
+   *
+   * Requests going to a different origin or route are passed
+   * through to the native `window.fetch` implementation.
+   *
+   * @param req JavaScript `Request` object
+   * @param init JavaScript `RequestInit` payload
+   *
+   * @returns JavaScript `Response` object
    */
   async fetch(
     req: Request,
     init?: RequestInit | null | undefined
   ): Promise<Response> {
-    // TODO: handle raw requests in addition to strings
-    log("[1. Request Intercepted]", req);
     const url = new URL(new Request(req).url);
 
-    const originLocation = window.location.href.replace(/\/(?:[^\/]+?\.[^\/]*?|index)$/, '/')
+    log(`[1. Request ${url.pathname} intercepted]`);
 
-    if (url.href.startsWith(originLocation)) {
-      const resp = await this.generateResponse(this.postRequest(req, init));
-      log(`[6. ${url.pathname} done.]`);
-      return resp;
+    // Extract the route of the current window.location
+    const windowLocationRoute = window.location.href.replace(
+      /\/(?:[^\/]+?\.[^\/]*?|index)$/,
+      "/"
+    );
+
+    if (url.href.startsWith(windowLocationRoute)) {
+      const response = await this.executeFlaskRequest(
+        this.generateRequestPythonCode(req, init)
+      );
+
+      log(`[5. Request ${url.pathname} done]`);
+
+      return response;
     } else {
-      log("[Passthrough Request]");
+      log(`[2. Request ${url.pathname} passthrough]`);
+
       return this.originalFetch.apply(window, [req, init]);
     }
   }
