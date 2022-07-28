@@ -50,7 +50,6 @@ class DashApp:
                     html.Div(id="graphs"),
                     dcc.Store(id="data_frame_store"),
                     dcc.Store(id="clusters_column_store"),
-                    dcc.Store(id="uploaded_data_file_store"),
                     dcc.Store(id="selected_rows_store"),
                     html.Div(
                         [t.create_layout_globals() for t in TABS],

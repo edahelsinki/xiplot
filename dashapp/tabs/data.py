@@ -17,6 +17,8 @@ from dash_extensions.enrich import ServersideOutput
 from dashapp.utils.dataframe import (
     read_dataframe_with_extension,
     get_data_filepaths,
+    write_only_dataframe,
+    write_dataframe_and_metadata,
 )
 from dashapp.tabs import Tab
 from dashapp.utils.layouts import layout_wrapper
@@ -31,6 +33,7 @@ class Data(Tab):
             @du.callback(
                 output=[
                     ServersideOutput("uploaded_data_file_store", "data"),
+                    ServersideOutput("uploaded_metadata_store", "data"),
                     Output("data_files", "options"),
                     Output("data_files", "value"),
                     Output("data-tab-upload-notify-container", "children"),
@@ -40,12 +43,13 @@ class Data(Tab):
             def upload(status):
                 upload_path = Path("uploads") / Path(status[0]).name
 
-                df = read_dataframe_with_extension(upload_path, upload_path.name)
-
-                upload_path.unlink()
-
-                if df is None:
+                try:
+                    df, meta = read_dataframe_with_extension(
+                        upload_path, upload_path.name
+                    )
+                except Exception as err:
                     return (
+                        dash.no_update,
                         dash.no_update,
                         dash.no_update,
                         dash.no_update,
@@ -58,7 +62,7 @@ class Data(Tab):
                                     [
                                         f"The file {upload_path.name} ",
                                         html.I("(upload)"),
-                                        " could not be loaded as a data frame.",
+                                        f" could not be loaded as a data frame: {err}.",
                                     ]
                                 )
                             ],
@@ -66,9 +70,12 @@ class Data(Tab):
                             autoClose=10000,
                         ),
                     )
+                finally:
+                    upload_path.unlink()
 
                 return (
                     df_to_store(df),
+                    meta,
                     generate_dataframe_options(upload_path),
                     str(Path("uploads") / upload_path.name),
                     None,
@@ -78,6 +85,7 @@ class Data(Tab):
 
             @app.callback(
                 ServersideOutput("uploaded_data_file_store", "data"),
+                ServersideOutput("uploaded_metadata_store", "data"),
                 Output("data_files", "options"),
                 Output("data_files", "value"),
                 Output("file_uploader", "contents"),
@@ -94,15 +102,18 @@ class Data(Tab):
                 _content_type, content_string = contents.split(",")
                 decoded = base64.b64decode(content_string)
 
-                df = read_dataframe_with_extension(BytesIO(decoded), upload_name)
-
-                if df is None:
+                try:
+                    df, meta = read_dataframe_with_extension(
+                        BytesIO(decoded), upload_name
+                    )
+                except Exception as err:
                     return (
                         dash.no_update,
                         dash.no_update,
                         dash.no_update,
                         dash.no_update,
-                        dash.no_update,
+                        None,
+                        None,
                         dmc.Notification(
                             id=str(uuid.uuid4()),
                             color="yellow",
@@ -112,7 +123,7 @@ class Data(Tab):
                                     [
                                         f"The file {upload_name} ",
                                         html.I("(upload)"),
-                                        " could not be loaded as a data frame.",
+                                        f" could not be loaded as a data frame: {err}.",
                                     ]
                                 )
                             ],
@@ -120,39 +131,47 @@ class Data(Tab):
                             autoClose=10000,
                         ),
                     )
-                else:
-                    return (
-                        df_to_store(df),
-                        generate_dataframe_options(upload_name),
-                        str(Path("uploads") / upload_name),
-                        None,
-                        None,
-                        None,
-                    )
+
+                return (
+                    df_to_store(df),
+                    meta,
+                    generate_dataframe_options(upload_name),
+                    str(Path("uploads") / upload_name.name),
+                    None,
+                    None,
+                    None,
+                )
 
         @app.callback(
             ServersideOutput("data_frame_store", "data"),
+            ServersideOutput("metadata_store", "data"),
             Output("data-tab-notify-container", "children"),
             Input("submit-button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
+            Input("uploaded_metadata_store", "data"),
             State("data_files", "value"),
             prevent_initial_call=True,
         )
         def choose_file(
             data_btn,
             uploaded_data,
+            uploaded_meta,
             filepath,
         ):
             trigger = ctx.triggered_id
 
             if not filepath:
-                return dash.no_update, dmc.Notification(
-                    id=str(uuid.uuid4()),
-                    color="yellow",
-                    title="Warning",
-                    message="You have not selected a data file to load.",
-                    action="show",
-                    autoClose=10000,
+                return (
+                    dash.no_update,
+                    dash.no_update,
+                    dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message="You have not selected a data file to load.",
+                        action="show",
+                        autoClose=10000,
+                    ),
                 )
 
             filepath = Path(filepath)
@@ -162,6 +181,7 @@ class Data(Tab):
             if trigger == "submit-button":
                 if str(list(filepath.parents)[-2]) == "uploads":
                     df = df_from_store(uploaded_data)
+                    meta = uploaded_meta
                     df_store = uploaded_data
 
                     notification = dmc.Notification(
@@ -183,20 +203,38 @@ class Data(Tab):
                 else:
                     filepath = Path("data") / filepath.name
 
-                    df = read_dataframe_with_extension(filepath, filepath.name)
+                    try:
+                        df, meta = read_dataframe_with_extension(
+                            filepath, filepath.name
+                        )
+                    except Exception as err:
+                        return (
+                            dash.no_update,
+                            dash.no_update,
+                            dmc.Notification(
+                                id=str(uuid.uuid4()),
+                                color="yellow",
+                                title="Warning",
+                                message=f"The file {filepath.name} could not be loaded as a data frame: {err}.",
+                                action="show",
+                                autoClose=10000,
+                            ),
+                        )
+
                     df_store = df_to_store(df)
 
                     notification = dmc.Notification(
                         id=str(uuid.uuid4()),
                         color="green",
                         title="Success",
-                        message=f"The data file {filepath.name} was loaded successfully!",
+                        message=f"The data file {meta['filename']} was loaded successfully!",
                         action="show",
                         autoClose=5000,
                     )
             elif trigger == "uploaded_data_file_store":
                 df_store = uploaded_data
                 df = df_from_store(uploaded_data)
+                meta = uploaded_meta
 
                 notification = dmc.Notification(
                     id=str(uuid.uuid4()),
@@ -215,30 +253,98 @@ class Data(Tab):
                     autoClose=5000,
                 )
 
-            if df is None:
+            df_store = df_from_store(df_store)
+            df_store["auxiliary"] = [{"index": i} for i in range(len(df))]
+
+            return df_to_store(df_store), meta, notification
+
+        @app.callback(
+            Output("data-download", "data"),
+            Output("data-tab-download-notify-container", "children"),
+            Input("download-data-file-button", "n_clicks"),
+            Input("download-plots-file-button", "n_clicks"),
+            State("data_files", "value"),
+            State("data_frame_store", "data"),
+            State("metadata_store", "data"),
+            prevent_initial_call=True,
+        )
+        def download_file(
+            d_clicks,
+            p_clicks,
+            filepath,
+            df,
+            meta,
+        ):
+            df = df_from_store(df)
+
+            if filepath is None or df is None:
                 return dash.no_update, dmc.Notification(
                     id=str(uuid.uuid4()),
                     color="yellow",
                     title="Warning",
-                    message=[
-                        html.Div(
-                            [
-                                f"The data file {filepath.name} ",
-                                html.I("(upload) ")
-                                if trigger == "uploaded_data_file_store"
-                                else None,
-                                "could not be loaded as a data frame.",
-                            ]
-                        )
-                    ],
+                    message="You have not yet loaded any data file.",
                     action="show",
                     autoClose=10000,
                 )
 
-            df_store = df_from_store(df_store)
-            df_store["auxiliary"] = [{"index": i} for i in range(len(df))]
+            filepath = Path(filepath)
 
-            return df_to_store(df_store), notification
+            file = BytesIO()
+
+            if ctx.triggered_id == "download-data-file-button":
+                try:
+                    filename, mime = write_only_dataframe(df, meta["filename"], file)
+                except Exception as err:
+                    return dash.no_update, dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message=[
+                            html.Div(
+                                [
+                                    f"Failed to download the data file for {filepath.name}",
+                                    html.I(" (upload)")
+                                    if ctx.triggered_id == "uploaded_data_file_store"
+                                    else None,
+                                    f": {err}.",
+                                ]
+                            )
+                        ],
+                        action="show",
+                        autoClose=10000,
+                    )
+
+            if ctx.triggered_id == "download-plots-file-button":
+                try:
+                    filename, mime = write_dataframe_and_metadata(
+                        df, meta, meta["filename"], file
+                    )
+                except Exception as err:
+                    return dash.no_update, dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message=[
+                            html.Div(
+                                [
+                                    f"Failed to download plots and data file for {filepath.name}",
+                                    html.I(" (upload)")
+                                    if ctx.triggered_id == "uploaded_data_file_store"
+                                    else None,
+                                    f": {err}.",
+                                ]
+                            )
+                        ],
+                        action="show",
+                        autoClose=10000,
+                    )
+
+            encoded = base64.b64encode(file.getvalue()).decode("ascii")
+
+            return (
+                dict(base64=True, content=encoded, filename=filename, type=mime),
+                None,
+            )
 
     @staticmethod
     def create_layout():
@@ -285,9 +391,40 @@ class Data(Tab):
                                     id="submit-button",
                                     n_clicks=0,
                                     className="btn btn-primary",
+                                    style={
+                                        "margin-left": "auto",
+                                        "margin-right": "auto",
+                                    },
+                                ),
+                                html.Button(
+                                    "Download only the data file",
+                                    id="download-data-file-button",
+                                    n_clicks=0,
+                                    className="btn btn-primary",
+                                    style={
+                                        "margin-left": "auto",
+                                        "margin-right": "auto",
+                                    },
+                                ),
+                                html.Button(
+                                    "Download the combined plots-and-data file",
+                                    id="download-plots-file-button",
+                                    n_clicks=0,
+                                    className="btn btn-primary",
+                                    style={
+                                        "margin-left": "auto",
+                                        "margin-right": "auto",
+                                    },
+                                ),
+                                dcc.Download(
+                                    id="data-download",
                                 ),
                             ],
-                            style={"margin-top": "1%", "margin-left": "5%"},
+                            style={
+                                "margin-top": "1%",
+                                "margin-left": "5%",
+                                "display": "flex",
+                            },
                         ),
                     ],
                     style={"float": "left", "width": "40%"},
@@ -301,9 +438,15 @@ class Data(Tab):
     def create_layout_globals():
         return html.Div(
             [
+                dcc.Store(id="uploaded_data_file_store"),
+                dcc.Store(id="metadata_store"),
+                dcc.Store(id="uploaded_metadata_store"),
                 html.Div(id="data-tab-notify-container", style={"display": "none"}),
                 html.Div(
                     id="data-tab-upload-notify-container", style={"display": "none"}
+                ),
+                html.Div(
+                    id="data-tab-download-notify-container", style={"display": "none"}
                 ),
             ]
         )
