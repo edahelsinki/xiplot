@@ -1,4 +1,3 @@
-import plotly.express as px
 import numpy as np
 import pandas as pd
 
@@ -6,6 +5,7 @@ from dash import html, Output, Input, State, MATCH, ALL, dash_table, ctx
 from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import delete_button
+from dashapp.utils.cluster import cluster_colours
 from dashapp.graphs import Graph
 
 
@@ -150,20 +150,12 @@ class Table(Graph):
                     style_data_conditional=[
                         {
                             "if": {
-                                "filter_query": '{Clusters} = "all"',
+                                "filter_query": f'{{Clusters}} = "{cluster}"',
                             },
-                            "backgroundColor": px.colors.qualitative.Plotly[0],
-                            "color": "white",
-                        },
-                    ]
-                    + [
-                        {
-                            "if": {
-                                "filter_query": f'{{Clusters}} = "c{i+1}"',
-                            },
-                            "backgroundColor": c,
+                            "backgroundColor": colour,
+                            "color": "white" if cluster == "all" else "black",
                         }
-                        for i, c in enumerate(px.colors.qualitative.Plotly[1:])
+                        for cluster, colour in cluster_colours().items()
                     ],
                 ),
             ],

@@ -4,8 +4,6 @@ import uuid
 
 import dash
 import dash_mantine_components as dmc
-import pandas as pd
-import plotly.express as px
 
 from io import BytesIO
 from pathlib import Path

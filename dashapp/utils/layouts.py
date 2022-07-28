@@ -1,5 +1,6 @@
 from dash import html, dcc
-import plotly.express as px
+
+from dashapp.utils.cluster import cluster_colours
 
 
 def layout_wrapper(component, id="", style=None, css_class=None, title=None):
@@ -34,49 +35,32 @@ def cluster_dropdown(
             id={"type": id, "index": index} if index else id,
             clearable=clearable,
             multi=multi,
+            searchable=False,
             value=value,
             options=[
                 {
                     "label": html.Div(
                         [
                             html.Div(
-                                style={
-                                    "background-color": px.colors.qualitative.Plotly[0]
-                                },
+                                style={"background-color": colour},
                                 className="color-rect",
                             ),
                             html.Div(
-                                "everything",
+                                "everything" if cluster == "all" else f"cluster #{i}",
                                 style={
                                     "display": "inline-block",
                                     "padding-left": 10,
                                 },
                             ),
-                        ]
+                        ],
+                        style={
+                            "display": "flex",
+                            "align-items": "center",
+                        },
                     ),
-                    "value": "all",
+                    "value": cluster,
                 }
-            ]
-            + [
-                {
-                    "label": html.Div(
-                        [
-                            html.Div(
-                                style={"background-color": c},
-                                className="color-rect",
-                            ),
-                            html.Div(
-                                f"cluster #{i+1}",
-                                style={
-                                    "display": "inline-block",
-                                    "padding-left": 10,
-                                },
-                            ),
-                        ]
-                    ),
-                    "value": f"c{i+1}",
-                }
-                for i, c in enumerate(px.colors.qualitative.Plotly[1:])
+                for i, (cluster, colour) in enumerate(cluster_colours().items())
             ],
         ),
         title=title,

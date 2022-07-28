@@ -5,6 +5,7 @@ from dash import html, dcc, Output, Input, State, MATCH
 
 from dashapp.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
 from dashapp.utils.dataframe import get_numeric_columns
+from dashapp.utils.cluster import cluster_colours
 from dashapp.graphs import Graph
 
 
@@ -97,10 +98,7 @@ def make_fig_property(df, x_axis, selected_clusters, clusters):
             "Clusters": False,
             x_axis: False,
         },
-        color_discrete_map={
-            "all": px.colors.qualitative.Plotly[0],
-            **{f"c{i+1}": c for i, c in enumerate(px.colors.qualitative.Plotly[1:])},
-        },
+        color_discrete_map=cluster_colours(),
         opacity=0.5,
         histnorm="probability density",
     )

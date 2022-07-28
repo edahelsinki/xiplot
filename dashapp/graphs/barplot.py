@@ -8,6 +8,7 @@ from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
 from dashapp.utils.dataframe import get_numeric_columns
+from dashapp.utils.cluster import cluster_colours
 from dashapp.graphs import Graph
 
 from collections import Counter
@@ -51,18 +52,7 @@ class Barplot(Graph):
                 x_axis,
                 y_axis,
                 color="Clusters",
-                color_discrete_map={
-                    "all": px.colors.qualitative.Plotly[0],
-                    **{
-                        f"c{i+1}": c
-                        for i, c in enumerate(px.colors.qualitative.Plotly[1:])
-                    },
-                    "bg\u00A0": px.colors.qualitative.Plotly[0],
-                    **{
-                        f"c{i+1}\u00A0": c
-                        for i, c in enumerate(px.colors.qualitative.Plotly[1:])
-                    },
-                },
+                color_discrete_map=cluster_colours(),
             )
         return fig
 
@@ -196,14 +186,7 @@ def make_fig_fgs(df, x_axis, y_axis, selected_clusters, order, clusters):
             x_axis: False,
             "frequency": ":.2%",
         },
-        color_discrete_map={
-            "all": px.colors.qualitative.Plotly[0],
-            **{f"c{i+1}": c for i, c in enumerate(px.colors.qualitative.Plotly[1:])},
-            **{
-                f"c{i+1}\u00A0": c
-                for i, c in enumerate(px.colors.qualitative.Plotly[1:])
-            },
-        },
+        color_discrete_map=cluster_colours(),
     )
 
     fig_fgs.update_layout(

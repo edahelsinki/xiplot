@@ -16,6 +16,7 @@ from dashapp.tabs import Tab
 from dashapp.utils.layouts import layout_wrapper, cluster_dropdown
 from dashapp.utils.dcc import dropdown_regex
 from dashapp.utils.dataframe import get_numeric_columns
+from dashapp.utils.cluster import cluster_colours
 
 
 class Cluster(Tab):
@@ -359,9 +360,7 @@ class Cluster(Tab):
             [
                 layout_wrapper(
                     component=dcc.Dropdown(
-                        options=[
-                            i for i in range(2, len(px.colors.qualitative.Plotly))
-                        ],
+                        options=[i for i in range(2, len(cluster_colours()))],
                         id="cluster_amount",
                     ),
                     css_class="dd-double-right",

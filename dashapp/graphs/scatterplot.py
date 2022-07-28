@@ -9,6 +9,7 @@ from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import layout_wrapper, delete_button
 from dashapp.utils.dataframe import get_numeric_columns
+from dashapp.utils.cluster import cluster_colours
 from dashapp.graphs import Graph
 
 
@@ -120,11 +121,8 @@ class Scatterplot(Graph):
             size="Sizes" if 5 in sizes else None,
             opacity=1,
             color_discrete_map={
-                "all": px.colors.qualitative.Plotly[0],
-                **{
-                    f"c{i+1}": c for i, c in enumerate(px.colors.qualitative.Plotly[1:])
-                },
                 "*": "#000000",
+                **cluster_colours(),
             },
             custom_data=["auxiliary"] if "auxiliary" in df.columns else None,
             hover_data={"Clusters": False},
