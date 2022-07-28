@@ -24,7 +24,7 @@ from dash_extensions.enrich import DashProxy, ServersideOutputTransform
 from dashapp.app import DashApp
 from dashapp.utils.store import ServerSideStoreBackend
 
-dash_transforms = []
+dash_transforms = [dash_extensions.enrich.MultiplexerTransform()]
 
 # FIXME: Only enable on local single-user builds
 if True:
