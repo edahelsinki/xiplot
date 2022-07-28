@@ -47,6 +47,7 @@ deploy: pyodide dashapp
 	cp -r dashapp/dashapp/assets/ dist/
 	cd dashapp; \
 	pip install -r requirements.txt; \
+	pip install toml; \
 	cp ../patches/bundle-dashapp.py .; \
 	python3 bundle-dashapp.py; \
 	rm -f bundle-dashapp.py
