@@ -18,10 +18,10 @@ class Heatmap(Graph):
             prevent_initial_call=True,
         )
         def tmp(n_clusters, df):
-            return Heatmap.render_heatmap(n_clusters, df_from_store(df))
+            return Heatmap.render(n_clusters, df_from_store(df))
 
     @staticmethod
-    def render_heatmap(n_clusters, df):
+    def render(n_clusters, df):
         columns = df.columns.to_list()
         num_columns = get_numeric_columns(df, columns)
 

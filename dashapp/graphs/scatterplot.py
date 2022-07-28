@@ -30,7 +30,7 @@ class Scatterplot(Graph):
         def tmp(x_axis, y_axis, color, symbol, jitter, selected_rows, kmeans_col, df):
             jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
             return (
-                Scatterplot.render_scatterplot(
+                Scatterplot.render(
                     df_from_store(df),
                     x_axis,
                     y_axis,
@@ -44,7 +44,7 @@ class Scatterplot(Graph):
             )
 
     @staticmethod
-    def render_scatterplot(
+    def render(
         df,
         x_axis,
         y_axis,

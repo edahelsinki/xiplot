@@ -20,12 +20,12 @@ class Histogram(Graph):
             prevent_initial_call=True,
         )
         def tmp(x_axis, selected_clusters, kmeans_col, df):
-            return Histogram.render_histogram(
+            return Histogram.render(
                 x_axis, selected_clusters, kmeans_col, df_from_store(df)
             )
 
     @staticmethod
-    def render_histogram(x_axis, selected_clusters, kmeans_col, df):
+    def render(x_axis, selected_clusters, kmeans_col, df):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
         fig = make_fig_property(df, x_axis, selected_clusters, kmeans_col)

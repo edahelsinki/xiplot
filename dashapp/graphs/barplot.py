@@ -28,7 +28,7 @@ class Barplot(Graph):
             prevent_initial_call=True,
         )
         def tmp(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
-            fig = Barplot.render_barplot(
+            fig = Barplot.render(
                 x_axis,
                 y_axis,
                 selected_clusters,
@@ -41,7 +41,7 @@ class Barplot(Graph):
             return fig
 
     @staticmethod
-    def render_barplot(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
+    def render(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
         if y_axis == "frequency":
