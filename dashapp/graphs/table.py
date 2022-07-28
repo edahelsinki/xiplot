@@ -104,54 +104,6 @@ class Table(Graph):
                 table=[selected_rows_checkbox for _ in range(tables)],
             )
 
-        """@app.callback(
-            output=dict(table=Output({"type": "table", "index": ALL}, "selected_rows")),
-            inputs=Input("selected_rows_store", "data"),
-        )
-        def update_table_check_boxes(selected_rows_store):
-            if not selected_rows_store:
-                raise PreventUpdate()
-
-            selected_rows = []
-            id = 0
-            for s in selected_rows_store:
-                if not s:
-                    selected_rows.append(id)
-                id += 1
-
-            tables = len(ctx.outputs_grouping["table"])
-            return dict(table=[selected_rows for _ in range(tables)])
-
-        @app.callback(
-            output=dict(
-                table=Output({"type": "table", "index": ALL}, "selected_rows"),
-                scatter=Output({"type": "scatterplot", "index": ALL}, "clickData"),
-            ),
-            inputs=[
-                Input({"type": "scatterplot", "index": ALL}, "clickData"),
-                State({"type": "table", "index": ALL}, "selected_rows"),
-            ],
-        )
-        def update_tables_selected_rows(click, selected_rows):
-            if selected_rows == [None]:
-                selected_rows = []
-            else:
-                selected_rows = selected_rows[0]
-            # go through all the scatterplots to avoid getting NoneType error
-            for c in click:
-                if c:
-                    row = c["points"][0]["customdata"][0]["index"]
-            if row not in selected_rows:
-                selected_rows.append(row)
-            else:
-                selected_rows.remove(row)
-            table_amount = len(ctx.outputs_grouping["table"])
-            scatter_amount = len(ctx.outputs_grouping["scatter"])
-            return dict(
-                table=[selected_rows for _ in range(table_amount)],
-                scatter=[None] * scatter_amount,
-            )"""
-
     @staticmethod
     def create_new_layout(index, df, columns):
         df = df.rename_axis("index_copy")
