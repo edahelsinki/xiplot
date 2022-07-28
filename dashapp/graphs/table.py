@@ -18,7 +18,6 @@ class Table(Graph):
             Input("clusters_column_store", "data"),
             Input("selected_rows_store", "data"),
             State({"type": "table", "index": ALL}, "data"),
-            prevent_initial_call=True,
         )
         def update_table_data(kmeans_col, selected_rows, df):
             df = df[0]
@@ -41,29 +40,87 @@ class Table(Graph):
             ]
 
         @app.callback(
-            Output("selected_rows_store", "data"),
-            Input({"type": "table", "index": ALL}, "selected_rows"),
-            Input("data_frame_store", "data"),
-            State("selected_rows_store", "data"),
-            prevent_initial_call=True,
+            output=dict(
+                selected_rows_store=Output("selected_rows_store", "data"),
+                table=Output({"type": "table", "index": ALL}, "selected_rows"),
+            ),
+            inputs=[
+                Input({"type": "table", "index": ALL}, "selected_rows"),
+                Input("data_frame_store", "data"),
+                Input("selected_rows_store", "data"),
+            ],
         )
         def update_selected_rows(selected_rows_checkbox, df, selected_rows):
+            trigger = ctx.triggered_id
+
+            if trigger == "selected_rows_store":
+                if not selected_rows:
+                    raise PreventUpdate()
+
+                result = []
+                id = 0
+                for s in selected_rows:
+                    if not s:
+                        result.append(id)
+                    id += 1
+
+                tables = len(ctx.outputs_grouping["table"])
+                return dict(
+                    selected_rows_store=selected_rows,
+                    table=[result for _ in range(tables)],
+                )
+
             df = df_from_store(df)
-            if ctx.triggered_id == "data_frame_store":
-                return [True] * df.shape[0]
-            if selected_rows_checkbox == []:
+
+            if trigger == "data_frame_store":
+                return dict(selected_rows_store=[True] * df.shape[0], table=[])
+
+            tables = len(ctx.outputs_grouping["table"])
+
+            if selected_rows_checkbox == [None] and False in selected_rows:
+                result = []
+                id = 0
+                for s in selected_rows:
+                    if not s:
+                        result.append(id)
+                    id += 1
+                return dict(
+                    selected_rows_store=selected_rows,
+                    table=[result for _ in range(tables)],
+                )
+
+            if not selected_rows_checkbox:
                 raise PreventUpdate()
-            if selected_rows_checkbox[-1] is None:
-                raise PreventUpdate()
-            if selected_rows and len(selected_rows_checkbox[0]) == selected_rows.count(
-                False
-            ):
-                raise PreventUpdate()
-            selected_rows = selected_rows_checkbox[0]
+            if selected_rows_checkbox == [None]:
+                selected_rows_checkbox = []
+            else:
+                selected_rows_checkbox = selected_rows_checkbox[0]
             result = [True] * df.shape[0]
-            for row in selected_rows:
+            for row in selected_rows_checkbox:
                 result[row] = False
-            return result
+
+            return dict(
+                selected_rows_store=result,
+                table=[selected_rows_checkbox for _ in range(tables)],
+            )
+
+        """@app.callback(
+            output=dict(table=Output({"type": "table", "index": ALL}, "selected_rows")),
+            inputs=Input("selected_rows_store", "data"),
+        )
+        def update_table_check_boxes(selected_rows_store):
+            if not selected_rows_store:
+                raise PreventUpdate()
+
+            selected_rows = []
+            id = 0
+            for s in selected_rows_store:
+                if not s:
+                    selected_rows.append(id)
+                id += 1
+
+            tables = len(ctx.outputs_grouping["table"])
+            return dict(table=[selected_rows for _ in range(tables)])
 
         @app.callback(
             output=dict(
@@ -74,7 +131,6 @@ class Table(Graph):
                 Input({"type": "scatterplot", "index": ALL}, "clickData"),
                 State({"type": "table", "index": ALL}, "selected_rows"),
             ],
-            prevent_initial_call=True,
         )
         def update_tables_selected_rows(click, selected_rows):
             if selected_rows == [None]:
@@ -94,7 +150,7 @@ class Table(Graph):
             return dict(
                 table=[selected_rows for _ in range(table_amount)],
                 scatter=[None] * scatter_amount,
-            )
+            )"""
 
     @staticmethod
     def create_new_layout(index, df, columns):

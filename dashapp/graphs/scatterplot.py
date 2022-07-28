@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from dash import html, dcc, Output, Input, State, MATCH, ctx
+from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
+from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import layout_wrapper, delete_button
 from dashapp.utils.dataframe import get_numeric_columns
@@ -25,7 +26,6 @@ class Scatterplot(Graph):
             Input("selected_rows_store", "data"),
             Input("clusters_column_store", "data"),
             State("data_frame_store", "data"),
-            prevent_initial_call=True,
         )
         def tmp(x_axis, y_axis, color, symbol, jitter, selected_rows, kmeans_col, df):
             jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
@@ -42,6 +42,36 @@ class Scatterplot(Graph):
                 ),
                 jitter_max,
             )
+
+        @app.callback(
+            output=dict(
+                selected_rows_store=Output("selected_rows_store", "data"),
+                scatter=Output({"type": "scatterplot", "index": ALL}, "clickData"),
+            ),
+            inputs=[
+                Input({"type": "scatterplot", "index": ALL}, "clickData"),
+                State("selected_rows_store", "data"),
+            ],
+        )
+        def update_selected_rows(click, selected_rows):
+            if click == [None] or ctx.triggered_id is None:
+                raise PreventUpdate()
+
+            if not selected_rows:
+                selected_rows = []
+
+            for c in click:
+                if c:
+                    row = c["points"][0]["customdata"][0]["index"]
+
+            if not selected_rows[row]:
+                selected_rows[row] = True
+            else:
+                selected_rows[row] = False
+
+            scatters = len(ctx.outputs_grouping["scatter"])
+
+            return dict(selected_rows_store=selected_rows, scatter=[None] * scatters)
 
     @staticmethod
     def render(
