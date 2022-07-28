@@ -71,7 +71,7 @@ ${await this.workerManager.asyncRun("app._generate_meta_html()", {})}
 <link rel="icon" type="image/x-icon" href="${
   await this.workerManager.asyncRun("app.get_asset_url(app._favicon)", {})
 }">
-${await this.workerManager.asyncRun("app._generate_css_dist_html()", {})}
+${(await this.workerManager.asyncRun("app._generate_css_dist_html()", {})).replaceAll(/href="(?<href>[^"?]+?)(?:\?[^"]*)?"/g, "href=\"$1\"")}
     `;
 
     // Inject the react entry point
