@@ -1,6 +1,21 @@
+import hashlib
+import json
 import re
+import toml
 
 import dash
+
+import dashapp
+
+from pathlib import Path
+
+from dash_extensions.enrich import DashProxy, ServersideOutputTransform
+
+from dashapp.app import DashApp
+from dashapp.utils.store import ServerSideStoreBackend
+
+
+""" Monkey-patch dash to not use time-based fingerprints """
 
 cache_regex = re.compile(r"^v[\w-]+$")
 version_clean = re.compile(r"[^\w-]")
@@ -33,13 +48,8 @@ dash.dash.build_fingerprint = new_build_fingerprint
 dash.fingerprint.check_fingerprint = new_check_fingerprint
 dash.dash.check_fingerprint = new_check_fingerprint
 
-import dashapp
 
-from dash_extensions.enrich import DashProxy, ServersideOutputTransform
-
-from dashapp.app import DashApp
-from dashapp.utils.store import ServerSideStoreBackend
-
+""" Initialise a minimal version of the dashapp to run requests against """
 
 dash = DashProxy(
     __name__,
@@ -56,25 +66,23 @@ dash = DashProxy(
 )
 app = DashApp(app=dash, df_from_store=lambda df: df, df_to_store=lambda df: df).app
 
+
+@app.server.errorhandler(Exception)
+def server_error(err):
+    return str(err), 500
+
+
 # Dummy request to ensure the server is setup when we request the index
 with app.server.app_context():
     with app.server.test_client() as client:
         client.get("_favicon.ico")
 
 
-import re
-
-from pathlib import Path
+""" Query dash for all script dependencies that must be statically bundled """
 
 SRC_PATTERN = re.compile(r"src=\"([^\"]+)\"")
 
 dist = Path.cwd().parent / "dist"
-
-
-@app.server.errorhandler(Exception)
-def server_error(err):
-    return str(err), 500
-
 
 for script in app._generate_scripts_html().split("</script>"):
     src = SRC_PATTERN.search(script)
@@ -82,8 +90,7 @@ for script in app._generate_scripts_html().split("</script>"):
         continue
     src = src.group(1)
 
-    print(src)
-
+    # Fetch the .js script file
     with app.server.app_context():
         with app.server.test_client() as client:
             response = client.get(src)
@@ -100,8 +107,11 @@ for script in app._generate_scripts_html().split("</script>"):
     with open(path, "w") as file:
         file.write(content)
 
+    print(src)
+
     src_map = src + ".map"
 
+    # Fetch the script debug .map file
     with app.server.app_context():
         with app.server.test_client() as client:
             response = client.get(src_map)
@@ -119,33 +129,29 @@ for script in app._generate_scripts_html().split("</script>"):
     print(src_map)
 
 
-import hashlib
-import json
+""" Register the dashapp module in the pyodide registry """
+
+with open("pyproject.toml", "r") as file:
+    pyproject = toml.load(file)
+
+    name = pyproject["project"]["name"]
+    version = pyproject["project"]["version"]
+    dependencies = list(pyproject["dependencies"].keys())
 
 with open(dist / "repodata.json", "r") as file:
     repodata = json.load(file)
 
-with open(dist / "dashapp-0.1.0-py3-none-any.whl", "rb") as file:
+with open(dist / f"{name}-{version}-py3-none-any.whl", "rb") as file:
     sha256 = hashlib.sha256(file.read()).hexdigest()
 
-repodata["packages"]["dashapp"] = {
-    "name": "dashapp",
-    "version": "0.1.0",
-    "file_name": "dashapp-0.1.0-py3-none-any.whl",
+repodata["packages"][name] = {
+    "name": name,
+    "version": version,
+    "file_name": f"{name}-{version}-py3-none-any.whl",
     "install_dir": "site",
     "sha256": sha256,
-    "depends": [
-        "dash",
-        "dash-daq",
-        "dash-extensions",
-        "dash-mantine-components",
-        "flask",
-        "pandas",
-        "plotly",
-        "scikit-learn",
-        "sklearn",
-    ],
-    "imports": ["dashapp"],
+    "depends": dependencies,
+    "imports": [name],
 }
 
 with open(dist / "repodata.json", "w") as file:

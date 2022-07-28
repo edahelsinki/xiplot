@@ -85,7 +85,7 @@ ${(await this.workerManager.asyncRun("app._generate_css_dist_html()", {})).repla
     const scriptChunk = await this.workerManager.asyncRun("app._generate_scripts_html()", {});
 
     for (const script of scriptChunk.split("</script>")) {
-      let src = script.match(/src="(?<src>[^"]+)"/);
+      let src = script.match(/src="(?<src>[^"?]+?)(?:\?[^"]*)?"/);
       if (src) {
         src = src.groups.src;
       }
