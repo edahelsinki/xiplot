@@ -100,6 +100,7 @@ class Scatterplot(Graph):
                 df[["jitter-x", "jitter-y"]] = jitter_df[[x_axis, y_axis]]
                 x_axis, y_axis = "jitter-x", "jitter-y"
         sizes = [0.5] * df.shape[0]
+        colors = df.copy().loc[:, color]
         row_ids = []
         id = 0
         if selected_rows:
@@ -109,14 +110,14 @@ class Scatterplot(Graph):
                 id += 1
         for id in row_ids:
             sizes[id] = 5
-            df.loc[id, "Clusters"] = "*"
+            colors[id] = "*"
         df["Sizes"] = sizes
 
         fig = px.scatter(
             data_frame=df,
             x=x_axis,
             y=y_axis,
-            color=color,
+            color=colors,
             symbol=symbol,
             size="Sizes" if 5 in sizes else None,
             opacity=1,
