@@ -4,9 +4,13 @@
   "scripts": {
     "build": "NODE_ENV=production parcel build src/index.html --public-url ./"
   },
-  "contributors": ["Juniper Langenstein", "Bloomberg LP"],
+  "contributors": [
+    "Juniper Langenstein",
+    "Bloomberg LP"
+  ],
   "license": "(MIT AND BSD-3-Clause)",
   "devDependencies": {
+    "@types/node": "^18.6.2",
     "parcel-bundler": "^1.12.5",
     "typescript": "^4.7.4"
   }

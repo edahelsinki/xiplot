@@ -8,17 +8,19 @@ import { log } from "./webdash";
  * TODO: Implement a more efficient queuing system.
  */
 class ResponseQueue {
-  constructor() {
+  private queue: Array<Function>;
+
+  public constructor() {
     this.queue = [];
   }
-  enqueue(onSuccessFn: Function) {
+
+  public enqueue(onSuccessFn: Function) {
     return this.queue.push(onSuccessFn);
   }
-  dequeue() {
+
+  public dequeue() {
     return this.queue.shift();
   }
-
-  queue: Array<Function>;
 }
 
 type Payload = { [key: string]: any };
@@ -32,10 +34,10 @@ type Payload = { [key: string]: any };
  *  2. binary file transfers.
  */
 export class WorkerManager {
-  queue: ResponseQueue;
-  worker: Worker;
+  private queue: ResponseQueue;
+  private worker: Worker;
 
-  constructor() {
+  public constructor() {
     this.queue = new ResponseQueue();
     this.worker = new Worker("./worker.js");
   }
@@ -47,7 +49,7 @@ export class WorkerManager {
    * @param onSuccess callback function if executed successfully
    * @param onError callback function for if errored
    */
-  run(
+  private run(
     script: string,
     context: Payload,
     onSuccess: Function,
@@ -69,7 +71,7 @@ export class WorkerManager {
    * @param e Message object
    * @returns void or resolved promise
    */
-  processMessage(e): Function | void {
+  private processMessage(e): Function | void {
     log("[4. Message received from worker]");
 
     // Update status tracker if this is a console.log message
@@ -93,7 +95,7 @@ export class WorkerManager {
    * @param context optional additional arguments
    * @returns BlobPart or string
    */
-  async executeWithAnyResponse(script: string, context: Payload): Promise<any> {
+  public async executeWithAnyResponse(script: string, context: Payload): Promise<any> {
     return await (new Promise(
       (onSuccess: Function, onError: (e: ErrorEvent) => any) => {
         this.run(script, context, onSuccess, onError);
@@ -107,7 +109,7 @@ export class WorkerManager {
    * @param context optional additional arguments
    * @returns BlobPart
    */
-  async executeWithBinaryResponse(script: string, context: Payload): Promise<BlobPart> {
+  public async executeWithBinaryResponse(script: string, context: Payload): Promise<BlobPart> {
     const result: any = await this.executeWithAnyResponse(script, context);
 
     if (result as BlobPart) {
@@ -123,7 +125,7 @@ export class WorkerManager {
    * @param context optional additional arguments
    * @returns string
    */
-  async executeWithStringResponse(script: string, context: Payload): Promise<string> {
+  public async executeWithStringResponse(script: string, context: Payload): Promise<string> {
     const result: any = await this.executeWithAnyResponse(script, context);
 
     if (result as string) {
