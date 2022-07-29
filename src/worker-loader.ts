@@ -39,7 +39,7 @@ export class WorkerManager {
 
   public constructor() {
     this.queue = new ResponseQueue();
-    this.worker = new Worker("./worker.js");
+    this.worker = new Worker("./worker.ts");
   }
 
   /**
@@ -79,6 +79,20 @@ export class WorkerManager {
       const statusBar = document.querySelector(".status");
       if (statusBar) {
         statusBar.innerHTML = e.data.consoleMessage;
+      }
+      else {
+        console.log(e.data.consoleMessage);
+      }
+      return;
+    }
+
+    if (e.data.consoleError) {
+      const statusBar = document.querySelector(".status");
+      if (statusBar) {
+        statusBar.innerHTML = e.data.consoleError;
+      }
+      else {
+        console.error(e.data.consoleError);
       }
       return;
     }
