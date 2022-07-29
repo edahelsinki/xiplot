@@ -40,35 +40,36 @@ importScripts("pyodide.js");
  * @param event the message
  */
 onmessage = async (event: MessageEvent) => {
-  const pyodide = await maybe_pyodide;
-
-  const { python, ...context } = event.data;
-  const python_code: string = python;
-
-  // The worker copies the context in its own "memory" (an object mapping name to values)
-  for (const key of Object.keys(context)) {
-    self[key] = context[key];
-  }
-
-  // Load imported packages into the Pyodide interpreter
-  await pyodide.loadPackagesFromImports(
-    python_code,
-    postConsoleMessage,
-    postConsoleError
-  );
-
-  // Execute the Python code
-  let result = await pyodide.runPython(python_code);
-
-  // Check if the result is a PyProxy, if so convert it into a response object
-  if (pyodide.isPyProxy(result)) {
-    result = responseObjectFromPython(result);
-  }
+  const { uuid, python, ...context } = event.data;
 
   try {
-    postResponseMessage(result);
+    const pyodide = await maybe_pyodide;
+
+    const python_code: string = python;
+
+    // The worker copies the context in its own "memory" (an object mapping name to values)
+    for (const key of Object.keys(context)) {
+      self[key] = context[key];
+    }
+
+    // Load imported packages into the Pyodide interpreter
+    await pyodide.loadPackagesFromImports(
+      python_code,
+      postConsoleMessage,
+      postConsoleError
+    );
+
+    // Execute the Python code
+    let result = await pyodide.runPython(python_code);
+
+    // Check if the result is a PyProxy, if so convert it into a response object
+    if (pyodide.isPyProxy(result)) {
+      result = responseObjectFromPython(result);
+    }
+    
+    postResponseMessage(uuid, result);
   } catch (error) {
-    postErrorMessage(error.message);
+    postErrorMessage(uuid, error.message);
   }
 };
 
@@ -110,6 +111,8 @@ function responseObjectFromPython(python_response: PyProxy): {
       response = js_response;
     }
   }
+  // Empty responses, e.g. for 204, must be null
+  response = response || null;
 
   const status: number = python_response.status_code;
 
@@ -138,8 +141,9 @@ function responseObjectFromPython(python_response: PyProxy): {
  *
  * @param results the response
  */
-function postResponseMessage(results: any) {
+function postResponseMessage(uuid: string, results: any) {
   self.postMessage({
+    uuid,
     results,
   });
 }
@@ -149,8 +153,9 @@ function postResponseMessage(results: any) {
  *
  * @param error the error message
  */
-function postErrorMessage(error: any) {
+function postErrorMessage(uuid: string, error: any) {
   self.postMessage({
+    uuid,
     error,
   });
 }

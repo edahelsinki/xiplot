@@ -34,12 +34,12 @@
 
 import { dedent } from "ts-dedent";
 
-import { WebFlask } from "./flask";
-import { WorkerManager } from "./worker-loader";
+import { WebFlask } from "./webflask";
+import { WorkerManager } from "./manager";
 
 declare global {
   export interface Window {
-    webDash: WebDash;
+    web_dash: WebDash;
   }
 }
 
@@ -66,15 +66,15 @@ export function log(...args) {
 * the Dash frontend and the Flask server backend.
 */
 class WebDash {
-  private workerManager: WorkerManager;
-  private webFlask: WebFlask;
+  private worker_manager: WorkerManager;
+  private web_flask: WebFlask;
 
   /**
   * Initialises and bootstraps WebDash.
   */
   public constructor() {
-    this.workerManager = new WorkerManager();
-    this.webFlask = new WebFlask(this.workerManager);
+    this.worker_manager = new WorkerManager();
+    this.web_flask = new WebFlask(this.worker_manager);
 
     this.bootstrap();
   }
@@ -94,7 +94,7 @@ class WebDash {
   private async initialiseDashApp() {
     log("Initialising and bootstrapping the dash app");
 
-    const bootstrap_python: string = await this.webFlask
+    const bootstrap_python: string = await this.web_flask
       .nativeFetch("bootstrap.py")
       .then((response) => response.text());
     const url_base_pathname: string = window.location.pathname.replace(
@@ -102,7 +102,7 @@ class WebDash {
       "/"
     );
 
-    await this.workerManager.executeWithAnyResponse(
+    await this.worker_manager.executeWithAnyResponse(
       dedent`
         ${bootstrap_python}
 
@@ -116,25 +116,25 @@ class WebDash {
   private async injectDashHeaders(head: HTMLElement) {
     log("Patching in dash's head tag");
 
-    const meta_tags = await this.workerManager.executeWithStringResponse(
+    const meta_tags = await this.worker_manager.executeWithStringResponse(
       "app._generate_meta_html()",
       {}
     );
 
-    const title = await this.workerManager.executeWithStringResponse(
+    const title = await this.worker_manager.executeWithStringResponse(
       "app.title",
       {}
     );
     const title_tag = `<title>${title}</title>`;
 
-    const favicon = await this.workerManager.executeWithStringResponse(
+    const favicon = await this.worker_manager.executeWithStringResponse(
       "app.get_asset_url(app._favicon)",
       {}
     );
     const favicon_tag = `<link rel="icon" type="image/x-icon" href="${favicon}">`;
 
     const script_tags_timed =
-      await this.workerManager.executeWithStringResponse(
+      await this.worker_manager.executeWithStringResponse(
         "app._generate_css_dist_html()",
         {}
       );
@@ -151,7 +151,7 @@ class WebDash {
     log("Patching in dash's body tag with the react entry point");
 
     const react_entry_point =
-      await this.workerManager.executeWithStringResponse(
+      await this.worker_manager.executeWithStringResponse(
         "dash.dash._app_entry",
         {}
       );
@@ -162,7 +162,7 @@ class WebDash {
   private async injectDashAppConfig(body: HTMLElement): Promise<HTMLElement> {
     log("Injecting the footer tag with the initial config of the dash app");
 
-    const app_config = await this.workerManager.executeWithStringResponse(
+    const app_config = await this.worker_manager.executeWithStringResponse(
       "app._generate_config_html()",
       {}
     );
@@ -178,7 +178,7 @@ class WebDash {
   private async injectDashScripts(footer: HTMLElement) {
     log("Injecting the dash script tags");
 
-    const script_tags = await this.workerManager.executeWithStringResponse(
+    const script_tags = await this.worker_manager.executeWithStringResponse(
       "app._generate_scripts_html()",
       {}
     );
@@ -238,7 +238,7 @@ class WebDash {
   private async injectDashRenderer(footer: HTMLElement) {
     log("Injecting the ignition for the dash renderer");
 
-    const render_script = await this.workerManager.executeWithStringResponse(
+    const render_script = await this.worker_manager.executeWithStringResponse(
       "app.renderer",
       {}
     );
@@ -252,5 +252,5 @@ class WebDash {
   }
 }
 
-window.webDash = new WebDash();
+window.web_dash = new WebDash();
  

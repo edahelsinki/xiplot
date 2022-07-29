@@ -34,7 +34,7 @@
 
 import { dedent } from "ts-dedent";
 
-import { WorkerManager } from "./worker-loader";
+import { WorkerManager } from "./manager";
 import { log } from "./webdash";
 
 /**
@@ -45,7 +45,7 @@ import { log } from "./webdash";
 */
 export class WebFlask {
   private worker: WorkerManager;
-  private originalFetch: (
+  private original_fetch: (
     input: URL | RequestInfo,
     init?: RequestInit | undefined
   ) => Promise<Response>;
@@ -53,7 +53,7 @@ export class WebFlask {
   public constructor(workerManager) {
     this.worker = workerManager;
 
-    this.originalFetch = window.fetch;
+    this.original_fetch = window.fetch;
     window.fetch = this.fetch.bind(this);
   }
 
@@ -80,12 +80,12 @@ export class WebFlask {
     log(`[1. Request ${url.pathname} intercepted]`);
 
     // Extract the route of the current window.location
-    const windowLocationRoute = window.location.href.replace(
+    const window_location_route = window.location.href.replace(
       /\/(?:[^\/]+?\.[^\/]*?|index)$/,
       "/"
     );
 
-    if (url.href.startsWith(windowLocationRoute)) {
+    if (url.href.startsWith(window_location_route)) {
       const response = await this.webflaskFetch(info, init);
 
       log(`[5. Request ${url.pathname} done]`);
@@ -130,7 +130,7 @@ export class WebFlask {
     info: URL | RequestInfo,
     init?: RequestInit | undefined
   ): Promise<Response> {
-    return this.originalFetch.apply(window, [info, init]);
+    return this.original_fetch.apply(window, [info, init]);
   }
 
   /**
@@ -147,7 +147,7 @@ export class WebFlask {
   ): Promise<Response> {
     log("[2. Flask Request Generated]");
 
-    const flaskResponse = await this.worker.executeWithAnyResponse(
+    const flask_response = await this.worker.executeWithAnyResponse(
       request_python_code,
       {}
     );
@@ -155,14 +155,14 @@ export class WebFlask {
     log("[4. Flask Response Received]");
 
     const options = {};
-    if (flaskResponse["headers"]) {
-      options["headers"] = flaskResponse["headers"];
+    if (flask_response["headers"]) {
+      options["headers"] = flask_response["headers"];
     }
-    if (flaskResponse["status"]) {
-      options["status"] = flaskResponse["status"];
+    if (flask_response["status"]) {
+      options["status"] = flask_response["status"];
     }
 
-    return new Response(flaskResponse["response"], options);
+    return new Response(flask_response["response"], options);
   }
 
   /**
@@ -180,18 +180,19 @@ export class WebFlask {
     info: URL | RequestInfo,
     init?: RequestInit | undefined
   ): string {
-    let data;
+    let data = "None";
     if (init && init.body) {
       data = `r"""${init.body}"""`;
-    } else {
-      data = "None";
     }
 
-    let content_type;
+    let content_type = "None";
     if (init && init.body) {
       content_type = `"application/json"`;
-    } else {
-      content_type = "None";
+    }
+
+    let method = "GET";
+    if (init && init.method) {
+      method = init.method;
     }
 
     return dedent`
@@ -200,7 +201,7 @@ export class WebFlask {
           response = client.open('${info}',
             data=${data},
             content_type=${content_type},
-            method="${(init && init.method) || "GET"}",
+            method="${method}",
           )
       response
     `;
