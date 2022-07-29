@@ -4,6 +4,21 @@ from dashapp.utils.cluster import cluster_colours
 
 
 def layout_wrapper(component, id="", style=None, css_class=None, title=None):
+    """
+    Wraps a dash component to a html.Div element
+
+    Parameters:
+
+        component: dash core component
+        id: id of the html.Div element
+        style: style of the html.Div element
+        css_class: className of the html.Div
+        title: title of the dash core component
+
+    Returns:
+
+        layout: html.Div element
+    """
     layout = html.Div(
         children=[html.Div(title), component],
         id=id,
@@ -15,14 +30,26 @@ def layout_wrapper(component, id="", style=None, css_class=None, title=None):
 
 
 def delete_button(type, index):
+    """
+    Creates a delete button by html.Button element
+
+    Parameters:
+
+        type: type of the id dictionary
+        index: index of the id dictionary
+
+    Returns:
+
+        html.Button element
+    """
     return html.Button(
         "x", id={"type": type, "index": index}, style={"background-color": "red"}
     )
 
 
 def cluster_dropdown(
-    id,
-    index=None,
+    id_name,
+    id_index=None,
     multi=False,
     clearable=False,
     value=None,
@@ -30,9 +57,27 @@ def cluster_dropdown(
     title=None,
     css_class=None,
 ):
+    """
+    Wraps a cluster dropdown to a html.Div element
+
+    Parameter:
+
+        id_name: name of the id
+        id_index: index of the id
+        multi (boolean): if True, the user can set multiple values
+        clearable (boolean): if True, the user can clear all the values of the dropdown
+        value: initial value of the dropdown when it's created
+        style: style of the html.Div element
+        title: title of the dropdown
+        css_class: className of the html.Div element
+
+    Returns:
+
+        layout: html.Div element
+    """
     layout = layout_wrapper(
         component=dcc.Dropdown(
-            id={"type": id, "index": index} if index else id,
+            id={"name": id_name, "index": id_index} if id_index else id_name,
             clearable=clearable,
             multi=multi,
             searchable=False,

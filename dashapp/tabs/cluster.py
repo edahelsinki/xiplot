@@ -395,7 +395,7 @@ class Cluster(Tab):
                 ),
                 html.Div(),
                 cluster_dropdown(
-                    id="selection_cluster_dropdown",
+                    id_name="selection_cluster_dropdown",
                     value="c1",
                     css_class="dd-double-left",
                     title="Selection Cluster",

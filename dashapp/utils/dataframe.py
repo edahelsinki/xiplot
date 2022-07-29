@@ -16,13 +16,13 @@ def read_dataframe_with_extension(data, filename=None):
     """
     Read the given data and convert it to a pandas data frame
 
-    Parameters
-    ----------
+    Parameters:
+
         data: File name or File-like object
         filename: File name as a string
 
-    Returns
-    -------
+    Returns:
+
         df: Pandas data frame
         meta: dictionary of metadata
     """
@@ -153,6 +153,18 @@ def write_only_dataframe(df, filepath, file):
 
 
 def get_numeric_columns(df, columns):
+    """
+    Return only columns, which are numeric
+
+    Parameters:
+
+        df: pandas.DataFrame
+        columns: columns of the data frame
+
+    Returns:
+
+        columns: numeric columns
+    """
     columns = [
         c
         for c in columns
