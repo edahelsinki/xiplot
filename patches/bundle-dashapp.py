@@ -81,6 +81,7 @@ with app.server.app_context():
 """ Query dash for all script dependencies that must be statically bundled """
 
 SRC_PATTERN = re.compile(r"src=\"([^\"]+)\"")
+MAP_PATTERN = re.compile(r"^\/\/# sourceMappingURL=(.+)$", re.MULTILINE)
 
 dist = Path.cwd().parent / "dist"
 
@@ -103,6 +104,8 @@ for script in app._generate_scripts_html().split("</script>"):
     path = dist / src.strip("/")
 
     path.parent.mkdir(parents=True, exist_ok=True)
+
+    content = MAP_PATTERN.sub(f"//# sourceMappingURL={Path(src).name}.map", content)
 
     with open(path, "w") as file:
         file.write(content)
