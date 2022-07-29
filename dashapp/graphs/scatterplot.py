@@ -55,15 +55,20 @@ class Scatterplot(Graph):
             ],
         )
         def update_selected_rows(click, selected_rows):
-            if click == [None] or ctx.triggered_id is None:
+            if ctx.triggered_id is None:
                 raise PreventUpdate()
 
             if not selected_rows:
                 selected_rows = []
 
+            row = None
+
             for c in click:
                 if c:
                     row = c["points"][0]["customdata"][0]["index"]
+
+            if row is None:
+                raise PreventUpdate()
 
             if not selected_rows[row]:
                 selected_rows[row] = True
@@ -111,22 +116,23 @@ class Scatterplot(Graph):
         for id in row_ids:
             sizes[id] = 5
             colors[id] = "*"
-        df["Sizes"] = sizes
+        df["__Sizes__"] = sizes
+        df["__Color__"] = colors
 
         fig = px.scatter(
             data_frame=df,
             x=x_axis,
             y=y_axis,
-            color=colors,
+            color="__Color__",
             symbol=symbol,
-            size="Sizes" if 5 in sizes else None,
+            size="__Sizes__" if 5 in sizes else None,
             opacity=1,
             color_discrete_map={
                 "*": "#000000",
                 **cluster_colours(),
             },
             custom_data=["auxiliary"] if "auxiliary" in df.columns else None,
-            hover_data={"Clusters": False},
+            hover_data={"__Color__": False, "__Sizes__": False},
             render_mode="webgl",
         )
         fig.update_layout(showlegend=False, uirevision=json.dumps([x_axis, y_axis]))
