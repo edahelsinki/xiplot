@@ -3,21 +3,14 @@ import { WorkerManager } from "./worker-loader";
 
 declare global {
   export interface Window {
-    fetch: Function;
-    workerManager: WorkerManager;
-    dashApp: string;
     webDash: WebDash;
-    log: Function;
   }
 }
 
 /**
  * Enables debug logs for development environments.
  */
-export let dev = false;
-if (process.env.NODE_ENV === "development") {
-  dev = true;
-}
+const dev = process.env.NODE_ENV === "development";
 
 export function log(...args) {
   if (dev) {
@@ -33,115 +26,179 @@ export function log(...args) {
  * Flask backend running in WASM.
  */
 class WebDash {
+  workerManager: WorkerManager;
+  webFlask: WebFlask;
+
   constructor() {
     this.workerManager = new WorkerManager();
-    window.workerManager = this.workerManager;
-    this.webFlask = new WebFlask();
+    this.webFlask = new WebFlask(this.workerManager);
 
-    this.main();
+    this.run();
   }
 
-  async main() {
-    log("Initialising dash app");
+  async run() {
     await this.initialiseDashApp();
 
-    log("Starting book sequence");
-    await this.startBootSequence();
-    log("Finished boot sequence");
+    await this.injectDashHeaders(document.head);
+    await this.injectDashReactEntryPoint(document.body);
+
+    const footer = await this.injectDashAppConfig(document.body);
+
+    await this.injectDashScripts(footer);
+    await this.injectDashRenderer(footer);
   }
 
   async initialiseDashApp() {
-    return this.workerManager.asyncRun(
-      `
-${await this.webFlask.originalFetch.apply(window, ["bootstrap.py"]).then(response => response.text())}
+    log("Initialising and bootstrapping the dash app");
 
-app = bootstrap_dashapp(
-  "${window.location.pathname.replace(/\/(?:[^\/]+?\.[^\/]*?|index)$/, '/')}"
-)
+    const bootstrap_python: string = await this.webFlask.originalFetch
+      .apply(window, ["bootstrap.py"])
+      .then((response) => response.text());
+    const url_base_pathname: string = window.location.pathname.replace(
+      /\/(?:[^\/]+?\.[^\/]*?|index)$/,
+      "/"
+    );
+
+    await this.workerManager.executeWithAnyResponse(
+      `
+${bootstrap_python}
+
+# Initialise and bootstrap the dash app
+app = bootstrap_dash_app("${url_base_pathname}")
       `,
       {}
     );
   }
 
-  async startBootSequence() {
-    // Inject the meta, title, and css tags
-    document.head.innerHTML = `
-${await this.workerManager.asyncRun("app._generate_meta_html()", {})}
-<title>${await this.workerManager.asyncRun("app.title", {})}</title>
-<link rel="icon" type="image/x-icon" href="${
-  await this.workerManager.asyncRun("app.get_asset_url(app._favicon)", {})
-}">
-${(await this.workerManager.asyncRun("app._generate_css_dist_html()", {})).replaceAll(/href="(?<href>[^"?]+?)(?:\?[^"]*)?"/g, "href=\"$1\"")}
-    `;
+  async injectDashHeaders(head: HTMLElement) {
+    log("Patching in dash's head tag");
 
-    // Inject the react entry point
-    document.body.innerHTML = `${await self.workerManager.asyncRun("dash.dash._app_entry", {})}`;
+    const meta_tags = await this.workerManager.executeWithStringResponse(
+      "app._generate_meta_html()",
+      {}
+    );
 
-    // Inject the initial app config
+    const title = await this.workerManager.executeWithStringResponse("app.title", {});
+    const title_tag = `<title>${title}</title>`;
+
+    const favicon = await this.workerManager.executeWithStringResponse(
+      "app.get_asset_url(app._favicon)",
+      {}
+    );
+    const favicon_tag = `<link rel="icon" type="image/x-icon" href="${favicon}">`;
+
+    const script_tags_timed = await this.workerManager.executeWithStringResponse(
+      "app._generate_css_dist_html()",
+      {}
+    );
+    // Remove dash-generated ?m=<timestamp> fingerprints from href
+    const script_tags = script_tags_timed.replace(
+      /href="(?<href>[^"?]+?)(?:\?[^"]*)?"/g,
+      'href="$1"'
+    );
+
+    head.innerHTML = `${meta_tags}\n${title_tag}\n${favicon_tag}\n${script_tags}`;
+  }
+
+  async injectDashReactEntryPoint(body: HTMLElement) {
+    log("Patching in dash's body tag with the react entry point");
+
+    const react_entry_point = await this.workerManager.executeWithStringResponse(
+      "dash.dash._app_entry",
+      {}
+    );
+
+    body.innerHTML = react_entry_point;
+  }
+
+  async injectDashAppConfig(body: HTMLElement): Promise<HTMLElement> {
+    log("Injecting the footer tag with the initial config of the dash app");
+
+    const app_config = await this.workerManager.executeWithStringResponse(
+      "app._generate_config_html()",
+      {}
+    );
+
     const footer = document.createElement("footer");
-    footer.innerHTML = await self.workerManager.asyncRun("app._generate_config_html()", {});
-    document.body.appendChild(footer);
+    footer.innerHTML = app_config;
 
-    const scriptChunk = await this.workerManager.asyncRun("app._generate_scripts_html()", {});
+    body.appendChild(footer);
 
-    for (const script of scriptChunk.split("</script>")) {
-      let src = script.match(/src="(?<src>[^"?]+?)(?:\?[^"]*)?"/);
-      if (src) {
-        src = src.groups.src;
-      }
-      let content = script.replace("<script>", "");
+    return footer;
+  }
 
+  async injectDashScripts(footer: HTMLElement) {
+    log("Injecting the dash script tags");
+
+    const script_tags = await this.workerManager.executeWithStringResponse(
+      "app._generate_scripts_html()",
+      {}
+    );
+
+    for (const script of script_tags.split("</script>")) {
+      // Remove dash-generated ?m=<timestamp> fingerprints from src
+      const src = script.match(/src="(?<src>[^"?]+?)(?:\?[^"]*)?"/)?.groups
+        ?.src;
+      const content = script.replace("<script>", "");
+
+      // Skip empty whitespace after the last script tag
       if (content.replace(/\s/, "").length == 0) {
         continue;
       }
 
-      const promise = new Promise((resolve, reject) => {
-        log(`Parsing script tag with src ${src}`);
-
-        const scriptTag = document.createElement("script");
-
-        scriptTag.type = 'text/javascript';
-
+      const loaded = new Promise((resolve, reject) => {
         if (src) {
-          scriptTag.src = src;
-        } else {
-          scriptTag.text = content;
+          log(`Injecting the script tag with src ${src}`);
+        }
+        {
+          log(`Injecting an inline script tag`);
         }
 
-        scriptTag.onerror = (err) => reject(err);
+        const script_tag = document.createElement("script");
+        script_tag.type = "text/javascript";
 
-        let r = false;
-        scriptTag.onload = scriptTag.onreadystatechange = function() {
-          if (!r && (!this.readyState || this.readyState == 'complete')) {
-            log(`Successfully loaded the script tag with src ${src}`)
-            r = true;
+        if (src) {
+          script_tag.src = src;
+        } else {
+          script_tag.text = content;
+        }
+
+        script_tag.onerror = (err) => reject(err);
+
+        let ready = false;
+        script_tag.onload = function () {
+          if (!ready) {
+            ready = true;
             resolve(null);
           }
         };
 
-        footer.appendChild(scriptTag);
+        footer.appendChild(script_tag);
 
+        // Only script tags with a src must be loaded
         if (!src) {
           resolve(null);
         }
       });
 
-      await promise;
+      await loaded;
     }
 
-    log("Successfully loaded all script tags");
-
-    // Inject the app render kickoff
-    const rendererScriptTag = document.createElement("script");
-    rendererScriptTag.id = "_dash-renderer";
-    rendererScriptTag.type = "application/javascript";
-    rendererScriptTag.text = await self.workerManager.asyncRun("app.renderer", {});
-    footer.appendChild(rendererScriptTag);
+    log("Successfully injected all dash script tags");
   }
 
-  workerManager: WorkerManager;
-  webFlask: WebFlask;
-  dev: boolean;
+  async injectDashRenderer(footer: HTMLElement) {
+    log("Injecting the ignition for the dash renderer");
+
+    const render_script = await this.workerManager.executeWithStringResponse("app.renderer", {});
+
+    const renderer_script_tag = document.createElement("script");
+    renderer_script_tag.id = "_dash-renderer";
+    renderer_script_tag.type = "application/javascript";
+    renderer_script_tag.text = render_script;
+
+    footer.appendChild(renderer_script_tag);
+  }
 }
 
 window.webDash = new WebDash();

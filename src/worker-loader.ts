@@ -21,6 +21,8 @@ class ResponseQueue {
   queue: Array<Function>;
 }
 
+type Payload = { [key: string]: any };
+
 /**
  * This class is used as an intermediary between
  * the WebWorker and the application client.
@@ -30,6 +32,9 @@ class ResponseQueue {
  *  2. binary file transfers.
  */
 export class WorkerManager {
+  queue: ResponseQueue;
+  worker: Worker;
+
   constructor() {
     this.queue = new ResponseQueue();
     this.worker = new Worker("./worker.js");
@@ -78,7 +83,7 @@ export class WorkerManager {
 
     // Otherwise this is a response for dash-renderer
     // and we should act on it.
-    const success = this.queue.dequeue();
+    const success = this.queue.dequeue()!;
     return success(e.data.results);
   }
 
@@ -88,56 +93,43 @@ export class WorkerManager {
    * @param context optional additional arguments
    * @returns BlobPart or string
    */
-  asyncRun(script: string, context: Payload): Promise<BlobPart | string> {
-    return new Promise(
+  async executeWithAnyResponse(script: string, context: Payload): Promise<any> {
+    return await (new Promise(
       (onSuccess: Function, onError: (e: ErrorEvent) => any) => {
         this.run(script, context, onSuccess, onError);
       }
-    );
+    ));
   }
 
   /**
-   * Reads a directory from the virtual file system.
-   * @param dir directory name
-   * @returns a list of files present in the directory
+   * Runs a Python script on the WebWorker.
+   * @param script python script to run
+   * @param context optional additional arguments
+   * @returns BlobPart
    */
-  async fsReadDir(dir: string): Promise<string[]> {
-    return new Promise(
-      (onSuccess: Function, onError: (e: ErrorEvent) => any) => {
-        this.worker.onerror = onError;
-        this.worker.onmessage = (e: MessageEvent) => onSuccess(e.data.results);
-        this.worker.postMessage({
-          fsCommands: {
-            msgType: "readdir",
-            param: dir,
-          },
-        });
-      }
-    );
+  async executeWithBinaryResponse(script: string, context: Payload): Promise<BlobPart> {
+    const result: any = await this.executeWithAnyResponse(script, context);
+
+    if (result as BlobPart) {
+      return result as BlobPart;
+    }
+
+    throw TypeError("Expected binary WebFlask response but received String");
   }
 
   /**
-   * Reads a file from the virtual file system.
-   * @param file filename
-   * @returns a binary array with the file content
+   * Runs a Python script on the WebWorker.
+   * @param script python script to run
+   * @param context optional additional arguments
+   * @returns string
    */
-  async fsReadFile(file: string): Promise<BlobPart | string> {
-    return new Promise(
-      (onSuccess: Function, onError: (e: ErrorEvent) => any) => {
-        this.worker.onerror = onError;
-        this.worker.onmessage = (e: MessageEvent) => onSuccess(e.data.results);
-        this.worker.postMessage({
-          fsCommands: {
-            msgType: "readFile",
-            param: file,
-          },
-        });
-      }
-    );
-  }
+  async executeWithStringResponse(script: string, context: Payload): Promise<string> {
+    const result: any = await this.executeWithAnyResponse(script, context);
 
-  queue: ResponseQueue;
-  worker: Worker;
+    if (result as string) {
+      return result as string;
+    }
+
+    throw TypeError("Expected String WebFlask response but received binary");
+  }
 }
-
-type Payload = { [key: string]: any };

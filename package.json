@@ -1,11 +1,11 @@
 {
-  "name": "dashapp",
+  "name": "webdash",
   "version": "0.1.0",
   "scripts": {
     "build": "NODE_ENV=production parcel build src/index.html --public-url ./"
   },
-  "author": "Bloomberg LP",
-  "license": "BSD-3-Clause",
+  "contributors": ["Juniper Langenstein", "Bloomberg LP"],
+  "license": "(MIT AND BSD-3-Clause)",
   "devDependencies": {
     "parcel-bundler": "^1.12.5",
     "typescript": "^4.7.4"

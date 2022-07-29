@@ -17,7 +17,7 @@ from dashapp.utils.store import ServerSideStoreBackend
 """ Bootstrap the dashapp with the data directory """
 
 
-def bootstrap_dashapp(url_base_pathname):
+def bootstrap_dash_app(url_base_pathname):
     app = DashProxy(
         "dashapp.app",
         url_base_pathname=url_base_pathname,

@@ -1,6 +1,4 @@
-.cache/
+/.cache
 /dist
 /node_modules
 /.vscode
-/dash
-/temp

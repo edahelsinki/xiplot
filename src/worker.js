@@ -39,22 +39,6 @@ function generateResponseObject(pythonResponse) {
   return returnObject;
 }
 
-function handleFsCommand(fsCommand) {
-  const { msgType, param } = fsCommand;
-
-  console.debug(`wasm: handleFsCommand(${msgType}, ...)`);
-
-  try {
-    const result = pyodide._module.FS[msgType](param);
-
-    msgType === "readFile"
-      ? postMessageTransferable(result, [result.buffer])
-      : postMessageRegular(result);
-  } catch (error) {
-    postMessageRegular(error);
-  }
-}
-
 async function handlePythonCode(python) {
   console.debug(`wasm: handlePythonCode(...)`);
 
@@ -79,19 +63,15 @@ onmessage = async (event) => {
   // Making sure we don't arrive early at the party.
   await pyodideReadyPromise;
 
-  const { python, fsCommand, ...context } = event.data;
+  const { python, ...context } = event.data;
 
   console.debug("wasm: onmessage");
 
-  if (fsCommand) {
-    handleFsCommand(fsCommand);
-  } else {
-    // The worker copies the context in its own "memory" (an object mapping name to values)
-    for (const key of Object.keys(context)) {
-      self[key] = context[key];
-    }
-    handlePythonCode(python);
+  // The worker copies the context in its own "memory" (an object mapping name to values)
+  for (const key of Object.keys(context)) {
+    self[key] = context[key];
   }
+  handlePythonCode(python);
 };
 
 /**
