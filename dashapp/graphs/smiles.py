@@ -30,7 +30,10 @@ class Smiles(Graph):
         )
 
         @app.callback(
-            output=dict(smiles=Output({"type": "smiles-input", "index": ALL}, "value")),
+            output=dict(
+                smiles=Output({"type": "smiles-input", "index": ALL}, "value"),
+                scatter=Output({"type": "scatterplot", "index": ALL}, "hoverData"),
+            ),
             inputs=[
                 Input({"type": "scatterplot", "index": ALL}, "hoverData"),
                 State("data_frame_store", "data"),
@@ -38,10 +41,13 @@ class Smiles(Graph):
         )
         def render_hovered_smiles(hover, df):
             df = df_from_store(df)
+
+            row = None
             for h in hover:
                 if h:
                     row = h["points"][0]["customdata"][0]["index"]
-            smiles_amount = len(ctx.outputs_grouping["smiles"])
+            if not row:
+                raise PreventUpdate()
 
             smiles_col = None
             for s in ["SMILES", "smiles", "Smiles"]:
@@ -50,7 +56,13 @@ class Smiles(Graph):
 
             if not smiles_col:
                 raise PreventUpdate()
-            return dict(smiles=[df.iloc[row][smiles_col] for _ in range(smiles_amount)])
+
+            smiles_amount = len(ctx.outputs_grouping["smiles"])
+            scatter_amount = len(ctx.outputs_grouping["scatter"])
+            return dict(
+                smiles=[df.iloc[row][smiles_col] for _ in range(smiles_amount)],
+                scatter=[None] * scatter_amount,
+            )
 
     @staticmethod
     def create_new_layout(index, df, columns):
