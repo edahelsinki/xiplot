@@ -47,6 +47,32 @@ The [`wasm`](https://github.com/edahelsinki/dash_app2022/tree/wasm) branch of th
        ```shell
        make -B deploy
        ```
+  * `bootstrap.py` is a `__main__.py`-like file which is loaded by the WASM WebDash app on startup to bootstrap the initialisation of the `dash` app. It has to import the main application module, `dashapp` in our case, and define a `bootstrap_dash_app` function, similar to this one:
+    ```python
+    def bootstrap_dash_app(url_base_pathname: str) -> dash.Dash:
+        ...
+        app = Dash(..., url_base_pathname=url_base_pathname, eager_loading=True, ...)
+        ...
+        # Dummy request to ensure the server is setup when we request the index
+        with app.server.app_context():
+            with app.server.test_client() as client:
+                client.get("_favicon.ico")
+        ...
+        return app
+    ```
+    The functionality of this `bootstrap.py` script should closely follow [`__main__.py`](https://github.com/edahelsinki/dash_app2022/blob/main/dashapp/__main__.py), which is used to bootstrap the Python version of the `dash_app2022` playground.
+* The `src` directory contains the implementation of the WASM WebDash bootstrapper, and is largely based on the [`WebDash`](https://github.com/ibdafna/webdash) project. It contains:
+  * `index.html` is a minimal loading page which displays some progress updates as `pyodide` and the dash app are loaded
+  * `webdash.ts` implements the entry point and bootstrapping process for WebDash. In particular, it is responsible for transitioning the web page to the dashboard once the dash app has been loaded.
+  * `webflask.ts` is responsible for intercepting `fetch` requests to the `flask` server and redirecting them to the virtual one instead. In this capacity, it generates the Python code to execute the requests, and translates requests and responses between JS and Python.
+  * `manager.ts` manages the communication between the `webdash.ts` and `webflask.ts` on the frontend, and the `pyodide` backend running inside a web worker.
+  * `worker.ts` implements the web worker which executes Python code inside `pyodide` to simulate the virtual `flask` server inside the client's browser.
+* The `Makefile` orchestrates building the WASM WebDash version of `dash_app2022`. Important `make` commands include:
+  * `make nuke` removes **all** build artifacts, including `pyodide`'s, allowing for a clean rebuild
+  * `make clean` removes `dashapp`'s build artifacts as well as the final `dist` output folder
+  * `make deploy` builds `pyodide` and `dashapp` and bundles them inside the `dist` folder. Use `make -B deploy` to force a rebuild.
+  * `make run` wraps `make deploy` and starts a simple static `python3 -m http.server` inside the `dist` folder after building has completed.
+* `package.json` and `package-lock.json` define the `npm` dependencies used to build the WASM WebDash HTML bootstrapper.
 
 ## License
 
