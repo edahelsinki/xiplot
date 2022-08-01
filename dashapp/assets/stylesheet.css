@@ -8,7 +8,8 @@
     width: 82%;
 }
 
-.dd-double-left {
+.dd-double-left,
+.dcc-input {
     margin-left: 10%;
     display: inline-block;
     width: 40%;

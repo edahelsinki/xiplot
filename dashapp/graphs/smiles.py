@@ -3,6 +3,7 @@ from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import delete_button, layout_wrapper
 from dashapp.utils.dataframe import get_smiles_column_name
+from dashapp.utils.smiles import get_smiles_inputs
 from dashapp.graphs import Graph
 
 
@@ -33,47 +34,17 @@ class Smiles(Graph):
         @app.callback(
             output=dict(
                 smiles=Output({"type": "smiles-input", "index": ALL}, "value"),
-                scatter=Output({"type": "scatterplot", "index": ALL}, "hoverData"),
-            ),
-            inputs=[
-                Input({"type": "scatterplot", "index": ALL}, "hoverData"),
-                Input("data_frame_store", "data"),
-            ],
-        )
-        def render_hovered_smiles(hover, df):
-            if ctx.triggered_id == "data_frame_store":
-                raise PreventUpdate()
-
-            df = df_from_store(df)
-
-            row = None
-            for h in hover:
-                if h:
-                    row = h["points"][0]["customdata"][0]["index"]
-            if not row:
-                raise PreventUpdate()
-
-            smiles_col = get_smiles_column_name(df)
-
-            if not smiles_col:
-                raise PreventUpdate()
-            smiles_amount = len(ctx.outputs_grouping["smiles"])
-            scatter_amount = len(ctx.outputs_grouping["scatter"])
-            return dict(
-                smiles=[df.iloc[row][smiles_col] for _ in range(smiles_amount)],
-                scatter=[None] * scatter_amount,
-            )
-
-        @app.callback(
-            output=dict(
-                smiles=Output({"type": "smiles-input", "index": ALL}, "value"),
             ),
             inputs=[
                 Input({"type": "table", "index": ALL}, "active_cell"),
+                State({"type": "smiles_lock_dropdown", "index": ALL}, "value"),
+                State({"type": "smiles-input", "index": ALL}, "value"),
                 State("data_frame_store", "data"),
             ],
         )
-        def render_active_cell_smiles(active_cell, df):
+        def render_active_cell_smiles(
+            active_cell, smiles_render_modes, smiles_inputs, df
+        ):
             df = df_from_store(df)
             smiles_col = get_smiles_column_name(df)
 
@@ -88,9 +59,19 @@ class Smiles(Graph):
 
             if not row or not column or column != smiles_col:
                 raise PreventUpdate()
+
+            # FIXME Don't update lock mode molecules
+
+            smiles_inputs = get_smiles_inputs(
+                smiles_render_modes, "click", smiles_inputs, df, row
+            )
+            smiles_inputs = get_smiles_inputs(
+                smiles_render_modes, "lock", smiles_inputs, df, row
+            )
+
             smiles_amount = len(ctx.outputs_grouping["smiles"])
             return dict(
-                smiles=[df.iloc[row][smiles_col] for _ in range(smiles_amount)],
+                smiles=[df.iloc[row][column] for _ in range(smiles_amount)],
             )
 
     @staticmethod
@@ -108,7 +89,18 @@ class Smiles(Graph):
                         debounce=True,
                         placeholder="SMILES string",
                     ),
+                    css_class="dcc-input",
                     title="SMILES string",
+                ),
+                layout_wrapper(
+                    dcc.Dropdown(
+                        id={"type": "smiles_lock_dropdown", "index": index},
+                        value="hover",
+                        options=["hover", "click", "lock"],
+                        clearable=False,
+                        searchable=False,
+                    ),
+                    css_class="dd-double-right",
                 ),
             ],
             id={"type": "smiles-container", "index": index},
