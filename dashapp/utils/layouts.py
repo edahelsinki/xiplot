@@ -77,7 +77,7 @@ def cluster_dropdown(
     """
     layout = layout_wrapper(
         component=dcc.Dropdown(
-            id={"name": id_name, "index": id_index} if id_index else id_name,
+            id={"type": id_name, "index": id_index} if id_index else id_name,
             clearable=clearable,
             multi=multi,
             searchable=False,
