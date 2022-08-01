@@ -2,6 +2,7 @@ from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import delete_button, layout_wrapper
+from dashapp.utils.dataframe import get_smiles_column_name
 from dashapp.graphs import Graph
 
 
@@ -49,19 +50,44 @@ class Smiles(Graph):
             if not row:
                 raise PreventUpdate()
 
-            smiles_col = None
-            for s in ["SMILES", "smiles", "Smiles"]:
-                if s in df.columns:
-                    smiles_col = s
+            smiles_col = get_smiles_column_name(df)
 
             if not smiles_col:
                 raise PreventUpdate()
-
             smiles_amount = len(ctx.outputs_grouping["smiles"])
             scatter_amount = len(ctx.outputs_grouping["scatter"])
             return dict(
                 smiles=[df.iloc[row][smiles_col] for _ in range(smiles_amount)],
                 scatter=[None] * scatter_amount,
+            )
+
+        @app.callback(
+            output=dict(
+                smiles=Output({"type": "smiles-input", "index": ALL}, "value"),
+            ),
+            inputs=[
+                Input({"type": "table", "index": ALL}, "active_cell"),
+                State("data_frame_store", "data"),
+            ],
+        )
+        def render_active_cell_smiles(active_cell, df):
+            df = df_from_store(df)
+            smiles_col = get_smiles_column_name(df)
+
+            if not smiles_col:
+                raise PreventUpdate()
+
+            row, column = None, None
+            for cell in active_cell:
+                if cell:
+                    row = cell["row"]
+                    column = cell["column_id"]
+
+            if not row or not column or column != smiles_col:
+                raise PreventUpdate()
+            smiles_amount = len(ctx.outputs_grouping["smiles"])
+            return dict(
+                smiles=[df.iloc[row][smiles_col] for _ in range(smiles_amount)],
             )
 
     @staticmethod

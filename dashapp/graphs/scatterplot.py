@@ -26,9 +26,12 @@ class Scatterplot(Graph):
             Input({"type": "jitter-slider", "index": MATCH}, "value"),
             Input("selected_rows_store", "data"),
             Input("clusters_column_store", "data"),
-            State("data_frame_store", "data"),
+            Input("data_frame_store", "data"),
         )
         def tmp(x_axis, y_axis, color, symbol, jitter, selected_rows, kmeans_col, df):
+            if ctx.triggered_id == "data_frame_store":
+                raise PreventUpdate()
+
             jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
             return (
                 Scatterplot.render(
