@@ -1,9 +1,9 @@
-# dash_app2022 WASM WebDash version &emsp; [![CI Status]][workflow]
+# [`dash_app2022`](https://github.com/edahelsinki/dash_app2022) WASM WebDash version &emsp; [![CI Status]][workflow]
 
 [CI Status]: https://img.shields.io/github/checks-status/edahelsinki/dash_app2022/wasm?label=gh-pages
 [workflow]: https://github.com/edahelsinki/dash_app2022/actions/workflows/gh-pages.yaml?query=branch%3Awasm
 
-The WASM WebDash version of [`dash_app2022`](https://github.com/edahelsinki/dash_app2022) enables the data analysis playground to run entirely in the browser, i.e. without requiring a non-static server. This allows us to deploy the playground to [GitHub pages](https://www.edahelsinki.fi/dash_app2022).
+The WASM WebDash version of [`dash_app2022`](https://github.com/edahelsinki/dash_app2022) enables the data analysis playground to run entirely in the browser, i.e. without requiring a non-static server. Hence, the playground can be deployed as a static web app to [GitHub pages](https://www.edahelsinki.fi/dash_app2022).
 
 ## Technical Background
 
@@ -61,6 +61,8 @@ The [`wasm`](https://github.com/edahelsinki/dash_app2022/tree/wasm) branch of th
         return app
     ```
     The functionality of this `bootstrap.py` script should closely follow [`__main__.py`](https://github.com/edahelsinki/dash_app2022/blob/main/dashapp/__main__.py), which is used to bootstrap the Python version of the `dash_app2022` playground.
+  * `bundle-dashapp.py` is used during the WASM WebDash build process. Its first function is to query the dash app for static dependencies that will need to be shipped inside the `dist` folder. Second, it also injects the dash app into `pyodide`'s registry, such that it can later be loaded during bootstrapping. Since the bundling process needs to create a dummy version of the dash app to target the queries at, changes to the setup code in `__main__.py` and `bootstrap.py` also have to be replicated in the following section of the bundler:
+  https://github.com/edahelsinki/dash_app2022/blob/493336cd24a5a1533b4c53cfa996197f4abadd20/patches/bundle-dashapp.py#L52
 * The `src` directory contains the implementation of the WASM WebDash bootstrapper, and is largely based on the [`WebDash`](https://github.com/ibdafna/webdash) project. It contains:
   * `index.html` is a minimal loading page which displays some progress updates as `pyodide` and the dash app are loaded
   * `webdash.ts` implements the entry point and bootstrapping process for WebDash. In particular, it is responsible for transitioning the web page to the dashboard once the dash app has been loaded.
@@ -74,9 +76,13 @@ The [`wasm`](https://github.com/edahelsinki/dash_app2022/tree/wasm) branch of th
   * `make run` wraps `make deploy` and starts a simple static `python3 -m http.server` inside the `dist` folder after building has completed.
 * `package.json` and `package-lock.json` define the `npm` dependencies used to build the WASM WebDash HTML bootstrapper.
 
+## Funding
+
+The WASM WebDash version of the `dash_app2022` playground was created by [Juniper Langenstein](https://github.com/MomoLangenstein) as part of their summer internship in Kai Puolamäki's [Exploratory Data Analysis group](https://github.com/edahelsinki) at the University of Helsinki. This internship was paid for by "Future Makers Funding Program 2018 of the Technology Industries of Finland Centennial Foundation, and the Jane and Aatos Erkko Foundation", with funding associated with the Atmospheric AI programme of the Finnish Center for Artificial Intelligence.
+
 ## License
 
-* The [`src`](https://github.com/edahelsinki/dash_app2022/tree/wasm/src) directory on the `wasm` branch is licensed under the BSD 3-Clause License ([`LICENSE-BSD3`](LICENSE-BSD3) or https://opensource.org/licenses/BSD-3-Clause).
+* The [`src`](https://github.com/edahelsinki/dash_app2022/tree/wasm/src) directory on the `wasm` branch is licensed under both the BSD 3-Clause License ([`LICENSE-BSD3`](LICENSE-BSD3) or https://opensource.org/licenses/BSD-3-Clause) **and** the MIT License ([`LICENSE-MIT`](LICENSE-MIT) or http://opensource.org/licenses/MIT).
 
 * The `pyodide` submodule, which is not part of this project, but whose version is pinned, is licensed under the [Mozilla Public License Version 2.0](https://choosealicense.com/licenses/mpl-2.0/).
 
