@@ -1,46 +1,61 @@
-# WebDash
+# dash_app2022 WASM WebDash version &emsp; [![CI Status]][workflow]
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/cd148293-d67c-497d-b82f-34772a8055a7/deploy-status)](https://app.netlify.com/sites/webdash/deploys)
+[CI Status]: https://img.shields.io/github/workflow/status/edahelsinki/dash_app2022/gh-pages/wasm?label=gh-pages
+[workflow]: https://github.com/edahelsinki/dash_app2022/actions/workflows/gh-pages.yml?query=branch%3Awasm
 
-WebDash is a Plotly Dash distribution that **runs entirely in the browser**.
+The WASM WebDash version of [`dash_app2022`](https://github.com/edahelsinki/dash_app2022) enables the data analysis playground to run entirely in the browser, i.e. without requiring a non-static server. This allows us to deploy the playground to [GitHub pages](https://www.edahelsinki.fi/dash_app2022).
 
-![screenshot](webdash.gif)
+## Technical Background
 
-## ⚡ Status ⚡
+The [`dash_app2022`](https://github.com/edahelsinki/dash_app2022) playground is written in Python using plotly's [`dash`](https://github.com/plotly/dash) library to provide interactive data visualisation. Usually, `dash` requires a deployed `flask` server, on which the data processing is then run.
 
-⚠️ Currently in alpha stage - do not use in production! ⚠️ (Seriously, don't do it 😼)
+[`pyodide`](https://github.com/pyodide/pyodide) is a Python distribution that runs directly in the browser. It is built on `Cython`, which is then compiled to `WASM`, a standardised bytecode format, which can be run at near native speeds in modern browser. While `pyodide` can run any pure Python package, and also ships several popular Python libraries such as `numpy`, `matplotlib`, and `pandas`, there are many modules that have non-Python dependencies which have not yet been ported by the `pyodide` project. However, some simple modules can be ported easily by building `pyodide` from source and including these modules in the build process.
 
-## 🤔 How does it work? 🤔
+[`WebDash`](https://github.com/ibdafna/webdash) is a (research) project started by [Itay Dafna](https://github.com/ibdafna) whilst working at Bloomberg LP, with some technical mentorship from Paul Ivanov. It created a proof of concept to combining `dash` with `pyodide` by running `dash`'s `flask` server in the clientside browser using `pyodide` and intercepting `fetch` requests from the `dash` JS frontend to forward them to this virtual server. Most of this project is based on `WebDash` but provides some small improvements to make it less reliant on hardcoding the communication patterns between `dash`'s frontend and backend. While the `dash_app2022` WASM version primarily aims to bring the `dash_app2022` playground to WASM, it can also be seen as an improved baseline to build similar ports on.
 
-The Python scientific stack, including Plotly Dash, Flask and their dependencies, are compiled to WebAssembly via Emscripten and bundled by pyodide. WebDash loads a full Python kernel (version 3.8) and runs it in a dedicated Web Worker. The kernel acts as a virtual Flask web server, serving Dash requests as if it were a normal server. On the front-end, WebDash intercepts any requests intended to go to Dash and routes them to the virtual Flask web server.
+## Code structure
 
-This allows the entire distribution to be served as a static website, eliminating the need for containers or virtual environments, thus enabling great scalability.
+The [`main`](https://github.com/edahelsinki/dash_app2022/tree/main) branch of the repository contains the Python implementation of the `dash_app2022` playground. Please see its [README](https://github.com/edahelsinki/dash_app2022/blob/main/README.md) for more information on the organisation of the `dashapp` module.
 
-## 🔥 Try it in your browser 🔥
+The [`wasm`](https://github.com/edahelsinki/dash_app2022/tree/wasm) branch of the repository is structured as follows:
+* The `dashapp` submodule pins the version of the `dash_app2022` playground that the WASM WebDash version was last built with.
+* The `pyodide` submodule, which is not part of this project, pins the version of `pyodide` that the WASM WebDash version was last built with. Only update this submodule once you have confirmed that the WASM WebDash version works with the new version. Only update this submodule once you have confirmed that the WASM WebDash version works with the new version.
+* The `patches` directory contains patches that are applied to `pyodide` and the `dashapp` during the building process. In particular,
+  * `pyodide.patch` is a git patch that includes Python modules which `dashapp` relies on in `pyodide`'s own build process. To include new packages
+    1. Clean `pyodide` and apply the existing patches:
+       ```shell
+       make clean
+       cd pyodide
+       git apply --whitespace=nowarn ../patches/pyodide.patch
+       ```
+    2. Follow the steps described in https://pyodide.org/en/stable/development/new-packages.html to add a new package. At the time of writing, this often consists of:
+       ```shell
+       ./run_docker
+       python -m pyodide_build mkpkg [PACKAGE]
+       cd packages/[PACKAGE]
+       python -m pyodide_build buildpkg meta.yaml
+       ```
+    3. If the building process succeeded, create the updated patch file:
+       ```shell
+       git add packages
+       git diff --cached > ../patches/pyodide.patch
+       ```
+    4. Next, you need to update the following command in the [`Makefile`](https://github.com/edahelsinki/dash_app2022/blob/wasm/Makefile) to include your packages in the build process:
+       https://github.com/edahelsinki/dash_app2022/blob/67d26cdceea0b436c94ec9ee72e3466eb4f6d72a/Makefile#L19
+    5. Make sure that the new packages are also listed in `dashapp`'s [`pyproject.toml`](https://github.com/edahelsinki/dash_app2022/blob/main/pyproject.toml) and [`requirements.txt`](https://github.com/edahelsinki/dash_app2022/blob/main/requirements.txt) files.
+    6. Finally, you can rebuild the WASM WebDash version:
+       ```shell
+       make -B deploy
+       ```
 
-Demo app available on [Netlify](https://webdash.netlify.app/) and [Vercel](https://webdash-wine.vercel.app/).
+## License
 
-_**We have seen issues with Vercel being slow to load pyodide dependencies on Chrome. If that's the case for you, please consider using FireFox to try the demo (we are working with Vercel on this) or try the Netlify deployment link instead**_
+* The [`src`](https://github.com/edahelsinki/dash_app2022/tree/wasm/src) directory on the `wasm` branch is licensed under the BSD 3-Clause License ([`LICENSE-BSD3`](LICENSE-BSD3) or https://opensource.org/licenses/BSD-3-Clause).
 
-## 💣 (Very) Important stuff to be aware of 💣
+* The `pyodide` submodule, which is not part of this project, but whose version is pinned, is licensed under the [Mozilla Public License Version 2.0](https://choosealicense.com/licenses/mpl-2.0/).
 
-- This is a really, really experimental idea. It is highly likely your application won't work without some modifications, and very likely it won't work at all.
-- Only `dash`, `dash-core-components` and `dash-html-components` have been compiled to WebAssembly. `dash-daq` is not yet available. Therefore, if your application is relying on `dash-daq` or any packages outside the three mentioned above - your app won't work. Please open an issue if there's a package you'd like to add or, even better - open a PR 😻.
-- A very limited subset of the Dash API has been tested and/or implemented. This means that debugging is not available, and potentially many other features in the Dash API such as `location` etc. When you find a feature which does not work, please open an issue with a self-contained, sample app we can use to reproduce the issue.
-- Native Python-based network requests are not available inside the web-based Python kernel. This is a WebAssembly architecture limitation. This means that the Python `requests` module, although available, won't work (nor will other modules that rely on it). The good news is that you can still retrieve data using the JavaScript `fetch` API, and pyodide ships with a wrapper `pyodide.open_url()` which makes this easy to use from Python. See the `cross_filter_app.ts` file under `src/dash_apps` for an example of how to use this.
+* The remainder of the repository, including importantly the `dashapp` submodule, which pins the `main` branch of this repository and contains the implementation of the `dash_app2022` playground, is licensed under the MIT License ([`LICENSE-MIT`](LICENSE-MIT) or http://opensource.org/licenses/MIT).
 
-## 🎈 Running your own app 🎈
+## Contribution
 
-- The app should be saved in the `src/dash_apps` directory as a TypeScript file. The file should contain a JavaScript variable with the app as a string of Python code (we will improve this process in future releases).
-- WebDash will look for a global `window.dashApp` variable before running the boot sequence. Your app file should set that variable - look at the `cross_filter_app.ts` file for an example of how to set this.
-- Make sure to reference your file in the `index.html` file under the `src` directory so it gets loaded.
-
-## 💚 Contributing 💚
-
-See the [contributing guide](https://github.com/ibdafna/webdash/blob/main/CONTRIBUTING.md) for information about the project's structure and setting up a development environment.
-
-## Disclaimer
-
-> WebDash started as a research project Itay Dafna (@ibdafna) worked on at Bloomberg LP, with help from Paul Ivanov (@ivanov) who provided technical mentorship, guidance and some laughs. All rights are reserved to Bloomberg LP.
-
-Much of this README is based on repos [@jtpio](https://github.com/jtpio/) owns.
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be licensed as described above, without any additional terms or conditions.
