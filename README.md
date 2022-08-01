@@ -1,7 +1,7 @@
 # dash_app2022 WASM WebDash version &emsp; [![CI Status]][workflow]
 
-[CI Status]: https://img.shields.io/github/workflow/status/edahelsinki/dash_app2022/gh-pages/wasm?label=gh-pages
-[workflow]: https://github.com/edahelsinki/dash_app2022/actions/workflows/gh-pages.yml?query=branch%3Awasm
+[CI Status]: https://img.shields.io/github/checks-status/edahelsinki/dash_app2022/wasm?label=gh-pages
+[workflow]: https://github.com/edahelsinki/dash_app2022/actions/workflows/gh-pages.yaml?query=branch%3Awasm
 
 The WASM WebDash version of [`dash_app2022`](https://github.com/edahelsinki/dash_app2022) enables the data analysis playground to run entirely in the browser, i.e. without requiring a non-static server. This allows us to deploy the playground to [GitHub pages](https://www.edahelsinki.fi/dash_app2022).
 
