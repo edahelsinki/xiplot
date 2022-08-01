@@ -1,4 +1,5 @@
-from dash import html, dcc, Output, Input, MATCH
+from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
+from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import delete_button, layout_wrapper
 from dashapp.graphs import Graph
@@ -27,6 +28,29 @@ class Smiles(Graph):
             Output({"type": "smiles-display", "index": MATCH}, "src"),
             Input({"type": "smiles-input", "index": MATCH}, "value"),
         )
+
+        @app.callback(
+            output=dict(smiles=Output({"type": "smiles-input", "index": ALL}, "value")),
+            inputs=[
+                Input({"type": "scatterplot", "index": ALL}, "hoverData"),
+                State("data_frame_store", "data"),
+            ],
+        )
+        def render_hovered_smiles(hover, df):
+            df = df_from_store(df)
+            for h in hover:
+                if h:
+                    row = h["points"][0]["customdata"][0]["index"]
+            smiles_amount = len(ctx.outputs_grouping["smiles"])
+
+            smiles_col = None
+            for s in ["SMILES", "smiles", "Smiles"]:
+                if s in df.columns:
+                    smiles_col = s
+
+            if not smiles_col:
+                raise PreventUpdate()
+            return dict(smiles=[df.iloc[row][smiles_col] for _ in range(smiles_amount)])
 
     @staticmethod
     def create_new_layout(index, df, columns):
