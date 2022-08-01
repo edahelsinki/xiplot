@@ -1,6 +1,7 @@
 import plotly.express as px
 
-from dash import html, dcc, Output, Input, State, MATCH
+from dash import html, dcc, Output, Input, MATCH, ctx
+from dash.exceptions import PreventUpdate
 from sklearn.cluster import KMeans
 
 from dashapp.utils.layouts import layout_wrapper, delete_button
@@ -14,9 +15,12 @@ class Heatmap(Graph):
         @app.callback(
             Output({"type": "heatmap", "index": MATCH}, "figure"),
             Input({"type": "heatmap_cluster_amount", "index": MATCH}, "value"),
-            State("data_frame_store", "data"),
+            Input("data_frame_store", "data"),
         )
         def tmp(n_clusters, df):
+            if ctx.triggered_id == "data_frame_store":
+                raise PreventUpdate()
+
             return Heatmap.render(n_clusters, df_from_store(df))
 
     @staticmethod

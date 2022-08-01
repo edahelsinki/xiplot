@@ -18,25 +18,29 @@ class Table(Graph):
             Output({"type": "table", "index": MATCH}, "sort_by"),
             Input("clusters_column_store", "data"),
             Input("selected_rows_store", "data"),
+            Input("data_frame_store", "data"),
             State({"type": "table", "index": ALL}, "data"),
         )
-        def update_table_data(kmeans_col, selected_rows, df):
-            df = df[0]
-            df = pd.DataFrame(df)
-            df.rename_axis("index_copy")
+        def update_table_data(kmeans_col, selected_rows, df, table_df):
+            if ctx.triggered_id == "data_frame_store":
+                raise PreventUpdate()
 
-            if len(kmeans_col) == df.shape[0]:
-                df["Clusters"] = kmeans_col
+            table_df = table_df[0]
+            table_df = pd.DataFrame(table_df)
+            table_df.rename_axis("index_copy")
+
+            if len(kmeans_col) == table_df.shape[0]:
+                table_df["Clusters"] = kmeans_col
 
             if ctx.triggered_id == "selected_rows_store" or selected_rows:
-                df["Selection"] = selected_rows
-                columns = df.columns.to_list()
-                return df[columns].to_dict("records"), [
+                table_df["Selection"] = selected_rows
+                columns = table_df.columns.to_list()
+                return table_df[columns].to_dict("records"), [
                     {"column_id": "Selection", "direction": "asc"},
                     {"column_id": "index_copy", "direction": "asc"},
                 ]
-            columns = df.columns.to_list()
-            return df[columns].to_dict("records"), [
+            columns = table_df.columns.to_list()
+            return table_df[columns].to_dict("records"), [
                 {"column_id": "index_copy", "direction": "asc"}
             ]
 

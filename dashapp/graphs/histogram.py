@@ -1,7 +1,8 @@
 import pandas as pd
 import plotly.express as px
 
-from dash import html, dcc, Output, Input, State, MATCH
+from dash import html, dcc, Output, Input, MATCH, ctx
+from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
 from dashapp.utils.dataframe import get_numeric_columns
@@ -17,9 +18,12 @@ class Histogram(Graph):
             Input({"type": "x_axis_histo", "index": MATCH}, "value"),
             Input({"type": "hg_cluster_comparison_dropdown", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
-            State("data_frame_store", "data"),
+            Input("data_frame_store", "data"),
         )
         def tmp(x_axis, selected_clusters, kmeans_col, df):
+            if ctx.triggered_id == "data_frame_store":
+                raise PreventUpdate()
+
             return Histogram.render(
                 x_axis, selected_clusters, kmeans_col, df_from_store(df)
             )

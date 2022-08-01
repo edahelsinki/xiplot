@@ -37,10 +37,13 @@ class Smiles(Graph):
             ),
             inputs=[
                 Input({"type": "scatterplot", "index": ALL}, "hoverData"),
-                State("data_frame_store", "data"),
+                Input("data_frame_store", "data"),
             ],
         )
         def render_hovered_smiles(hover, df):
+            if ctx.triggered_id == "data_frame_store":
+                raise PreventUpdate()
+
             df = df_from_store(df)
 
             row = None

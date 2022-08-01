@@ -3,7 +3,7 @@ import pandas as pd
 
 import plotly.express as px
 
-from dash import html, dcc, Output, Input, State, MATCH
+from dash import html, dcc, Output, Input, MATCH, ctx
 from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
@@ -25,9 +25,12 @@ class Barplot(Graph):
             Input({"type": "bp_cluster_comparison_dropdown", "index": MATCH}, "value"),
             Input({"type": "order_dropdown", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
-            State("data_frame_store", "data"),
+            Input("data_frame_store", "data"),
         )
         def tmp(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
+            if ctx.triggered_id == "data_frame_store":
+                raise PreventUpdate()
+
             fig = Barplot.render(
                 x_axis,
                 y_axis,
