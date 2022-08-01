@@ -119,6 +119,8 @@ class Scatterplot(Graph):
         for id in row_ids:
             sizes[id] = 5
             colors[id] = "*"
+
+        df = df.copy()
         df["__Sizes__"] = sizes
         df["__Color__"] = colors
 
