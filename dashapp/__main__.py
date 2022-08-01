@@ -1,30 +1,36 @@
 import pandas as pd
 
-import dash_extensions.enrich
+import dash_extensions.enrich as enrich
 
 # FIXME: Monkey patch for dash_extensions until
 #        https://github.com/thedirtyfew/dash-extensions/commit/d843b63
 
 
 def _new_get_cache_id(func, output, args, session_check=None, arg_check=True):
-    all_args = [func.__name__, dash_extensions.enrich._create_callback_id(output)]
+    all_args = [func.__name__, enrich._create_callback_id(output)]
     if arg_check:
         all_args += list(args)
     if session_check:
-        all_args += [dash_extensions.enrich._get_session_id()]
-    return dash_extensions.enrich.hashlib.md5(
-        dash_extensions.enrich.json.dumps(all_args).encode()
-    ).hexdigest()
+        all_args += [enrich._get_session_id()]
+    return enrich.hashlib.md5(enrich.json.dumps(all_args).encode()).hexdigest()
 
 
-dash_extensions.enrich._get_cache_id = _new_get_cache_id
+enrich._get_cache_id = _new_get_cache_id
 
-from dash_extensions.enrich import DashProxy, ServersideOutputTransform
+from dash_extensions.enrich import (
+    DashProxy,
+    ServersideOutputTransform,
+    MultiplexerTransform,
+    CycleBreakerTransform,
+)
 
 from dashapp.app import DashApp
 from dashapp.utils.store import ServerSideStoreBackend
 
-dash_transforms = [dash_extensions.enrich.MultiplexerTransform()]
+dash_transforms = [
+    MultiplexerTransform(),
+    CycleBreakerTransform(),
+]
 
 # FIXME: Only enable on local single-user builds
 if True:

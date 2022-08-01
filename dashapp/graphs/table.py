@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+import dash
 from dash import html, Output, Input, State, MATCH, ALL, dash_table, ctx
 from dash.exceptions import PreventUpdate
 
@@ -40,61 +41,46 @@ class Table(Graph):
             ]
 
         @app.callback(
+            Output("selected_rows_store", "data"),
+            Input("data_frame_store", "data"),
+        )
+        def initialize_selected_rows(df):
+            df = df_from_store(df)
+            return [True] * df.shape[0]
+
+        @app.callback(
             output=dict(
                 selected_rows_store=Output("selected_rows_store", "data"),
                 table=Output({"type": "table", "index": ALL}, "selected_rows"),
             ),
             inputs=[
                 Input({"type": "table", "index": ALL}, "selected_rows"),
-                Input("data_frame_store", "data"),
+                State("data_frame_store", "data"),
                 Input("selected_rows_store", "data"),
             ],
         )
         def update_selected_rows(selected_rows_checkbox, df, selected_rows):
+            # FIXME circular dependencies error
+            if not selected_rows or not selected_rows_checkbox:
+                raise PreventUpdate()
+
             trigger = ctx.triggered_id
 
-            if trigger == "selected_rows_store":
-                if not selected_rows:
-                    raise PreventUpdate()
-
-                result = []
-                id = 0
-                for s in selected_rows:
-                    if not s:
-                        result.append(id)
-                    id += 1
-
-                tables = len(ctx.outputs_grouping["table"])
-                return dict(
-                    selected_rows_store=selected_rows,
-                    table=[result for _ in range(tables)],
-                )
+            tables = len(ctx.outputs_grouping["table"])
+            if (
+                trigger == "selected_rows_store"
+                or selected_rows_checkbox[-1] is None
+                and False in selected_rows
+            ):
+                return Table.update_checkbox(selected_rows, tables)
 
             df = df_from_store(df)
 
-            if trigger == "data_frame_store":
-                return dict(selected_rows_store=[True] * df.shape[0], table=[])
-
-            tables = len(ctx.outputs_grouping["table"])
-
-            if selected_rows_checkbox == [None] and False in selected_rows:
-                result = []
-                id = 0
-                for s in selected_rows:
-                    if not s:
-                        result.append(id)
-                    id += 1
-                return dict(
-                    selected_rows_store=selected_rows,
-                    table=[result for _ in range(tables)],
-                )
-
-            if not selected_rows_checkbox:
-                raise PreventUpdate()
             if selected_rows_checkbox == [None]:
                 selected_rows_checkbox = []
             else:
                 selected_rows_checkbox = selected_rows_checkbox[0]
+
             result = [True] * df.shape[0]
             for row in selected_rows_checkbox:
                 result[row] = False
@@ -103,6 +89,19 @@ class Table(Graph):
                 selected_rows_store=result,
                 table=[selected_rows_checkbox for _ in range(tables)],
             )
+
+    @staticmethod
+    def update_checkbox(selected_rows, tables):
+        result = []
+        id = 0
+        for s in selected_rows:
+            if not s:
+                result.append(id)
+            id += 1
+        return dict(
+            selected_rows_store=dash.no_update,
+            table=[result for _ in range(tables)],
+        )
 
     @staticmethod
     def create_new_layout(index, df, columns):
