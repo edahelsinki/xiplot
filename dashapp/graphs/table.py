@@ -91,6 +91,34 @@ class Table(Graph):
             tables = len(ctx.outputs_grouping["table"])
             return dict(table=[result for _ in range(tables)])
 
+        @app.callback(
+            output=dict(
+                cell_store=Output("lastly_activated_cell_store", "data"),
+                active_cell=Output({"type": "table", "index": ALL}, "active_cell"),
+            ),
+            inputs=[
+                Input({"type": "table", "index": ALL}, "active_cell"),
+                State("data_frame_store", "data"),
+            ],
+        )
+        def update_lastly_activated_cell_store(active_cells, df):
+            if active_cells == [None]:
+                raise PreventUpdate()
+
+            row, column = None, None
+            for cell in active_cells:
+                if cell:
+                    row = cell["row"]
+                    column = cell["column_id"]
+                    break
+
+            if row is None or column is None:
+                raise PreventUpdate()
+
+            cell_store = {"row": row, "column": column}
+
+            return dict(cell_store=cell_store, active_cell=[None] * len(active_cells))
+
     @staticmethod
     def create_new_layout(index, df, columns):
         df = df.rename_axis("index_copy")

@@ -3,6 +3,7 @@ from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import delete_button, layout_wrapper
 from dashapp.utils.dataframe import get_smiles_column_name
+from dashapp.utils.smiles import get_smiles_inputs
 from dashapp.graphs import Graph
 
 
@@ -33,10 +34,9 @@ class Smiles(Graph):
         @app.callback(
             output=dict(
                 smiles=Output({"type": "smiles-input", "index": ALL}, "value"),
-                cells=Output({"type": "table", "index": ALL}, "active_cell"),
             ),
             inputs=[
-                Input({"type": "table", "index": ALL}, "active_cell"),
+                Input("lastly_activated_cell_store", "data"),
                 State({"type": "smiles_lock_dropdown", "index": ALL}, "value"),
                 State({"type": "smiles-input", "index": ALL}, "value"),
                 State("data_frame_store", "data"),
@@ -45,20 +45,13 @@ class Smiles(Graph):
         def render_active_cell_smiles(
             active_cell, smiles_render_modes, smiles_inputs, df
         ):
+            # FIXME indices do not match when some rows are selected
             df = df_from_store(df)
             smiles_col = get_smiles_column_name(df)
 
-            if not smiles_col:
-                raise PreventUpdate()
+            row, column = active_cell["row"], active_cell["column"]
 
-            row, column = None, None
-            for cell in active_cell:
-                if cell:
-                    row = cell["row"]
-                    column = cell["column_id"]
-                    break
-
-            if not row or not column or column != smiles_col:
+            if not smiles_col or column != smiles_col:
                 raise PreventUpdate()
 
             smiles_amount = len(smiles_inputs)
@@ -69,7 +62,43 @@ class Smiles(Graph):
                 else:
                     smiles.append(df.iloc[row][column])
 
-            return dict(smiles=smiles, cells=[None] * len(active_cell))
+            return dict(smiles=smiles)
+
+        @app.callback(
+            output=dict(smiles=Output({"type": "smiles-input", "index": ALL}, "value")),
+            inputs=[
+                Input("lastly_clicked_point_store", "data"),
+                State({"type": "smiles_lock_dropdown", "index": ALL}, "value"),
+                State({"type": "smiles-input", "index": ALL}, "value"),
+                State("data_frame_store", "data"),
+            ],
+        )
+        def render_clicks(row, render_modes, smiles_inputs, df):
+            if render_modes == [None]:
+                raise PreventUpdate()
+
+            smiles_inputs = get_smiles_inputs(
+                render_modes, "click", smiles_inputs, df, row
+            )
+            return dict(smiles=smiles_inputs)
+
+        @app.callback(
+            output=dict(smiles=Output({"type": "smiles-input", "index": ALL}, "value")),
+            inputs=[
+                Input("lastly_hovered_point_store", "data"),
+                State({"type": "smiles_lock_dropdown", "index": ALL}, "value"),
+                State({"type": "smiles-input", "index": ALL}, "value"),
+                State("data_frame_store", "data"),
+            ],
+        )
+        def render_hovered(row, render_modes, smiles_inputs, df):
+            if render_modes == [None]:
+                raise PreventUpdate()
+
+            smiles_inputs = get_smiles_inputs(
+                render_modes, "hover", smiles_inputs, df, row
+            )
+            return dict(smiles=smiles_inputs)
 
     @staticmethod
     def create_new_layout(index, df, columns):

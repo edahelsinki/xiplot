@@ -53,20 +53,15 @@ class Scatterplot(Graph):
         @app.callback(
             output=dict(
                 selected_rows_store=Output("selected_rows_store", "data"),
+                click_store=Output("lastly_clicked_point_store", "data"),
                 scatter=Output({"type": "scatterplot", "index": ALL}, "clickData"),
-                smiles=Output({"type": "smiles-input", "index": ALL}, "value"),
             ),
             inputs=[
                 Input({"type": "scatterplot", "index": ALL}, "clickData"),
                 State("selected_rows_store", "data"),
-                State({"type": "smiles_lock_dropdown", "index": ALL}, "value"),
-                State({"type": "smiles-input", "index": ALL}, "value"),
-                State("data_frame_store", "data"),
             ],
         )
-        def handle_click_events(
-            click, selected_rows, smiles_render_modes, smiles_inputs, df
-        ):
+        def handle_click_events(click, selected_rows):
             if ctx.triggered_id is None:
                 raise PreventUpdate()
 
@@ -74,60 +69,39 @@ class Scatterplot(Graph):
                 selected_rows = []
 
             row = get_row(click)
-
             if row is None:
                 raise PreventUpdate()
-
-            df = df_from_store(df)
-            smiles_inputs = get_smiles_inputs(
-                smiles_render_modes, "click", smiles_inputs, df, row
-            )
 
             if not selected_rows[row]:
                 selected_rows[row] = True
             else:
                 selected_rows[row] = False
 
-            scatters = len(ctx.outputs_grouping["scatter"])
+            scatter_amount = len(ctx.outputs_grouping["scatter"])
 
             return dict(
                 selected_rows_store=selected_rows,
-                scatter=[None] * scatters,
-                smiles=smiles_inputs,
+                click_store=row,
+                scatter=[None] * scatter_amount,
             )
 
         @app.callback(
             output=dict(
-                smiles=Output({"type": "smiles-input", "index": ALL}, "value"),
+                hover_store=Output("lastly_hovered_point_store", "data"),
                 scatter=Output({"type": "scatterplot", "index": ALL}, "hoverData"),
             ),
             inputs=[
                 Input({"type": "scatterplot", "index": ALL}, "hoverData"),
-                Input("data_frame_store", "data"),
-                State({"type": "smiles_lock_dropdown", "index": ALL}, "value"),
-                State({"type": "smiles-input", "index": ALL}, "value"),
             ],
         )
-        def handle_hover_events(hover, df, smiles_render_modes, smiles_inputs):
-            if ctx.triggered_id == "data_frame_store":
-                raise PreventUpdate()
-
+        def handle_hover_events(hover):
             row = get_row(hover)
-            if not row:
+            if row is None:
                 raise PreventUpdate()
-
-            df = df_from_store(df)
-            smiles_col = get_smiles_column_name(df)
-            if not smiles_col:
-                raise PreventUpdate()
-
-            smiles_inputs = get_smiles_inputs(
-                smiles_render_modes, "hover", smiles_inputs, df, row
-            )
 
             scatter_amount = len(ctx.outputs_grouping["scatter"])
             return dict(
-                smiles=smiles_inputs,
+                hover_store=row,
                 scatter=[None] * scatter_amount,
             )
 
