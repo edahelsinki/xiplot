@@ -60,19 +60,15 @@ class Smiles(Graph):
             if not row or not column or column != smiles_col:
                 raise PreventUpdate()
 
-            # FIXME Don't update lock mode molecules
+            smiles_amount = len(smiles_inputs)
+            smiles = []
+            for i in range(smiles_amount):
+                if smiles_render_modes[i] == "lock":
+                    smiles.append(smiles_inputs[i])
+                else:
+                    smiles.append(df.iloc[row][column])
 
-            smiles_inputs = get_smiles_inputs(
-                smiles_render_modes, "click", smiles_inputs, df, row
-            )
-            smiles_inputs = get_smiles_inputs(
-                smiles_render_modes, "lock", smiles_inputs, df, row
-            )
-
-            smiles_amount = len(ctx.outputs_grouping["smiles"])
-            return dict(
-                smiles=[df.iloc[row][column] for _ in range(smiles_amount)],
-            )
+            return dict(smiles=smiles)
 
     @staticmethod
     def create_new_layout(index, df, columns):
