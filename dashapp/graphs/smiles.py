@@ -3,7 +3,6 @@ from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import delete_button, layout_wrapper
 from dashapp.utils.dataframe import get_smiles_column_name
-from dashapp.utils.smiles import get_smiles_inputs
 from dashapp.graphs import Graph
 
 
@@ -34,6 +33,7 @@ class Smiles(Graph):
         @app.callback(
             output=dict(
                 smiles=Output({"type": "smiles-input", "index": ALL}, "value"),
+                cells=Output({"type": "table", "index": ALL}, "active_cell"),
             ),
             inputs=[
                 Input({"type": "table", "index": ALL}, "active_cell"),
@@ -56,6 +56,7 @@ class Smiles(Graph):
                 if cell:
                     row = cell["row"]
                     column = cell["column_id"]
+                    break
 
             if not row or not column or column != smiles_col:
                 raise PreventUpdate()
@@ -68,7 +69,7 @@ class Smiles(Graph):
                 else:
                     smiles.append(df.iloc[row][column])
 
-            return dict(smiles=smiles)
+            return dict(smiles=smiles, cells=[None] * len(active_cell))
 
     @staticmethod
     def create_new_layout(index, df, columns):
