@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 
-import dash
 from dash import html, Output, Input, State, MATCH, ALL, dash_table, ctx
 from dash.exceptions import PreventUpdate
+from dash_extensions.enrich import CycleBreakerInput
 
 from dashapp.utils.layouts import delete_button
 from dashapp.utils.cluster import cluster_colours
@@ -53,59 +53,43 @@ class Table(Graph):
             return [True] * df.shape[0]
 
         @app.callback(
-            output=dict(
-                selected_rows_store=Output("selected_rows_store", "data"),
-                table=Output({"type": "table", "index": ALL}, "selected_rows"),
-            ),
-            inputs=[
-                Input({"type": "table", "index": ALL}, "selected_rows"),
-                State("data_frame_store", "data"),
-                Input("selected_rows_store", "data"),
-            ],
+            Output("selected_rows_store", "data"),
+            Input({"type": "table", "index": ALL}, "selected_rows"),
+            State("data_frame_store", "data"),
         )
-        def update_selected_rows(selected_rows_checkbox, df, selected_rows):
-            # FIXME circular dependencies error
-            if not selected_rows or not selected_rows_checkbox:
+        def update_selected_rows_store(selected_rows_checkbox, df):
+            if selected_rows_checkbox == [None] or len(selected_rows_checkbox) == 0:
                 raise PreventUpdate()
 
-            trigger = ctx.triggered_id
-
-            tables = len(ctx.outputs_grouping["table"])
-            if (
-                trigger == "selected_rows_store"
-                or selected_rows_checkbox[-1] is None
-                and False in selected_rows
-            ):
-                return Table.update_checkbox(selected_rows, tables)
-
             df = df_from_store(df)
-
-            if selected_rows_checkbox == [None]:
+            selected_rows_checkbox = selected_rows_checkbox[0]
+            if selected_rows_checkbox is None:
                 selected_rows_checkbox = []
-            else:
-                selected_rows_checkbox = selected_rows_checkbox[0]
 
             result = [True] * df.shape[0]
             for row in selected_rows_checkbox:
                 result[row] = False
 
-            return dict(
-                selected_rows_store=result,
-                table=[selected_rows_checkbox for _ in range(tables)],
-            )
+            return result
 
-    @staticmethod
-    def update_checkbox(selected_rows, tables):
-        result = []
-        id = 0
-        for s in selected_rows:
-            if not s:
-                result.append(id)
-            id += 1
-        return dict(
-            selected_rows_store=dash.no_update,
-            table=[result for _ in range(tables)],
+        @app.callback(
+            output=dict(table=Output({"type": "table", "index": ALL}, "selected_rows")),
+            inputs=[
+                CycleBreakerInput("selected_rows_store", "data"),
+                Input("clusters_column_store", "data"),
+            ],
         )
+        def update_table_checkbox(selected_rows, kmeans_col):
+            if not selected_rows:
+                raise PreventUpdate()
+
+            result = []
+            for id, s in enumerate(selected_rows):
+                if not s:
+                    result.append(id)
+
+            tables = len(ctx.outputs_grouping["table"])
+            return dict(table=[result for _ in range(tables)])
 
     @staticmethod
     def create_new_layout(index, df, columns):
