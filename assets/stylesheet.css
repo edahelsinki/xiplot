@@ -8,7 +8,8 @@
     width: 82%;
 }
 
-.dd-double-left {
+.dd-double-left,
+.dcc-input {
     margin-left: 10%;
     display: inline-block;
     width: 40%;
@@ -50,9 +51,4 @@
     width: 40%;
     margin-left: 16%;
     top: 10px;
-}
-
-.cluster-message {
-    display: none;
-    margin-left: 2%;
 }
