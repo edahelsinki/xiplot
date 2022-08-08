@@ -1,3 +1,5 @@
+import pandas as pd
+
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
 
@@ -39,18 +41,36 @@ class Smiles(Graph):
                 State({"type": "smiles_lock_dropdown", "index": ALL}, "value"),
                 State({"type": "smiles-input", "index": ALL}, "value"),
                 State("data_frame_store", "data"),
-                State({"type": "table", "index": ALL}, "selected_rows"),
+                State({"type": "table", "index": ALL}, "data"),
+                State({"type": "table", "index": ALL}, "sort_by"),
+                State("selected_rows_store", "data"),
             ],
         )
         def render_active_cell_smiles(
-            row, smiles_render_modes, smiles_inputs, df, selected_rows
+            row,
+            smiles_render_modes,
+            smiles_inputs,
+            df,
+            table_df,
+            sort_by,
+            selected_rows,
         ):
-            # FIXME wrong smiles img is shown if some rows are selected
             df = df_from_store(df)
             smiles_col = get_smiles_column_name(df)
 
-            if not smiles_col or smiles_col != smiles_col:
+            if not smiles_col:
                 raise PreventUpdate()
+
+            if table_df and sort_by and sort_by[0] and selected_rows and len(sort_by):
+                sort_by = sort_by[0]
+                table_df = pd.DataFrame(table_df[0])
+                table_df.index.rename("index_copy", inplace=True)
+
+                df = table_df.sort_values(
+                    by=[i["column_id"] for i in sort_by],
+                    ascending=sort_by[0]["direction"] == "asc",
+                    inplace=False,
+                )
 
             smiles_amount = len(smiles_inputs)
             smiles = []
