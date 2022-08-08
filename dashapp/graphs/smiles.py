@@ -68,7 +68,7 @@ class Smiles(Graph):
 
                 df = table_df.sort_values(
                     by=[i["column_id"] for i in sort_by],
-                    ascending=sort_by[0]["direction"] == "asc",
+                    ascending=[i["direction"] == "asc" for i in sort_by],
                     inplace=False,
                 )
 
