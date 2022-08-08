@@ -18,18 +18,31 @@ class Smiles(Graph):
                 if (!window.RDKit) {
                     window.RDKit = await window.initRDKitModule();
                 }
+                const INVALID_SVG = `<?xml version='1.0' encoding='iso-8859-1'?>
+                    <svg version='1.1' baseProfile='full'
+                      xmlns='http://www.w3.org/2000/svg'
+                      xmlns:rdkit='http://www.rdkit.org/xml'
+                      xmlns:xlink='http://www.w3.org/1999/xlink'
+                      xml:space='preserve'
+                      width='250px' height='200px' viewBox='0 0 250 200'
+                    >
+                        <line x2='200' y2='175' x1='50' y1='25' stroke='#c0392b' stroke-width='5' />
+                        <line x2='50' y2='175' x1='200' y1='25' stroke='#c0392b' stroke-width='5' />
+                    </svg>
+                `;
                 const mol = window.RDKit.get_mol(smiles);
-                const svg = mol
+                const svg = smiles && mol
                     .get_svg()
                     .replace(/<rect[^>]*>\s*<\/rect>/, "")
                     .split(/\s+/)
                     .join(" ");
 
-                return "data:image/svg+xml;base64," + btoa(svg);
+                return "data:image/svg+xml;base64," + btoa(svg || INVALID_SVG);
             }
             """,
             Output({"type": "smiles-display", "index": MATCH}, "src"),
             Input({"type": "smiles-input", "index": MATCH}, "value"),
+            prevent_initial_call=False,
         )
 
         @app.callback(
@@ -130,6 +143,7 @@ class Smiles(Graph):
                     dcc.Input(
                         id={"type": "smiles-input", "index": index},
                         type="text",
+                        value="O.O[Fe]=O",
                         debounce=True,
                         placeholder="SMILES string",
                     ),
