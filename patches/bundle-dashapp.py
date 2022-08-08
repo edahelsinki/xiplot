@@ -9,7 +9,12 @@ import dashapp
 
 from pathlib import Path
 
-from dash_extensions.enrich import DashProxy, ServersideOutputTransform
+from dash_extensions.enrich import (
+    DashProxy,
+    ServersideOutputTransform,
+    MultiplexerTransform,
+    CycleBreakerTransform,
+)
 
 from dashapp.app import DashApp
 from dashapp.utils.store import ServerSideStoreBackend
@@ -56,7 +61,10 @@ dash = DashProxy(
     suppress_callback_exceptions=True,
     compress=False,
     eager_loading=True,
+    prevent_initial_callbacks=True,
     transforms=[
+        MultiplexerTransform(),
+        CycleBreakerTransform(),
         ServersideOutputTransform(
             backend=ServerSideStoreBackend(),
             session_check=False,
