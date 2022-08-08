@@ -16,7 +16,8 @@ class Smiles(Graph):
                 if (!window.RDKit) {
                     window.RDKit = await window.initRDKitModule();
                 }
-                    column = cell["column_id"]
+                const mol = window.RDKit.get_mol(smiles);
+                const svg = mol
                     .get_svg()
                     .replace(/<rect[^>]*>\s*<\/rect>/, "")
                     .split(/\s+/)
