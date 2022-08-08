@@ -53,7 +53,6 @@ class DashApp:
                     dcc.Store(id="selected_rows_store"),
                     dcc.Store(id="lastly_clicked_point_store"),
                     dcc.Store(id="lastly_hovered_point_store"),
-                    dcc.Store(id="lastly_activated_cell_store"),
                     html.Div(
                         [t.create_layout_globals() for t in TABS],
                         id="globals",

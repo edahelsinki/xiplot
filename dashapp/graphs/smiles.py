@@ -16,9 +16,7 @@ class Smiles(Graph):
                 if (!window.RDKit) {
                     window.RDKit = await window.initRDKitModule();
                 }
-
-                const mol = window.RDKit.get_mol(smiles);
-                const svg = mol
+                    column = cell["column_id"]
                     .get_svg()
                     .replace(/<rect[^>]*>\s*<\/rect>/, "")
                     .split(/\s+/)
@@ -36,22 +34,21 @@ class Smiles(Graph):
                 smiles=Output({"type": "smiles-input", "index": ALL}, "value"),
             ),
             inputs=[
-                Input("lastly_activated_cell_store", "data"),
+                Input("lastly_clicked_point_store", "data"),
                 State({"type": "smiles_lock_dropdown", "index": ALL}, "value"),
                 State({"type": "smiles-input", "index": ALL}, "value"),
                 State("data_frame_store", "data"),
+                State({"type": "table", "index": ALL}, "selected_rows"),
             ],
         )
         def render_active_cell_smiles(
-            active_cell, smiles_render_modes, smiles_inputs, df
+            row, smiles_render_modes, smiles_inputs, df, selected_rows
         ):
-            # FIXME indices do not match when some rows are selected
+            # FIXME wrong smiles img is shown if some rows are selected
             df = df_from_store(df)
             smiles_col = get_smiles_column_name(df)
 
-            row, column = active_cell["row"], active_cell["column"]
-
-            if not smiles_col or column != smiles_col:
+            if not smiles_col or smiles_col != smiles_col:
                 raise PreventUpdate()
 
             smiles_amount = len(smiles_inputs)
@@ -60,7 +57,7 @@ class Smiles(Graph):
                 if smiles_render_modes[i] == "lock":
                     smiles.append(smiles_inputs[i])
                 else:
-                    smiles.append(df.iloc[row][column])
+                    smiles.append(df.iloc[row][smiles_col])
 
             return dict(smiles=smiles)
 

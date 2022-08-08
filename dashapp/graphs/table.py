@@ -7,6 +7,7 @@ from dash_extensions.enrich import CycleBreakerInput
 
 from dashapp.utils.layouts import delete_button
 from dashapp.utils.cluster import cluster_colours
+from dashapp.utils.dataframe import get_smiles_column_name
 from dashapp.graphs import Graph
 
 
@@ -93,7 +94,7 @@ class Table(Graph):
 
         @app.callback(
             output=dict(
-                cell_store=Output("lastly_activated_cell_store", "data"),
+                cell_store=Output("lastly_clicked_point_store", "data"),
                 active_cell=Output({"type": "table", "index": ALL}, "active_cell"),
             ),
             inputs=[
@@ -101,23 +102,22 @@ class Table(Graph):
                 State("data_frame_store", "data"),
             ],
         )
-        def update_lastly_activated_cell_store(active_cells, df):
+        def update_lastly_activated_cell(active_cells, df):
             if active_cells == [None]:
                 raise PreventUpdate()
 
-            row, column = None, None
+            row = None
             for cell in active_cells:
                 if cell:
                     row = cell["row"]
                     column = cell["column_id"]
                     break
 
-            if row is None or column is None:
+            smiles_col = get_smiles_column_name(df)
+            if row is None or column != smiles_col:
                 raise PreventUpdate()
 
-            cell_store = {"row": row, "column": column}
-
-            return dict(cell_store=cell_store, active_cell=[None] * len(active_cells))
+            return dict(cell_store=row, active_cell=[None] * len(active_cells))
 
     @staticmethod
     def create_new_layout(index, df, columns):
