@@ -83,6 +83,9 @@ def read_only_dataframe(data, filename):
         return pd.read_csv(data)
 
     if file_extension == ".json":
+        if isinstance(data, BytesIO):
+            data = data.getvalue().decode("utf-8")
+
         try:
             return pd.read_json(data, typ="frame", orient="columns")
         except Exception:
