@@ -49,14 +49,32 @@ class Barplot(Graph):
             df["Clusters"] = kmeans_col
         if y_axis == "frequency":
             fig = make_fig_fgs(df, x_axis, y_axis, selected_clusters, order, kmeans_col)
+
+        elif x_axis == y_axis:
+            raise PreventUpdate()
+
         else:
+            if type(df[x_axis][0]) in [np.ndarray, list]:
+                grouping = df.groupby(df[x_axis].map(tuple))[y_axis].sum()
+            else:
+                grouping = df.groupby([x_axis])[y_axis].max()
+
+            dff = (
+                grouping.to_frame()
+                .sort_values([y_axis], ascending=False)
+                .head(10)
+                .reset_index()
+            )
+            dff.columns = [x_axis, y_axis]
+
             fig = px.bar(
-                df,
+                dff,
                 x_axis,
                 y_axis,
-                color="Clusters",
                 color_discrete_map=cluster_colours(),
             )
+            fig.update_xaxes(tickangle=45)
+            fig.update_layout(xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
         return fig
 
     @staticmethod
@@ -73,7 +91,9 @@ class Barplot(Graph):
                 delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "barplot", "index": index},
-                    figure=px.bar(df, x[0], y[1]),
+                    figure=make_fig_fgs(
+                        df, x[0], "frequency", "all", "reldiff", ["all"] * len(df)
+                    ),
                 ),
                 layout_wrapper(
                     component=dcc.Dropdown(
@@ -88,7 +108,7 @@ class Barplot(Graph):
                 layout_wrapper(
                     component=dcc.Dropdown(
                         id={"type": "barplot_y_axis", "index": index},
-                        value=y[1],
+                        value="frequency",
                         clearable=False,
                         options=y,
                     ),
