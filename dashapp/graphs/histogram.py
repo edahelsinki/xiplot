@@ -21,7 +21,7 @@ class Histogram(Graph):
             Input("data_frame_store", "data"),
         )
         def tmp(x_axis, selected_clusters, kmeans_col, df):
-            if ctx.triggered_id == "data_frame_store":
+            if ctx.triggered_id == "data_frame_store" or len(selected_clusters) == 0:
                 raise PreventUpdate()
 
             return Histogram.render(
