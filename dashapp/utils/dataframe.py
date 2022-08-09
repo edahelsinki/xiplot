@@ -83,7 +83,10 @@ def read_only_dataframe(data, filename):
         return pd.read_csv(data)
 
     if file_extension == ".json":
-        return pd.read_json(data)
+        try:
+            return pd.read_json(data, typ="frame", orient="columns")
+        except Exception:
+            return pd.read_json(data, typ="frame", orient="split")
 
     if file_extension == ".pkl":
         return pd.read_pickle(data)
@@ -127,15 +130,17 @@ def write_dataframe_and_metadata(df, meta, filepath, file):
 
 
 def write_only_dataframe(df, filepath, file):
+    # TODO: Filter out internal columns from df
+
     file_name = Path(filepath).name
     file_extension = Path(filepath).suffix
 
     if file_extension == ".csv":
-        df.to_csv(file)
+        df.to_csv(file, index=False)
         return file_name, "text/csv"
 
     if file_extension == ".json":
-        df.to_json(file)
+        df.to_json(file, orient="split", index=False)
         return file_name, "application/json"
 
     if file_extension == ".pkl":
