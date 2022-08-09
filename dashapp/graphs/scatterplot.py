@@ -186,14 +186,18 @@ class Scatterplot(Graph):
                 dcc.Graph(
                     id={"type": "scatterplot", "index": index},
                     figure=px.scatter(
-                        df, x, y, custom_data=["auxiliary"], render_mode="webgl"
+                        df,
+                        x if x else df.columns[0],
+                        y if y else df.columns[1],
+                        custom_data=["auxiliary"],
+                        render_mode="webgl",
                     ),
                 ),
                 layout_wrapper(
                     component=dcc.Dropdown(
                         id={"type": "scatter_x_axis", "index": index},
                         options=num_columns,
-                        value=x,
+                        value=x if x else df.columns[0],
                         clearable=False,
                     ),
                     css_class="dd-double-left",
@@ -203,7 +207,7 @@ class Scatterplot(Graph):
                     component=dcc.Dropdown(
                         id={"type": "scatter_y_axis", "index": index},
                         options=num_columns,
-                        value=y,
+                        value=y if y else df.columns[1],
                         clearable=False,
                     ),
                     css_class="dd-double-right",
