@@ -5,19 +5,9 @@ import toml
 
 import dash
 
-import dashapp
-
 from pathlib import Path
 
-from dash_extensions.enrich import (
-    DashProxy,
-    ServersideOutputTransform,
-    MultiplexerTransform,
-    CycleBreakerTransform,
-)
-
-from dashapp.app import DashApp
-from dashapp.utils.store import ServerSideStoreBackend
+from dashapp.setup import setup_dash_app
 
 
 """ Monkey-patch dash to not use time-based fingerprints """
@@ -56,23 +46,11 @@ dash.dash.check_fingerprint = new_check_fingerprint
 
 """ Initialise a minimal version of the dashapp to run requests against """
 
-dash = DashProxy(
-    __name__,
-    suppress_callback_exceptions=True,
+app = setup_dash_app(
+    unsafe_local_server=True,
     compress=False,
     eager_loading=True,
-    prevent_initial_callbacks=True,
-    transforms=[
-        MultiplexerTransform(),
-        CycleBreakerTransform(),
-        ServersideOutputTransform(
-            backend=ServerSideStoreBackend(),
-            session_check=False,
-            arg_check=False,
-        ),
-    ],
 )
-app = DashApp(app=dash, df_from_store=lambda df: df, df_to_store=lambda df: df).app
 
 
 @app.server.errorhandler(Exception)
