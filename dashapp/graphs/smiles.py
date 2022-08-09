@@ -33,8 +33,8 @@ class Smiles(Graph):
                 const mol = window.RDKit.get_mol(smiles);
                 const svg = smiles && mol
                     .get_svg()
-                    .replace(/<rect[^>]*>\s*<\/rect>/, "")
-                    .split(/\s+/)
+                    .replace(/<rect[^>]*>\\s*<\\/rect>/, "")
+                    .split(/\\s+/)
                     .join(" ");
 
                 return "data:image/svg+xml;base64," + btoa(svg || INVALID_SVG);
