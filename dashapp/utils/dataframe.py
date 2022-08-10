@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 def get_data_filepaths():
-    return [fp for fp in Path("data").iterdir() if fp.is_file()]
+    return sorted((fp for fp in Path("data").iterdir() if fp.is_file()), reverse=True)
 
 
 def read_dataframe_with_extension(data, filename=None):
