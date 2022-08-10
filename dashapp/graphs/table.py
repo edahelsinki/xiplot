@@ -1,14 +1,16 @@
 import numpy as np
 import pandas as pd
+import re
 
-from dash import html, Output, Input, State, MATCH, ALL, dash_table, ctx
+from dash import html, dcc, Output, Input, State, MATCH, ALL, dash_table, ctx, no_update
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
 
-from dashapp.utils.layouts import delete_button
+from dashapp.utils.layouts import delete_button, layout_wrapper
 from dashapp.utils.cluster import cluster_colours
 from dashapp.utils.dataframe import get_smiles_column_name
-from dashapp.utils.table import get_sort_by, get_updated_item
+from dashapp.utils.table import get_sort_by, get_updated_item, get_updated_item_id
+from dashapp.utils.dcc import dropdown_regex
 from dashapp.graphs import Graph
 
 
@@ -16,8 +18,10 @@ class Table(Graph):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
-            Output({"type": "table", "index": MATCH}, "data"),
-            Output({"type": "table", "index": MATCH}, "sort_by"),
+            [
+                Output({"type": "table", "index": ALL}, "data"),
+                Output({"type": "table", "index": ALL}, "sort_by"),
+            ],
             State("clusters_column_store", "data"),
             Input("selected_rows_store", "data"),
             Input("data_frame_store", "data"),
@@ -26,8 +30,9 @@ class Table(Graph):
         )
         def update_table_data(kmeans_col, selected_rows, df, table_df, sort_by):
             trigger = ctx.triggered_id
-            if trigger == "data_frame_store":
+            if trigger == "data_frame_store" or not table_df:
                 raise PreventUpdate()
+            table_amount = len(table_df)
 
             table_df = table_df[0]
             table_df = pd.DataFrame(table_df)
@@ -43,7 +48,9 @@ class Table(Graph):
             sort_by = get_sort_by(sort_by, selected_rows, trigger)
 
             columns = table_df.columns.to_list()
-            return table_df[columns].to_dict("records"), sort_by
+            return [table_df[columns].to_dict("records")] * table_amount, [
+                sort_by
+            ] * table_amount
 
         @app.callback(
             Output("selected_rows_store", "data"),
@@ -120,6 +127,95 @@ class Table(Graph):
                 raise PreventUpdate()
             return dict(cell_store=row, active_cell=[None] * len(active_cells))
 
+        @app.callback(
+            Output({"type": "table", "index": ALL}, "data"),
+            Output({"type": "table", "index": ALL}, "columns"),
+            Input({"type": "table_columns_submit-button", "index": ALL}, "n_clicks"),
+            State({"type": "table_columns-dd", "index": ALL}, "value"),
+            State({"type": "table", "index": ALL}, "columns"),
+            State({"type": "table", "index": ALL}, "data"),
+            State("data_frame_store", "data"),
+        )
+        def update_table_columns(n_clicks, dropdown_columns, columns, table_df, df):
+            if not ctx.triggered_id:
+                raise PreventUpdate()
+            trigger_id = ctx.triggered_id["index"]
+            df = df_from_store(df)
+
+            for id, item in enumerate(ctx.inputs_list[0]):
+                if item["id"]["index"] == trigger_id:
+                    if n_clicks[id] is None or dropdown_columns[id] is None:
+                        raise PreventUpdate()
+                    new_columns = []
+                    for dc in dropdown_columns[id]:
+                        if " (regex)" in dc:
+                            for c in df.columns:
+                                if re.search(dc[:-8], c) and c not in new_columns:
+                                    new_columns.append(c)
+                        elif dc not in new_columns:
+                            new_columns.append(dc)
+                    columns[id] = [
+                        {"name": c, "id": c, "hideable": True} for c in new_columns
+                    ]
+                    table_df[id] = df[new_columns].to_dict("records")
+                    break
+
+            return table_df, columns
+
+        @app.callback(
+            Output({"type": "table_columns_regex-input", "index": MATCH}, "value"),
+            Input({"type": "table_columns-dd", "index": MATCH}, "search_value"),
+        )
+        def sync_with_input(keyword):
+            if keyword == "":
+                raise PreventUpdate()
+            return keyword
+
+        @app.callback(
+            Output({"type": "table_columns-dd", "index": ALL}, "options"),
+            Output({"type": "table_columns-dd", "index": ALL}, "value"),
+            Output({"type": "table_columns-dd", "index": ALL}, "search_value"),
+            Input({"type": "table_columns_regex-button", "index": ALL}, "n_clicks"),
+            Input({"type": "table_columns-dd", "index": ALL}, "value"),
+            State({"type": "table_columns_regex-input", "index": ALL}, "value"),
+            State({"type": "table_columns-dd", "index": ALL}, "options"),
+            State("data_frame_store", "data"),
+        )
+        def add_matching_values(
+            n_clicks_all, dropdown_columns_all, keyword_all, options_all, df
+        ):
+            df = df_from_store(df)
+            id = get_updated_item_id(
+                n_clicks_all, ctx.triggered_id["index"], ctx.inputs_list[0]
+            )
+            keyword = keyword_all[id]
+            options = options_all[id]
+            columns = dropdown_columns_all[id]
+
+            trigger = ctx.triggered_id["type"]
+            if trigger == "table_columns-dd":
+                options = df.columns.to_list()
+                options.remove("auxiliary")
+                options, columns, hits = dropdown_regex(options, columns)
+                options_all[id] = options
+                dropdown_columns_all[id] = columns
+                # TODO change variable names to clearer names
+                return (
+                    options_all,
+                    dropdown_columns_all,
+                    [no_update] * len(n_clicks_all),
+                )
+
+            if trigger == "table_columns_regex-button":
+                options, columns, hits = dropdown_regex(options or [], columns, keyword)
+            if keyword is None or hits == 0:
+                raise PreventUpdate()
+
+            options_all[id] = options
+            dropdown_columns_all[id] = columns
+
+            return options_all, dropdown_columns_all, [None] * len(n_clicks_all)
+
     @staticmethod
     def create_new_layout(index, df, columns):
         df = df.rename_axis("index_copy")
@@ -174,6 +270,26 @@ class Table(Graph):
                         }
                         for cluster, colour in cluster_colours().items()
                     ],
+                ),
+                layout_wrapper(
+                    component=dcc.Dropdown(
+                        id={"type": "table_columns-dd", "index": index},
+                        multi=True,
+                        options=df.columns,
+                    ),
+                    css_class="dd-double-right",
+                    title="Select columns",
+                ),
+                html.Button(
+                    "Add columns by regex",
+                    id={"type": "table_columns_regex-button", "index": index},
+                ),
+                dcc.Input(
+                    id={"type": "table_columns_regex-input", "index": index},
+                    style={"display": "none"},
+                ),
+                html.Button(
+                    "Select", id={"type": "table_columns_submit-button", "index": index}
                 ),
             ],
             id={"type": "table-container", "index": index},

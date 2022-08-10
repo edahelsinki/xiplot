@@ -60,9 +60,13 @@ def get_updated_item(items, index, inputs_list):
             items[id] = []
 
     # Get the updated item
-    for id, item in enumerate(inputs_list):
-        if item["id"]["index"] == index:
-            item = items[id]
-            break
+    item_id = get_updated_item_id(items, index, inputs_list)
+    item = items[item_id]
 
     return item
+
+
+def get_updated_item_id(items, index, inputs_list):
+    for id, item in enumerate(inputs_list):
+        if item["id"]["index"] == index:
+            return id

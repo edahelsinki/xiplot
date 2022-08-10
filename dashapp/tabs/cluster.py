@@ -324,6 +324,7 @@ class Cluster(Tab):
                         new_features.append(c)
             elif f not in new_features:
                 new_features.append(f)
+
         scaler = StandardScaler()
         scale = scaler.fit_transform(df[new_features])
         km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
