@@ -10,9 +10,7 @@ from dash.exceptions import PreventUpdate
 from dashapp.utils.layouts import layout_wrapper, delete_button
 from dashapp.utils.dataframe import get_numeric_columns
 from dashapp.utils.cluster import cluster_colours
-from dashapp.utils.smiles import get_smiles_inputs
 from dashapp.utils.scatterplot import get_row
-from dashapp.utils.dataframe import get_smiles_column_name
 from dashapp.graphs import Graph
 
 

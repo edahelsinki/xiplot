@@ -8,7 +8,7 @@ from dash_extensions.enrich import CycleBreakerInput
 from dashapp.utils.layouts import delete_button
 from dashapp.utils.cluster import cluster_colours
 from dashapp.utils.dataframe import get_smiles_column_name
-from dashapp.utils.table import get_sort_by
+from dashapp.utils.table import get_sort_by, get_updated_item
 from dashapp.graphs import Graph
 
 
@@ -34,6 +34,7 @@ class Table(Graph):
             table_df.rename_axis("index_copy")
             table_df["Selection"] = selected_rows
 
+            # TODO make a new store for sort by
             sort_by = sort_by[0]
 
             if len(kmeans_col) == table_df.shape[0]:
@@ -64,19 +65,9 @@ class Table(Graph):
             df = df_from_store(df)
 
             # check, which table had changed
-            if selected_rows_checkbox[-1] is None:
-                selected_rows_checkbox = selected_rows_checkbox[:-1]
-
-            for id, item in enumerate(selected_rows_checkbox):
-                if item is None:
-                    selected_rows_checkbox[id] = []
-
-            index = ctx.triggered_id["index"]
-
-            for id, item in enumerate(ctx.inputs_list[0]):
-                if item["id"]["index"] == index:
-                    selected_rows_checkbox = selected_rows_checkbox[id]
-                    break
+            selected_rows_checkbox = get_updated_item(
+                selected_rows_checkbox, ctx.triggered_id["index"], ctx.inputs_list[0]
+            )
 
             result = [True] * df.shape[0]
             for row in selected_rows_checkbox:
@@ -127,7 +118,6 @@ class Table(Graph):
             smiles_col = get_smiles_column_name(df)
             if row is None or column != smiles_col:
                 raise PreventUpdate()
-
             return dict(cell_store=row, active_cell=[None] * len(active_cells))
 
     @staticmethod
