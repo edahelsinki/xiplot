@@ -62,9 +62,21 @@ class Table(Graph):
                 raise PreventUpdate()
 
             df = df_from_store(df)
-            selected_rows_checkbox = selected_rows_checkbox[0]
-            if selected_rows_checkbox is None:
-                selected_rows_checkbox = []
+
+            # check, which table had changed
+            if selected_rows_checkbox[-1] is None:
+                selected_rows_checkbox = selected_rows_checkbox[:-1]
+
+            for id, item in enumerate(selected_rows_checkbox):
+                if item is None:
+                    selected_rows_checkbox[id] = []
+
+            index = ctx.triggered_id["index"]
+
+            for id, item in enumerate(ctx.inputs_list[0]):
+                if item["id"]["index"] == index:
+                    selected_rows_checkbox = selected_rows_checkbox[id]
+                    break
 
             result = [True] * df.shape[0]
             for row in selected_rows_checkbox:
