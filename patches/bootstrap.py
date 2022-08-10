@@ -15,14 +15,7 @@ from dashapp.setup import setup_dash_app
 def bootstrap_dash_app(url_base_pathname):
     Path("data").mkdir(exist_ok=True, parents=True)
 
-    for dataset in [
-        "autompg-B.csv",
-        "autompg.csv",
-        "auto-mpg.csv",
-        "Wang-B.csv",
-        "Wang-dataframe.csv",
-        "Wang-dataframe.tar",
-    ]:
+    for dataset in pyodide.http.open_url("assets/data.ls").read().splitlines():
         with open(Path("data") / dataset, "w") as file:
             shutil.copyfileobj(pyodide.http.open_url("data/" + dataset), file)
 
