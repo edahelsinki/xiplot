@@ -144,6 +144,7 @@ export class WorkerManager {
 
       if (statusBar) {
         const message = document.createElement("div");
+        message.className = "stdout";
         message.innerText = event.data.consoleMessage;
 
         statusBar.appendChild(message);
@@ -156,13 +157,14 @@ export class WorkerManager {
 
     // Forward error messages to the error tracker or `console.error`
     if (event.data.consoleError) {
-      const errorBar = document.querySelector(".error");
+      const statusBar = document.querySelector(".status");
 
-      if (errorBar) {
+      if (statusBar) {
         const error = document.createElement("div");
+        error.className = "stderr";
         error.innerText = event.data.consoleError;
 
-        errorBar.appendChild(error);
+        statusBar.appendChild(error);
       } else {
         console.error(event.data.consoleError);
       }

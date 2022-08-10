@@ -104,10 +104,16 @@ class WebDash {
 
     await this.worker_manager.executeWithAnyResponse(
       dedent`
+        import micropip
+
         ${bootstrap_python}
 
         # Initialise and bootstrap the dash app
         app = bootstrap_dash_app("${url_base_pathname}")
+
+        @app.server.errorhandler(ImportError)
+        def import_error(err):
+          return err.name, 424
       `,
       {}
     );

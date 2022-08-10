@@ -60,7 +60,7 @@ onmessage = async (event: MessageEvent) => {
     );
 
     // Execute the Python code
-    let result = await pyodide.runPython(python_code);
+    let result = await pyodide.runPythonAsync(python_code);
 
     // Check if the result is a PyProxy, if so convert it into a response object
     if (pyodide.isPyProxy(result)) {
