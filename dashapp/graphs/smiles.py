@@ -105,7 +105,10 @@ class Smiles(Graph):
             ],
         )
         def render_clicks(row, render_modes, smiles_inputs, df):
-            if render_modes == [None]:
+            df = df_from_store(df)
+            smiles_col = get_smiles_column_name(df)
+
+            if not smiles_col or render_modes == [None]:
                 raise PreventUpdate()
 
             smiles_inputs = get_smiles_inputs(
@@ -123,7 +126,10 @@ class Smiles(Graph):
             ],
         )
         def render_hovered(row, render_modes, smiles_inputs, df):
-            if render_modes == [None]:
+            df = df_from_store(df)
+            smiles_col = get_smiles_column_name(df)
+
+            if not smiles_col or render_modes == [None]:
                 raise PreventUpdate()
 
             smiles_inputs = get_smiles_inputs(
