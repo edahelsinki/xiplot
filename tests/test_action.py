@@ -4,7 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 
 
-def test_teac001_load_data_file(dash_duo):
+"""def test_teac001_load_data_file(dash_duo):
     # TODO investigate how to implement dash testing
     dash_duo.start_server(setup_dash_app())
 
@@ -32,3 +32,4 @@ def test_teac001_load_data_file(dash_duo):
     assert "The data file auto-mpg.csv was loaded successfully!" in message
 
     dash_duo.driver.close()
+"""
