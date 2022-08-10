@@ -9,8 +9,6 @@ import plotly.express as px
 from dash import Output, Input, State, ctx, ALL, html, dcc
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
 
 from dashapp.tabs import Tab
 from dashapp.utils.layouts import layout_wrapper, cluster_dropdown
@@ -314,6 +312,9 @@ class Cluster(Tab):
             features, n_clusters, notifications, process_id
         ):
             return kmeans_col
+
+        from sklearn.cluster import KMeans
+        from sklearn.preprocessing import StandardScaler
 
         columns = get_numeric_columns(df, df.columns.to_list())
         new_features = []

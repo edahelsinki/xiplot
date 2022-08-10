@@ -2,7 +2,6 @@ import plotly.express as px
 
 from dash import html, dcc, Output, Input, MATCH, ctx
 from dash.exceptions import PreventUpdate
-from sklearn.cluster import KMeans
 
 from dashapp.utils.layouts import layout_wrapper, delete_button
 from dashapp.utils.dataframe import get_numeric_columns
@@ -25,6 +24,8 @@ class Heatmap(Graph):
 
     @staticmethod
     def render(n_clusters, df):
+        from sklearn.cluster import KMeans
+
         columns = df.columns.to_list()
         num_columns = get_numeric_columns(df, columns)
 
