@@ -3,6 +3,7 @@ import shutil
 
 import dash
 import pyodide
+import pyodide_js
 
 from pathlib import Path
 
@@ -16,8 +17,7 @@ def bootstrap_dash_app(url_base_pathname):
     Path("data").mkdir(exist_ok=True, parents=True)
 
     for dataset in pyodide.http.open_url("assets/data.ls").read().splitlines():
-        with open(Path("data") / dataset, "w") as file:
-            shutil.copyfileobj(pyodide.http.open_url("data/" + dataset), file)
+        pyodide_js.FS.createLazyFile("data", dataset, "data/" + dataset, True, False)
 
     app = setup_dash_app(
         unsafe_local_server=True,
