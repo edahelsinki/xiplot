@@ -6,6 +6,7 @@ import dash
 import dash_daq as daq
 import dash_mantine_components as dmc
 import plotly.express as px
+import numpy as np
 
 from dash import Output, Input, State, ctx, ALL, html, dcc
 from dash.exceptions import PreventUpdate
@@ -87,20 +88,18 @@ class Cluster(Tab):
                         )
                     )
 
-                return df_to_store(Cluster.initialize(df)), notifications, process_id
+                return Cluster.initialize(df), notifications, process_id
             if ctx.triggered_id == "cluster-button":
                 notifications = []
 
                 try:
-                    kmeans_col = df_to_store(
-                        Cluster.create_by_input(
-                            df_from_store(df),
-                            features,
-                            n_clusters,
-                            df_from_store(kmeans_col),
-                            notifications,
-                            process_id,
-                        )
+                    kmeans_col = Cluster.create_by_input(
+                        df_from_store(df),
+                        features,
+                        n_clusters,
+                        kmeans_col,
+                        notifications,
+                        process_id,
                     )
                 except Exception as err:
                     notifications.append(
@@ -127,13 +126,11 @@ class Cluster(Tab):
                     )
 
                 return (
-                    df_to_store(
-                        Cluster.create_by_drawing(
-                            selected_data,
-                            df_from_store(kmeans_col),
-                            cluster_id,
-                            selection_mode,
-                        )
+                    Cluster.create_by_drawing(
+                        selected_data,
+                        kmeans_col,
+                        cluster_id,
+                        selection_mode,
                     ),
                     notification,
                     process_id,
@@ -281,7 +278,7 @@ class Cluster(Tab):
     @staticmethod
     def initialize(df):
         kmeans_col = ["all"] * df.shape[0]
-        return kmeans_col
+        return np.array(kmeans_col)
 
     @staticmethod
     def validate_cluster_params(
@@ -349,7 +346,7 @@ class Cluster(Tab):
         scaler = StandardScaler()
         scale = scaler.fit_transform(df[new_features])
         km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
-        kmeans_col = [f"c{c+1}" for c in km]
+        kmeans_col = np.array([f"c{c+1}" for c in km])
 
         notifications.append(
             dmc.Notification(
@@ -371,7 +368,7 @@ class Cluster(Tab):
             for p in selected_data[0]["points"]:
                 kmeans_col[p["customdata"][0]["index"]] = cluster_id
         else:
-            kmeans_col = ["c2"] * len(kmeans_col)
+            kmeans_col = np.array(["c2"] * len(kmeans_col))
             for p in selected_data[0]["points"]:
                 kmeans_col[p["customdata"][0]["index"]] = "c1"
         return kmeans_col
@@ -426,7 +423,7 @@ class Cluster(Tab):
                 layout_wrapper(
                     component=daq.ToggleSwitch(
                         id="cluster_selection_mode",
-                        value=True,
+                        value=False,
                         label="replace mode/edit mode",
                     ),
                     style={"display": "inline-block"},

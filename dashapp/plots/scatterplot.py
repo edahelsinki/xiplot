@@ -141,9 +141,9 @@ class Scatterplot(Plot):
             sizes[id] = 5
             colors[id] = "*"
 
-        df = df.copy()
         df["__Sizes__"] = sizes
         df["__Color__"] = colors
+        df["__Auxiliary__"] = [{"index": i} for i in range(len(df))]
 
         fig = px.scatter(
             data_frame=df,
@@ -157,7 +157,7 @@ class Scatterplot(Plot):
                 "*": "#000000",
                 **cluster_colours(),
             },
-            custom_data=["auxiliary"] if "auxiliary" in df.columns else None,
+            custom_data=["__Auxiliary__"],
             hover_data={"__Color__": False, "__Sizes__": False},
             render_mode="webgl",
         )
@@ -171,6 +171,7 @@ class Scatterplot(Plot):
     def create_new_layout(index, df, columns):
         x = None
         y = None
+        df["__Auxiliary__"] = [{"index": i} for i in range(len(df))]
         num_columns = get_numeric_columns(df, columns)
         for c in num_columns:
             if "x-" in c or " 1" in c:
@@ -187,7 +188,7 @@ class Scatterplot(Plot):
                         df,
                         x if x else df.columns[0],
                         y if y else df.columns[1],
-                        custom_data=["auxiliary"],
+                        custom_data=["__Auxiliary__"],
                         render_mode="webgl",
                     ),
                 ),

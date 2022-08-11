@@ -26,7 +26,7 @@ def setup_dash_app(unsafe_local_server=False, **kwargs):
         )
 
         def df_from_store(df):
-            return df
+            return df.copy(deep=False)
 
         def df_to_store(df):
             return df

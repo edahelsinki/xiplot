@@ -62,7 +62,6 @@ class Plots(Tab):
 
                 # read df from store
                 df = df_from_store(df)
-                kmeans_col = df_from_store(kmeans_col)
 
                 if kmeans_col is None:
                     return dash.no_update, dmc.Notification(
@@ -78,7 +77,6 @@ class Plots(Tab):
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col
                 columns = df.columns.to_list()
-                columns.remove("auxiliary")
                 layout = Plots.plot_types[plot_type].create_new_layout(
                     n_clicks, df, columns
                 )

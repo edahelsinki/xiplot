@@ -195,7 +195,6 @@ class Table(Plot):
             trigger = ctx.triggered_id["type"]
             if trigger == "table_columns-dd":
                 columns = df.columns.to_list()
-                columns.remove("auxiliary")
                 columns, selected_columns, hits = dropdown_regex(
                     columns, selected_columns
                 )
@@ -225,7 +224,6 @@ class Table(Plot):
         df = df.rename_axis("index_copy")
 
         columns = df.columns.to_list()
-        columns.remove("auxiliary")
 
         columns = columns[:5] + ["Clusters"]
 

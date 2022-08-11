@@ -250,10 +250,7 @@ class Data(Tab):
                     autoClose=5000,
                 )
 
-            df_store = df_from_store(df_store)
-            df_store["auxiliary"] = [{"index": i} for i in range(len(df))]
-
-            return df_to_store(df_store), meta, notification
+            return df_store, meta, notification
 
         @app.callback(
             Output("data-download", "data"),
