@@ -26,6 +26,7 @@ class Heatmap(Graph):
     def render(n_clusters, df):
         from sklearn.cluster import KMeans
 
+        df = df.dropna()
         columns = df.columns.to_list()
         num_columns = get_numeric_columns(df, columns)
 
@@ -45,12 +46,15 @@ class Heatmap(Graph):
 
     @staticmethod
     def create_new_layout(index, df, columns):
+        num_columns = get_numeric_columns(df, columns)
         return html.Div(
             [
                 delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "heatmap", "index": index},
-                    figure=px.imshow(df, color_continuous_scale="RdBu", origin="lower"),
+                    figure=px.imshow(
+                        df[num_columns], color_continuous_scale="RdBu", origin="lower"
+                    ),
                 ),
                 layout_wrapper(
                     component=dcc.Slider(
