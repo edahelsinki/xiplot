@@ -52,9 +52,7 @@ class Heatmap(Graph):
                 delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "heatmap", "index": index},
-                    figure=px.imshow(
-                        df[num_columns], color_continuous_scale="RdBu", origin="lower"
-                    ),
+                    figure=Heatmap.render(2, df),
                 ),
                 layout_wrapper(
                     component=dcc.Slider(
