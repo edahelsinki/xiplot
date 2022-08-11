@@ -1,5 +1,6 @@
 import re
 import uuid
+import sys
 
 import dash
 import dash_daq as daq
@@ -163,11 +164,16 @@ class Cluster(Tab):
 
             process_id = str(uuid.uuid4())
 
+            message = "The k-means clustering process has started."
+
+            if "sklearn" not in sys.modules:
+                message += " [sklearn has to first be loaded lazily]"
+
             return process_id, dmc.Notification(
                 id=process_id,
                 color="blue",
                 title="Processing",
-                message="The k-means clustering process has started.",
+                message=message,
                 action="show",
                 loading=True,
                 autoClose=False,
