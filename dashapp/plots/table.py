@@ -182,39 +182,43 @@ class Table(Plot):
             State("data_frame_store", "data"),
         )
         def add_matching_values(
-            n_clicks_all, dropdown_columns_all, keyword_all, options_all, df
+            n_clicks_all, selected_columns_all, keyword_all, columns_all, df
         ):
             df = df_from_store(df)
             id = get_updated_item_id(
                 n_clicks_all, ctx.triggered_id["index"], ctx.inputs_list[0]
             )
             keyword = keyword_all[id]
-            options = options_all[id]
-            columns = dropdown_columns_all[id]
+            columns = columns_all[id]
+            selected_columns = selected_columns_all[id]
 
             trigger = ctx.triggered_id["type"]
             if trigger == "table_columns-dd":
-                options = df.columns.to_list()
-                options.remove("auxiliary")
-                options, columns, hits = dropdown_regex(options, columns)
-                options_all[id] = options
-                dropdown_columns_all[id] = columns
-                # TODO change variable names to clearer names
+                columns = df.columns.to_list()
+                columns.remove("auxiliary")
+                columns, selected_columns, hits = dropdown_regex(
+                    columns, selected_columns
+                )
+                columns_all[id] = columns
+                selected_columns_all[id] = selected_columns
+
                 return (
-                    options_all,
-                    dropdown_columns_all,
+                    columns_all,
+                    selected_columns_all,
                     [no_update] * len(n_clicks_all),
                 )
 
             if trigger == "table_columns_regex-button":
-                options, columns, hits = dropdown_regex(options or [], columns, keyword)
+                columns, selected_columns, hits = dropdown_regex(
+                    columns or [], selected_columns, keyword
+                )
             if keyword is None or hits == 0:
                 raise PreventUpdate()
 
-            options_all[id] = options
-            dropdown_columns_all[id] = columns
+            columns_all[id] = columns
+            selected_columns_all[id] = selected_columns
 
-            return options_all, dropdown_columns_all, [None] * len(n_clicks_all)
+            return columns_all, selected_columns_all, [None] * len(n_clicks_all)
 
     @staticmethod
     def create_new_layout(index, df, columns):
