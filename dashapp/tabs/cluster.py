@@ -91,16 +91,30 @@ class Cluster(Tab):
             if ctx.triggered_id == "cluster-button":
                 notifications = []
 
-                kmeans_col = df_to_store(
-                    Cluster.create_by_input(
-                        df_from_store(df),
-                        features,
-                        n_clusters,
-                        df_from_store(kmeans_col),
-                        notifications,
-                        process_id,
+                try:
+                    kmeans_col = df_to_store(
+                        Cluster.create_by_input(
+                            df_from_store(df),
+                            features,
+                            n_clusters,
+                            df_from_store(kmeans_col),
+                            notifications,
+                            process_id,
+                        )
                     )
-                )
+                except Exception as err:
+                    notifications.append(
+                        dmc.Notification(
+                            id=process_id or str(uuid.uuid4()),
+                            color="red",
+                            title="Error",
+                            message=f"The clustering failed with an internal error. Please report the following bug: {err}",
+                            action="update" if process_id else "show",
+                            autoClose=False,
+                        )
+                    )
+
+                    return dash.no_update, notifications, process_id
 
                 return kmeans_col, notifications, process_id
             if selected_data and selected_data[0] and selected_data[0]["points"]:
