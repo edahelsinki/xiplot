@@ -59,8 +59,31 @@ onmessage = async (event: MessageEvent) => {
       postConsoleError
     );
 
-    // Execute the Python code
-    let result = await pyodide.runPythonAsync(python_code);
+    let result;
+
+    while (true) {
+      try {
+        // Execute the Python code
+        result = await pyodide.runPython(python_code);
+        break;
+      } catch (error) {
+        // Check if an import error occurred, if so get the package name
+        const package: string = await pyodide.runPython(
+          "import sys; None if not isinstance(sys.last_value, ImportError) else sys.last_value.name"
+        );
+
+        // Re-throw non-import errors
+        if (!package) {
+          throw error;
+        }
+
+        await pyodide.loadPackage(
+          package,
+          postConsoleMessage,
+          postConsoleError
+        );
+      }
+    }
 
     // Check if the result is a PyProxy, if so convert it into a response object
     if (pyodide.isPyProxy(result)) {
@@ -200,6 +223,11 @@ declare function loadPyodide(options?: {
 declare type PyodideInterface = {
   loadPackagesFromImports: (
     code: string,
+    stdout?: (msg: string) => void,
+    stderr?: (err: string) => void
+  ) => Promise<void>;
+  loadPackage: (
+    name: string,
     stdout?: (msg: string) => void,
     stderr?: (err: string) => void
   ) => Promise<void>;

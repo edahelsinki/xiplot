@@ -183,6 +183,8 @@ export class WorkerManager {
 
     // Resolve the callback with the results or the error
     if (event.data.error) {
+      console.error("WORKER ERROR CALLBACK", event.data.error);
+
       return callback.on_error(event.data.error);
     } else {
       return callback.on_success(event.data.results);

@@ -104,8 +104,6 @@ class WebDash {
 
     await this.worker_manager.executeWithAnyResponse(
       dedent`
-        import micropip
-
         ${bootstrap_python}
 
         # Initialise and bootstrap the dash app

@@ -198,17 +198,13 @@ export class WebFlask {
     return dedent`
       with app.server.app_context():
         with app.server.test_client() as client:
-          while True:
-            response = client.open('${info}',
-              data=${data},
-              content_type=${content_type},
-              method="${method}",
-            )
-            if response.status_code != 424:
-              break
-            await micropip.install(
-              response.get_data(as_text=True)
-            )
+          response = client.open('${info}',
+            data=${data},
+            content_type=${content_type},
+            method="${method}",
+          )
+      if response.status_code == 424:
+        __import__(response.get_data(as_text=True))
       response
     `;
   }
