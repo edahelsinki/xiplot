@@ -47,7 +47,7 @@ class DashApp:
                             "border-radius": "8px",
                         },
                     ),
-                    html.Div(id="graphs"),
+                    html.Div(id="plots"),
                     dcc.Store(id="data_frame_store"),
                     dcc.Store(id="clusters_column_store"),
                     dcc.Store(id="selected_rows_store"),

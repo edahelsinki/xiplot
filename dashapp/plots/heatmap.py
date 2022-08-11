@@ -5,10 +5,10 @@ from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import layout_wrapper, delete_button
 from dashapp.utils.dataframe import get_numeric_columns
-from dashapp.graphs import Graph
+from dashapp.plots import Plot
 
 
-class Heatmap(Graph):
+class Heatmap(Plot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
@@ -66,5 +66,5 @@ class Heatmap(Graph):
                 ),
             ],
             id={"type": "heatmap-container", "index": index},
-            className="graphs",
+            className="plots",
         )

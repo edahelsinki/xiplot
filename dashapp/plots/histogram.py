@@ -7,10 +7,10 @@ from dash.exceptions import PreventUpdate
 from dashapp.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
 from dashapp.utils.dataframe import get_numeric_columns
 from dashapp.utils.cluster import cluster_colours
-from dashapp.graphs import Graph
+from dashapp.plots import Plot
 
 
-class Histogram(Graph):
+class Histogram(Plot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
@@ -67,7 +67,7 @@ class Histogram(Graph):
                 ),
             ],
             id={"type": "histogram-container", "index": index},
-            className="graphs",
+            className="plots",
         )
 
 

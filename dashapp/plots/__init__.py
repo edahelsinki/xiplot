@@ -1,9 +1,9 @@
 from abc import ABC, abstractstaticmethod
 
 
-class Graph(ABC):
+class Plot(ABC):
     def __init__(self):
-        raise TypeError("Graphs should not be constructed")
+        raise TypeError("Plot should not be constructed")
 
     @classmethod
     def name(cls) -> str:

@@ -6,10 +6,10 @@ from dash.exceptions import PreventUpdate
 from dashapp.utils.layouts import delete_button, layout_wrapper
 from dashapp.utils.dataframe import get_smiles_column_name
 from dashapp.utils.smiles import get_smiles_inputs
-from dashapp.graphs import Graph
+from dashapp.plots import Plot
 
 
-class Smiles(Graph):
+class Smiles(Plot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         app.clientside_callback(
@@ -168,5 +168,5 @@ class Smiles(Graph):
                 ),
             ],
             id={"type": "smiles-container", "index": index},
-            className="graphs",
+            className="plots",
         )

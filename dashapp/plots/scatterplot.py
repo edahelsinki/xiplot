@@ -11,10 +11,10 @@ from dashapp.utils.layouts import layout_wrapper, delete_button
 from dashapp.utils.dataframe import get_numeric_columns
 from dashapp.utils.cluster import cluster_colours
 from dashapp.utils.scatterplot import get_row
-from dashapp.graphs import Graph
+from dashapp.plots import Plot
 
 
-class Scatterplot(Graph):
+class Scatterplot(Plot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
@@ -241,5 +241,5 @@ class Scatterplot(Graph):
                 ),
             ],
             id={"type": "scatterplot-container", "index": index},
-            className="graphs",
+            className="plots",
         )

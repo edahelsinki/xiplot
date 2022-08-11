@@ -11,10 +11,10 @@ from dashapp.utils.cluster import cluster_colours
 from dashapp.utils.dataframe import get_smiles_column_name
 from dashapp.utils.table import get_sort_by, get_updated_item, get_updated_item_id
 from dashapp.utils.dcc import dropdown_regex
-from dashapp.graphs import Graph
+from dashapp.plots import Plot
 
 
-class Table(Graph):
+class Table(Plot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
@@ -293,5 +293,5 @@ class Table(Graph):
                 ),
             ],
             id={"type": "table-container", "index": index},
-            className="graphs",
+            className="plots",
         )

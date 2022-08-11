@@ -8,12 +8,12 @@ from dash.exceptions import PreventUpdate
 
 from dashapp.tabs import Tab
 from dashapp.utils.layouts import layout_wrapper
-from dashapp.graphs.scatterplot import Scatterplot
-from dashapp.graphs.histogram import Histogram
-from dashapp.graphs.heatmap import Heatmap
-from dashapp.graphs.barplot import Barplot
-from dashapp.graphs.table import Table
-from dashapp.graphs.smiles import Smiles
+from dashapp.plots.scatterplot import Scatterplot
+from dashapp.plots.histogram import Histogram
+from dashapp.plots.heatmap import Heatmap
+from dashapp.plots.barplot import Barplot
+from dashapp.plots.table import Table
+from dashapp.plots.smiles import Smiles
 
 
 class Plots(Tab):
@@ -29,11 +29,11 @@ class Plots(Tab):
             )
 
         @app.callback(
-            Output("graphs", "children"),
+            Output("plots", "children"),
             Output("plots-tab-notify-container", "children"),
             Input("new_plot-button", "n_clicks"),
             Input({"type": "plot-delete", "index": ALL}, "n_clicks"),
-            State("graphs", "children"),
+            State("plots", "children"),
             State("plot_type", "value"),
             Input("data_frame_store", "data"),
             State("clusters_column_store", "data"),
