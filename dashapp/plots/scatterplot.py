@@ -1,5 +1,7 @@
 import json
+import uuid
 
+import dash
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -28,6 +30,7 @@ class Scatterplot(Plot):
             Input("selected_rows_store", "data"),
             Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
+            prevent_initial_call=False,
         )
         def tmp(x_axis, y_axis, color, symbol, jitter, selected_rows, kmeans_col, df):
             if ctx.triggered_id == "data_frame_store":
@@ -102,6 +105,54 @@ class Scatterplot(Plot):
                 hover_store=row,
                 scatter=[None] * scatter_amount,
             )
+
+        @app.callback(
+            output=dict(
+                clusters=Output("clusters_column_store", "data"),
+                reset=Output("clusters_column_store_reset", "children"),
+            ),
+            inputs=[
+                Input({"type": "scatterplot", "index": ALL}, "selectedData"),
+                State("clusters_column_store", "data"),
+                State("selection_cluster_dropdown", "value"),
+                State("cluster_selection_mode", "value"),
+            ],
+        )
+        def handle_cluster_drawing(
+            selected_data, kmeans_col, cluster_id, selection_mode
+        ):
+            if not selected_data:
+                return dash.no_update
+
+            updated = False
+
+            if not selection_mode:
+                kmeans_col = ["c2"] * len(kmeans_col)
+
+            for trigger in ctx.triggered:
+                if (
+                    not trigger
+                    or not trigger["value"]
+                    or not trigger["value"]["points"]
+                ):
+                    continue
+
+                updated = updated or len(trigger["value"]["points"]) > 0
+
+                try:
+                    if selection_mode:
+                        for p in trigger["value"]["points"]:
+                            kmeans_col[p["customdata"][0]["index"]] = cluster_id
+                    else:
+                        for p in trigger["value"]["points"]:
+                            kmeans_col[p["customdata"][0]["index"]] = "c1"
+                except Exception:
+                    return dash.no_update
+
+            if not updated:
+                return dash.no_update
+
+            return dict(clusters=kmeans_col, reset=str(uuid.uuid4()))
 
     @staticmethod
     def render(

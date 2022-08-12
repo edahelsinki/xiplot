@@ -51,6 +51,9 @@ class DashApp:
                     dcc.Store(id="data_frame_store"),
                     dcc.Store(id="metadata_store"),
                     dcc.Store(id="clusters_column_store"),
+                    html.Div(
+                        id="clusters_column_store_reset", style={"display": "none"}
+                    ),
                     dcc.Store(id="selected_rows_store"),
                     dcc.Store(id="lastly_clicked_point_store"),
                     dcc.Store(id="lastly_hovered_point_store"),

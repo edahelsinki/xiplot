@@ -54,14 +54,6 @@ class Table(Plot):
 
         @app.callback(
             Output("selected_rows_store", "data"),
-            Input("data_frame_store", "data"),
-        )
-        def initialize_selected_rows(df):
-            df = df_from_store(df)
-            return [True] * df.shape[0]
-
-        @app.callback(
-            Output("selected_rows_store", "data"),
             Input({"type": "table", "index": ALL}, "selected_rows"),
             State("data_frame_store", "data"),
         )
@@ -88,6 +80,7 @@ class Table(Plot):
                 CycleBreakerInput("selected_rows_store", "data"),
                 Input("clusters_column_store", "data"),
             ],
+            prevent_initial_call=False,
         )
         def update_table_checkbox(selected_rows, kmeans_col):
             if not selected_rows:

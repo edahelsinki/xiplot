@@ -21,6 +21,7 @@ from dashapp.utils.dataframe import (
 )
 from dashapp.tabs import Tab
 from dashapp.utils.layouts import layout_wrapper
+from dashapp.utils.cluster import cluster_colours
 
 
 class Data(Tab):
@@ -158,6 +159,9 @@ class Data(Tab):
             ServersideOutput("data_frame_store", "data"),
             Output("metadata_store", "data"),
             Output("metadata_session", "data"),
+            Output("clusters_column_store", "data"),
+            Output("selected_rows_store", "data"),
+            Output("clusters_column_store_reset", "children"),
             Output("data-tab-notify-container", "children"),
             Input("submit-button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
@@ -176,6 +180,9 @@ class Data(Tab):
 
             if not filepath:
                 return (
+                    dash.no_update,
+                    dash.no_update,
+                    dash.no_update,
                     dash.no_update,
                     dash.no_update,
                     dash.no_update,
@@ -227,6 +234,9 @@ class Data(Tab):
                             dash.no_update,
                             dash.no_update,
                             dash.no_update,
+                            dash.no_update,
+                            dash.no_update,
+                            dash.no_update,
                             dmc.Notification(
                                 id=str(uuid.uuid4()),
                                 color="yellow",
@@ -249,6 +259,7 @@ class Data(Tab):
                     )
             elif trigger == "uploaded_data_file_store":
                 df_store = uploaded_data
+                aux = df_from_store(uploaded_aux)
                 meta = uploaded_meta
 
                 notification = dmc.Notification(
@@ -274,9 +285,65 @@ class Data(Tab):
             if meta.get("plots") is None:
                 meta["plots"] = dict()
 
-            # TODO @juniper: Forward the loaded auxiliary store to
+            df = df_from_store(df_store)
 
-            return df_store, meta, str(uuid.uuid4()), notification
+            if "is_selected" in aux:
+                if aux.dtypes["is_selected"] != bool:
+                    return (
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message=f'The file {filepath.name} could not be loaded as a data frame: auxiliary column "is_selected" is not of type bool.',
+                            action="show",
+                            autoClose=10000,
+                        ),
+                    )
+
+                selected_rows = list(~aux["is_selected"].values)
+            else:
+                selected_rows = [True] * df.shape[0]
+
+            if "cluster" in aux:
+                clusters = list(aux["cluster"].values)
+
+                invalid_clusters = set(clusters) - set(cluster_colours().keys())
+
+                if len(invalid_clusters) > 0:
+                    return (
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message=f'The file {filepath.name} could not be loaded as a data frame: auxiliary column "cluster" contains invalid values {invalid_clusters}.',
+                            action="show",
+                            autoClose=10000,
+                        ),
+                    )
+            else:
+                clusters = ["all"] * df.shape[0]
+
+            return (
+                df_store,
+                meta,
+                str(uuid.uuid4()),
+                clusters,
+                selected_rows,
+                str(uuid.uuid4()),
+                notification,
+            )
 
         @app.callback(
             Output("data-download", "data"),
@@ -286,6 +353,8 @@ class Data(Tab):
             State("data_files", "value"),
             State("data_frame_store", "data"),
             State("metadata_store", "data"),
+            State("clusters_column_store", "data"),
+            State("selected_rows_store", "data"),
             prevent_initial_call=True,
         )
         def download_file(
@@ -294,6 +363,8 @@ class Data(Tab):
             filepath,
             df,
             meta,
+            clusters,
+            selected_rows,
         ):
             df = df_from_store(df)
 
@@ -336,9 +407,16 @@ class Data(Tab):
 
             if ctx.triggered_id == "download-plots-file-button":
                 try:
-                    # TODO @juniper: Collect the auxiliary data here
+                    aux = dict()
+
+                    if clusters is not None:
+                        aux["cluster"] = clusters
+
+                    if selected_rows is not None:
+                        aux["is_selected"] = [not s for s in selected_rows]
+
                     filename, mime = write_dataframe_and_metadata(
-                        df, pd.DataFrame(dict()), meta, meta["filename"], file
+                        df, pd.DataFrame(aux), meta, meta["filename"], file
                     )
                 except Exception as err:
                     return dash.no_update, dmc.Notification(

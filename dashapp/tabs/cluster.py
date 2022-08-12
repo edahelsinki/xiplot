@@ -6,11 +6,10 @@ import dash
 import dash_daq as daq
 import dash_mantine_components as dmc
 import plotly.express as px
-import numpy as np
 
 from dash import Output, Input, State, ctx, ALL, html, dcc
 from dash.exceptions import PreventUpdate
-from dash_extensions.enrich import ServersideOutput
+from dash_extensions.enrich import CycleBreakerInput
 
 from dashapp.tabs import Tab
 from dashapp.utils.layouts import layout_wrapper, cluster_dropdown
@@ -23,33 +22,29 @@ class Cluster(Tab):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
-            ServersideOutput("clusters_column_store", "data"),
+            Output("clusters_column_store", "data"),
             Output("cluster-tab-main-notify-container", "children"),
             Output("cluster-tab-compute-done", "children"),
-            Input("data_frame_store", "data"),
+            State("data_frame_store", "data"),
             Input("cluster-button", "value"),
-            State("cluster-tab-main-notify-container", "children"),
-            Input({"type": "scatterplot", "index": ALL}, "selectedData"),
+            State("cluster-tab-compute-done", "children"),
             Input("clusters_reset-button", "n_clicks"),
             State("cluster_amount", "value"),
             State("cluster_feature", "value"),
-            State("clusters_column_store", "data"),
-            State("selection_cluster_dropdown", "value"),
-            State("cluster_selection_mode", "value"),
+            CycleBreakerInput("clusters_column_store", "data"),
+            Input("clusters_column_store_reset", "children"),
         )
         def set_clusters(
             df,
             process_id,
             done,
-            selected_data,
             n_clicks,
             n_clusters,
             features,
             kmeans_col,
-            cluster_id,
-            selection_mode,
+            reset,
         ):
-            if ctx.triggered_id in ("data_frame_store", "clusters_reset-button"):
+            if ctx.triggered_id == "clusters_reset-button":
                 df = df_from_store(df)
 
                 if df is None:
@@ -72,7 +67,11 @@ class Cluster(Tab):
                     notifications.append(
                         dmc.Notification(
                             id=process_id,
-                            action="hide",
+                            color="blue",
+                            title="Info",
+                            message="The clustering was cancelled.",
+                            action="update",
+                            autoClose=5000,
                         )
                     )
 
@@ -88,7 +87,8 @@ class Cluster(Tab):
                         )
                     )
 
-                return Cluster.initialize(df), notifications, process_id
+                return ["all"] * df.shape[0], notifications, process_id
+
             if ctx.triggered_id == "cluster-button":
                 notifications = []
 
@@ -116,35 +116,22 @@ class Cluster(Tab):
                     return dash.no_update, notifications, process_id
 
                 return kmeans_col, notifications, process_id
-            if selected_data and selected_data[0] and selected_data[0]["points"]:
-                notification = None
 
-                if process_id != done and process_id is not None:
-                    notification = dmc.Notification(
-                        id=process_id,
-                        action="hide",
-                    )
-
-                return (
-                    Cluster.create_by_drawing(
-                        selected_data,
-                        kmeans_col,
-                        cluster_id,
-                        selection_mode,
-                    ),
-                    notification,
-                    process_id,
-                )
-
-            notification = None
+            notifications = []
 
             if process_id != done and process_id is not None:
-                notification = dmc.Notification(
-                    id=process_id,
-                    action="hide",
+                notifications.append(
+                    dmc.Notification(
+                        id=process_id,
+                        color="blue",
+                        title="Info",
+                        message="The clustering was cancelled.",
+                        action="update",
+                        autoClose=5000,
+                    )
                 )
 
-            return kmeans_col, notification, process_id
+            return dash.no_update, notifications, process_id
 
         @app.callback(
             Output("cluster-button", "value"),
@@ -358,11 +345,6 @@ class Cluster(Tab):
             return meta
 
     @staticmethod
-    def initialize(df):
-        kmeans_col = ["all"] * df.shape[0]
-        return np.array(kmeans_col)
-
-    @staticmethod
     def validate_cluster_params(
         features, n_clusters, notifications=None, process_id=None
     ):
@@ -428,7 +410,7 @@ class Cluster(Tab):
         scaler = StandardScaler()
         scale = scaler.fit_transform(df[new_features])
         km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
-        kmeans_col = np.array([f"c{c+1}" for c in km])
+        kmeans_col = [f"c{c+1}" for c in km]
 
         notifications.append(
             dmc.Notification(
@@ -442,17 +424,6 @@ class Cluster(Tab):
             )
         )
 
-        return kmeans_col
-
-    @staticmethod
-    def create_by_drawing(selected_data, kmeans_col, cluster_id, selection_mode):
-        if selection_mode:
-            for p in selected_data[0]["points"]:
-                kmeans_col[p["customdata"][0]["index"]] = cluster_id
-        else:
-            kmeans_col = np.array(["c2"] * len(kmeans_col))
-            for p in selected_data[0]["points"]:
-                kmeans_col[p["customdata"][0]["index"]] = "c1"
         return kmeans_col
 
     @staticmethod
