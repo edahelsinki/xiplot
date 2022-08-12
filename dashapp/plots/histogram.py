@@ -44,7 +44,9 @@ class Histogram(Plot):
                 delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "histogram", "index": index},
-                    figure=px.histogram(df, num_columns[0]),
+                    figure=make_fig_property(
+                        df, num_columns[0], "all", ["all"] * df.shape[0]
+                    ),
                 ),
                 layout_wrapper(
                     component=dcc.Dropdown(

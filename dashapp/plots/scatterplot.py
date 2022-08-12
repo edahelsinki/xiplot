@@ -36,10 +36,11 @@ class Scatterplot(Plot):
             if ctx.triggered_id == "data_frame_store":
                 raise PreventUpdate()
 
+            df = df_from_store(df)
             jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
             return (
                 Scatterplot.render(
-                    df_from_store(df),
+                    df,
                     x_axis,
                     y_axis,
                     color,
