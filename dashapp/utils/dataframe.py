@@ -69,11 +69,11 @@ def read_dataframe_with_extension(data, filename=None):
                 raise Exception(f"Tar contains no metadata file called 'meta.json'")
 
             metadata = json.load(meta_file) or dict()
-            metadata["filename"] = df_name
+            metadata["filename"] = str(df_name)
 
             return read_only_dataframe(df_file, df_name), metadata
 
-    return read_only_dataframe(data, filename), dict(filename=filename)
+    return read_only_dataframe(data, filename), dict(filename=str(filename))
 
 
 def read_only_dataframe(data, filename):
