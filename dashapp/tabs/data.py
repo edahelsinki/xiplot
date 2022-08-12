@@ -2,6 +2,7 @@ import base64
 import os
 import uuid
 
+import pandas as pd
 import dash
 import dash_mantine_components as dmc
 
@@ -31,6 +32,7 @@ class Data(Tab):
             @du.callback(
                 output=[
                     ServersideOutput("uploaded_data_file_store", "data"),
+                    ServersideOutput("uploaded_auxiliary_store", "data"),
                     Output("uploaded_metadata_store", "data"),
                     Output("data_files", "options"),
                     Output("data_files", "value"),
@@ -42,11 +44,12 @@ class Data(Tab):
                 upload_path = Path("uploads") / Path(status[0]).name
 
                 try:
-                    df, meta = read_dataframe_with_extension(
+                    df, aux, meta = read_dataframe_with_extension(
                         upload_path, upload_path.name
                     )
                 except Exception as err:
                     return (
+                        dash.no_update,
                         dash.no_update,
                         dash.no_update,
                         dash.no_update,
@@ -73,6 +76,7 @@ class Data(Tab):
 
                 return (
                     df_to_store(df),
+                    df_to_store(aux),
                     meta,
                     generate_dataframe_options(upload_path),
                     str(Path("uploads") / upload_path.name),
@@ -83,6 +87,7 @@ class Data(Tab):
 
             @app.callback(
                 ServersideOutput("uploaded_data_file_store", "data"),
+                ServersideOutput("uploaded_auxiliary_store", "data"),
                 Output("uploaded_metadata_store", "data"),
                 Output("data_files", "options"),
                 Output("data_files", "value"),
@@ -101,11 +106,12 @@ class Data(Tab):
                 decoded = base64.b64decode(content_string)
 
                 try:
-                    df, meta = read_dataframe_with_extension(
+                    df, aux, meta = read_dataframe_with_extension(
                         BytesIO(decoded), upload_name
                     )
                 except Exception as err:
                     return (
+                        dash.no_update,
                         dash.no_update,
                         dash.no_update,
                         dash.no_update,
@@ -132,6 +138,7 @@ class Data(Tab):
 
                 return (
                     df_to_store(df),
+                    df_to_store(aux),
                     meta,
                     generate_dataframe_options(upload_name),
                     str(Path("uploads") / upload_name.name),
@@ -154,12 +161,14 @@ class Data(Tab):
             Output("data-tab-notify-container", "children"),
             Input("submit-button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
+            Input("uploaded_auxiliary_store", "data"),
             Input("uploaded_metadata_store", "data"),
             State("data_files", "value"),
         )
         def choose_file(
             data_btn,
             uploaded_data,
+            uploaded_aux,
             uploaded_meta,
             filepath,
         ):
@@ -186,9 +195,9 @@ class Data(Tab):
 
             if trigger == "submit-button":
                 if str(list(filepath.parents)[-2]) == "uploads":
-                    df = df_from_store(uploaded_data)
-                    meta = uploaded_meta
                     df_store = uploaded_data
+                    aux = df_from_store(uploaded_aux)
+                    meta = uploaded_meta
 
                     notification = dmc.Notification(
                         id=str(uuid.uuid4()),
@@ -210,7 +219,7 @@ class Data(Tab):
                     filepath = Path("data") / filepath.name
 
                     try:
-                        df, meta = read_dataframe_with_extension(
+                        df, aux, meta = read_dataframe_with_extension(
                             filepath, filepath.name
                         )
                     except Exception as err:
@@ -240,7 +249,6 @@ class Data(Tab):
                     )
             elif trigger == "uploaded_data_file_store":
                 df_store = uploaded_data
-                df = df_from_store(uploaded_data)
                 meta = uploaded_meta
 
                 notification = dmc.Notification(
@@ -265,6 +273,8 @@ class Data(Tab):
 
             if meta.get("plots") is None:
                 meta["plots"] = dict()
+
+            # TODO @juniper: Forward the loaded auxiliary store to
 
             return df_store, meta, str(uuid.uuid4()), notification
 
@@ -326,8 +336,9 @@ class Data(Tab):
 
             if ctx.triggered_id == "download-plots-file-button":
                 try:
+                    # TODO @juniper: Collect the auxiliary data here
                     filename, mime = write_dataframe_and_metadata(
-                        df, meta, meta["filename"], file
+                        df, pd.DataFrame(dict()), meta, meta["filename"], file
                     )
                 except Exception as err:
                     return dash.no_update, dmc.Notification(
@@ -449,7 +460,7 @@ class Data(Tab):
         return html.Div(
             [
                 dcc.Store(id="uploaded_data_file_store"),
-                dcc.Store(id="metadata_store"),
+                dcc.Store(id="uploaded_auxiliary_store"),
                 dcc.Store(id="uploaded_metadata_store"),
                 dcc.Store(id="metadata_session"),
                 html.Div(id="data-tab-notify-container", style={"display": "none"}),

@@ -24,6 +24,7 @@ def read_dataframe_with_extension(data, filename=None):
     Returns:
 
         df: Pandas data frame
+        aux: Pandas data frame
         meta: dictionary of metadata
     """
     if filename is None:
@@ -39,6 +40,8 @@ def read_dataframe_with_extension(data, filename=None):
         ) as tar:
             df_file = None
             df_name = None
+            aux_file = None
+            aux_name = None
             meta_file = None
 
             for member in tar.getmembers():
@@ -55,6 +58,16 @@ def read_dataframe_with_extension(data, filename=None):
                         raise Exception("Tar contains more than one data file")
                     df_file = tar.extractfile(member)
                     df_name = Path(stem).with_suffix(Path(member.name).suffix)
+                elif Path(member.name).stem == "aux" and Path(member.name).suffix in [
+                    ".csv",
+                    ".json",
+                    ".pkl",
+                    ".ft",
+                ]:
+                    if aux_file is not None:
+                        raise Exception("Tar contains more than one auxiliary file")
+                    aux_file = tar.extractfile(member)
+                    aux_name = member.name
                 elif member.name == "meta.json":
                     if meta_file is not None:
                         raise Exception("Tar contains more than metadata file")
@@ -65,15 +78,34 @@ def read_dataframe_with_extension(data, filename=None):
             if df_file is None:
                 raise Exception(f"Tar contains no data file called 'data.*'")
 
+            if aux_file is None:
+                raise Exception(f"Tar contains no auxiliary file called 'aux.*'")
+
             if meta_file is None:
                 raise Exception(f"Tar contains no metadata file called 'meta.json'")
 
             metadata = json.load(meta_file) or dict()
             metadata["filename"] = str(df_name)
 
-            return read_only_dataframe(df_file, df_name), metadata
+            df = read_only_dataframe(df_file, df_name)
 
-    return read_only_dataframe(data, filename), dict(filename=str(filename))
+            try:
+                aux = read_only_dataframe(aux_file, aux_name)
+            except pd.errors.EmptyDataError:
+                aux = pd.DataFrame(dict())
+
+            if len(df) != len(aux) and len(aux.columns) > 0:
+                raise Exception(
+                    f"The dataframe and auxiliary data have different number of rows."
+                )
+
+            return df, aux, metadata
+
+    return (
+        read_only_dataframe(data, filename),
+        pd.DataFrame(dict()),
+        dict(filename=str(filename)),
+    )
 
 
 def read_only_dataframe(data, filename):
@@ -103,9 +135,15 @@ def read_only_dataframe(data, filename):
     raise Exception(f"Unsupported dataframe format '{file_extension}'")
 
 
-def write_dataframe_and_metadata(df, meta, filepath, file):
+def write_dataframe_and_metadata(df, aux, meta, filepath, file):
+    if len(df) != len(aux) and len(aux.columns) > 0:
+        raise Exception(
+            f"The dataframe and auxiliary data have different number of rows."
+        )
+
     with tarfile.open(fileobj=file, mode="w") as tar:
         df_file = Path("data").with_suffix(Path(filepath).suffix).name
+        aux_file = Path("aux").with_suffix(Path(filepath).suffix).name
         meta_file = "meta.json"
         tar_file = Path(filepath).with_suffix(".tar").name
 
@@ -117,6 +155,15 @@ def write_dataframe_and_metadata(df, meta, filepath, file):
         df_info.size = len(df_bytes)
 
         tar.addfile(df_info, BytesIO(df_bytes))
+
+        aux_bytes = BytesIO()
+        _, aux_mime = write_only_dataframe(aux, aux_file, aux_bytes)
+        aux_bytes = aux_bytes.getvalue()
+
+        aux_info = tarfile.TarInfo(aux_file)
+        aux_info.size = len(aux_bytes)
+
+        tar.addfile(aux_info, BytesIO(aux_bytes))
 
         meta = meta or dict()
         meta["filename"] = Path(filepath).name
@@ -133,8 +180,6 @@ def write_dataframe_and_metadata(df, meta, filepath, file):
 
 
 def write_only_dataframe(df, filepath, file):
-    # TODO: Filter out internal columns from df
-
     file_name = Path(filepath).name
     file_extension = Path(filepath).suffix
 
