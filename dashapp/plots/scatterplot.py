@@ -219,7 +219,7 @@ class Scatterplot(Plot):
         return fig
 
     @staticmethod
-    def create_new_layout(index, df, columns):
+    def create_new_layout(index, df, columns, config=None):
         x = None
         y = None
         df["__Auxiliary__"] = [{"index": i} for i in range(len(df))]

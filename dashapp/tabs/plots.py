@@ -30,13 +30,16 @@ class Plots(Tab):
 
         @app.callback(
             Output("plots", "children"),
+            Output("metadata_store", "data"),
             Output("plots-tab-notify-container", "children"),
             Input("new_plot-button", "n_clicks"),
             Input({"type": "plot-delete", "index": ALL}, "n_clicks"),
             State("plots", "children"),
             State("plot_type", "value"),
-            Input("data_frame_store", "data"),
+            State("data_frame_store", "data"),
             State("clusters_column_store", "data"),
+            State("metadata_store", "data"),
+            Input("metadata_session", "data"),
         )
         def add_new_plot(
             n_clicks,
@@ -45,43 +48,141 @@ class Plots(Tab):
             plot_type,
             df,
             kmeans_col,
+            meta,
+            meta_session,
         ):
-            if ctx.triggered_id == "data_frame_store":
-                return [], None
+            if not children:
+                children = []
 
-            if ctx.triggered_id == "new_plot-button":
-                if not plot_type:
-                    return dash.no_update, dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="yellow",
-                        title="Warning",
-                        message="You have not selected any plot type.",
-                        action="show",
-                        autoClose=10000,
+            if ctx.triggered_id in ["new_plot-button", "metadata_session"]:
+                if kmeans_col is None:
+                    return (
+                        dash.no_update,
+                        dash.no_update,
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message="You have not yet loaded any data file.",
+                            action="show",
+                            autoClose=10000,
+                        ),
                     )
+
+                if ctx.triggered_id == "new_plot-button":
+                    if not plot_type:
+                        return (
+                            dash.no_update,
+                            dash.no_update,
+                            dmc.Notification(
+                                id=str(uuid.uuid4()),
+                                color="yellow",
+                                title="Warning",
+                                message="You have not selected any plot type.",
+                                action="show",
+                                autoClose=10000,
+                            ),
+                        )
+
+                    plots = {str(uuid.uuid4()): dict(type=plot_type)}
+                else:
+                    children = []
+
+                    plots = meta["plots"]
+
+                    if not isinstance(plots, dict):
+                        return (
+                            dash.no_update,
+                            dash.no_update,
+                            dmc.Notification(
+                                id=str(uuid.uuid4()),
+                                color="yellow",
+                                title="Warning",
+                                message='The plots tab must be initialised with a map of "plots".',
+                                action="show",
+                                autoClose=10000,
+                            ),
+                        )
+
+                    for plot in plots.values():
+                        if not isinstance(plot, dict):
+                            return (
+                                dash.no_update,
+                                dash.no_update,
+                                dmc.Notification(
+                                    id=str(uuid.uuid4()),
+                                    color="yellow",
+                                    title="Warning",
+                                    message="Every plot must be configured with a map.",
+                                    action="show",
+                                    autoClose=10000,
+                                ),
+                            )
+
+                        if plot.get("type") is None:
+                            return (
+                                dash.no_update,
+                                dash.no_update,
+                                dmc.Notification(
+                                    id=str(uuid.uuid4()),
+                                    color="yellow",
+                                    title="Warning",
+                                    message='Every plot must have a "type".',
+                                    action="show",
+                                    autoClose=10000,
+                                ),
+                            )
+
+                        if Plots.plot_types.get(plot["type"]) is None:
+                            return (
+                                dash.no_update,
+                                dash.no_update,
+                                dmc.Notification(
+                                    id=str(uuid.uuid4()),
+                                    color="yellow",
+                                    title="Warning",
+                                    message=f'Unknown plot type "{plot["type"]}".',
+                                    action="show",
+                                    autoClose=10000,
+                                ),
+                            )
 
                 # read df from store
                 df = df_from_store(df)
-
-                if kmeans_col is None:
-                    return dash.no_update, dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="yellow",
-                        title="Warning",
-                        message="You have not yet loaded any data file.",
-                        action="show",
-                        autoClose=10000,
-                    )
 
                 # create column for clusters if needed
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col
                 columns = df.columns.to_list()
-                layout = Plots.plot_types[plot_type].create_new_layout(
-                    str(uuid.uuid4()), df, columns
-                )
-                children.append(layout)
-                return children, None
+
+                for index, config in plots.items():
+                    plot_type = config["type"]
+                    config = {k: v for k, v in config.items() if k != "type"} or None
+
+                    try:
+                        layout = Plots.plot_types[plot_type].create_new_layout(
+                            str(uuid.uuid4()),
+                            df,
+                            columns,
+                            config=config,
+                        )
+                    except Exception as err:
+                        return (
+                            dash.no_update,
+                            dash.no_update,
+                            dmc.Notification(
+                                id=str(uuid.uuid4()),
+                                color="yellow",
+                                title="Warning",
+                                message=f"Failed to create a {plot_type}: {err}",
+                                action="show",
+                                autoClose=10000,
+                            ),
+                        )
+
+                    children.append(layout)
+
+                return children, dash.no_update, None
 
             deletion_id = ctx.triggered_id["index"]
 
@@ -91,7 +192,9 @@ class Plots(Tab):
                 if chart["props"]["id"]["index"] != deletion_id
             ]
 
-            return children, None
+            meta["plots"] = {k: v for k, v in meta["plots"].items() if k != deletion_id}
+
+            return children, meta, None
 
     @staticmethod
     def create_layout():

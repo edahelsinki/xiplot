@@ -37,7 +37,7 @@ class Histogram(Plot):
         return fig
 
     @staticmethod
-    def create_new_layout(index, df, columns):
+    def create_new_layout(index, df, columns, config=None):
         num_columns = get_numeric_columns(df, columns)
         return html.Div(
             [

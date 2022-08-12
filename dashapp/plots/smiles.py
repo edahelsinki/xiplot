@@ -138,7 +138,7 @@ class Smiles(Plot):
             return dict(smiles=smiles_inputs)
 
     @staticmethod
-    def create_new_layout(index, df, columns):
+    def create_new_layout(index, df, columns, config=None):
         return html.Div(
             children=[
                 delete_button("plot-delete", index),

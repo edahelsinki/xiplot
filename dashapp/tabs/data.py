@@ -37,12 +37,19 @@ class Data(Tab):
                     Output("uploaded_metadata_store", "data"),
                     Output("data_files", "options"),
                     Output("data_files", "value"),
+                    Output("file_uploader_container", "children"),
                     Output("data-tab-upload-notify-container", "children"),
                 ],
                 id="file_uploader",
             )
             def upload(status):
                 upload_path = Path("uploads") / Path(status[0]).name
+
+                uploader = du.Upload(
+                    id="file_uploader",
+                    text="Drag and Drop or Select a File to upload",
+                    default_style={"minHeight": 1, "lineHeight": 4, "height": "85px"},
+                )
 
                 try:
                     df, aux, meta = read_dataframe_with_extension(
@@ -55,6 +62,7 @@ class Data(Tab):
                         dash.no_update,
                         dash.no_update,
                         dash.no_update,
+                        [uploader],
                         dmc.Notification(
                             id=str(uuid.uuid4()),
                             color="yellow",
@@ -81,6 +89,7 @@ class Data(Tab):
                     meta,
                     generate_dataframe_options(upload_path),
                     str(Path("uploads") / upload_path.name),
+                    [uploader],
                     None,
                 )
 
@@ -528,7 +537,9 @@ class Data(Tab):
                     ],
                     style={"float": "left", "width": "40%"},
                 ),
-                html.Div([uploader], className="dash-uploader"),
+                html.Div(
+                    [uploader], id="file_uploader_container", className="dash-uploader"
+                ),
             ],
             id="control_data_content-container",
         )
