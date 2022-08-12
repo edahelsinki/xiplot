@@ -31,7 +31,7 @@ class Data(Tab):
             @du.callback(
                 output=[
                     ServersideOutput("uploaded_data_file_store", "data"),
-                    ServersideOutput("uploaded_metadata_store", "data"),
+                    Output("uploaded_metadata_store", "data"),
                     Output("data_files", "options"),
                     Output("data_files", "value"),
                     Output("data-tab-upload-notify-container", "children"),
@@ -83,7 +83,7 @@ class Data(Tab):
 
             @app.callback(
                 ServersideOutput("uploaded_data_file_store", "data"),
-                ServersideOutput("uploaded_metadata_store", "data"),
+                Output("uploaded_metadata_store", "data"),
                 Output("data_files", "options"),
                 Output("data_files", "value"),
                 Output("file_uploader", "contents"),
@@ -141,8 +141,16 @@ class Data(Tab):
                 )
 
         @app.callback(
+            Output("metadata_session", "data"),
+            Input("will-never-be-called", "data"),
+        )
+        def delay_metadata_session_update(never):
+            return dash.no_update
+
+        @app.callback(
             ServersideOutput("data_frame_store", "data"),
-            ServersideOutput("metadata_store", "data"),
+            Output("metadata_store", "data"),
+            Output("metadata_session", "data"),
             Output("data-tab-notify-container", "children"),
             Input("submit-button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
@@ -159,6 +167,7 @@ class Data(Tab):
 
             if not filepath:
                 return (
+                    dash.no_update,
                     dash.no_update,
                     dash.no_update,
                     dmc.Notification(
@@ -208,6 +217,7 @@ class Data(Tab):
                         return (
                             dash.no_update,
                             dash.no_update,
+                            dash.no_update,
                             dmc.Notification(
                                 id=str(uuid.uuid4()),
                                 color="yellow",
@@ -250,7 +260,13 @@ class Data(Tab):
                     autoClose=5000,
                 )
 
-            return df_store, meta, notification
+            if meta.get("settings") is None:
+                meta["settings"] = dict()
+
+            if meta.get("plots") is None:
+                meta["plots"] = dict()
+
+            return df_store, meta, str(uuid.uuid4()), notification
 
         @app.callback(
             Output("data-download", "data"),
@@ -435,6 +451,7 @@ class Data(Tab):
                 dcc.Store(id="uploaded_data_file_store"),
                 dcc.Store(id="metadata_store"),
                 dcc.Store(id="uploaded_metadata_store"),
+                dcc.Store(id="metadata_session"),
                 html.Div(id="data-tab-notify-container", style={"display": "none"}),
                 html.Div(
                     id="data-tab-upload-notify-container", style={"display": "none"}

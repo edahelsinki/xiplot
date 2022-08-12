@@ -275,6 +275,88 @@ class Cluster(Tab):
                 return "c1", True
             return selection_cluster, False
 
+        @app.callback(
+            Output("cluster_selection_mode", "value"),
+            Output("selection_cluster_dropdown", "value"),
+            Output("cluster-tab-settings-notify-container", "children"),
+            State("metadata_store", "data"),
+            Input("metadata_session", "data"),
+            State("cluster_selection_mode", "value"),
+        )
+        def init_from_settings(meta, meta_session, selection_mode):
+            try:
+                mode = meta["settings"]["cluster_tab"]["selection"]["mode"]
+            except Exception:
+                return selection_mode, dash.no_update, dash.no_update
+
+            if mode == "fg_bg":
+                return False, dash.no_update, dash.no_update
+
+            if mode == "draw":
+                try:
+                    brush = meta["settings"]["cluster_tab"]["selection"]["brush"]
+                except Exception:
+                    return (
+                        selection_mode,
+                        dash.no_update,
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message=f'The cluster tab selection was initialised in mode "draw" but without a cluster.',
+                            action="show",
+                            autoClose=10000,
+                        ),
+                    )
+
+                if brush in cluster_colours().keys():
+                    return True, brush, dash.no_update
+
+                return (
+                    selection_mode,
+                    dash.no_update,
+                    dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message=f'The cluster tab selection was initialised with an invalid cluster "{brush}".',
+                        action="show",
+                        autoClose=10000,
+                    ),
+                )
+
+            return (
+                selection_mode,
+                dash.no_update,
+                dmc.Notification(
+                    id=str(uuid.uuid4()),
+                    color="yellow",
+                    title="Warning",
+                    message=f'The cluster tab selection was initialised with an invalid mode "{mode}".',
+                    action="show",
+                    autoClose=10000,
+                ),
+            )
+
+        @app.callback(
+            Output("metadata_store", "data"),
+            State("metadata_store", "data"),
+            Input("cluster_selection_mode", "value"),
+            Input("selection_cluster_dropdown", "value"),
+        )
+        def update_settings(meta, selection_mode, selection_cluster):
+            if meta is None:
+                return dash.no_update
+
+            if not selection_mode:
+                meta["settings"]["cluster_tab"] = dict(selection=dict(mode="fg_bg"))
+            else:
+                meta["settings"]["cluster_tab"] = dict(
+                    selection=dict(mode="draw", brush=selection_cluster)
+                )
+
+            return meta
+
     @staticmethod
     def initialize(df):
         kmeans_col = ["all"] * df.shape[0]
@@ -416,6 +498,7 @@ class Cluster(Tab):
                 cluster_dropdown(
                     id_name="selection_cluster_dropdown",
                     value="c1",
+                    disabled=True,
                     css_class="dd-double-left",
                     title="Selection Cluster",
                     style={"margin-left": "2%"},
@@ -449,6 +532,10 @@ class Cluster(Tab):
                     style={"display": "none"},
                 ),
                 html.Div(id="cluster-tab-compute-done", style={"display": "none"}),
+                html.Div(
+                    id="cluster-tab-settings-notify-container",
+                    style={"display": "none"},
+                ),
             ],
             style={"display": "none"},
         )

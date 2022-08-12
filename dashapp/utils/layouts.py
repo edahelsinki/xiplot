@@ -56,6 +56,7 @@ def cluster_dropdown(
     style=None,
     title=None,
     css_class=None,
+    disabled=False,
 ):
     """
     Wraps a cluster dropdown to a html.Div element
@@ -82,6 +83,7 @@ def cluster_dropdown(
             multi=multi,
             searchable=False,
             value=value,
+            disabled=disabled,
             options=[
                 {
                     "label": html.Div(
