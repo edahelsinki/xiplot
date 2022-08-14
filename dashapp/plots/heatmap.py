@@ -35,17 +35,15 @@ class Heatmap(Plot):
             if meta is None:
                 return dash.no_update
 
-            for trigger in ctx.triggered:
-                trigger_id = trigger["prop_id"]
-
-                if trigger_id not in ctx.triggered_prop_ids:
+            for n_clusters in ctx.args_grouping[1]:
+                if not n_clusters["triggered"]:
                     continue
 
-                index = ctx.triggered_prop_ids[trigger_id]["index"]
-                value = trigger["value"]
+                index = n_clusters["id"]["index"]
+                n_clusters = n_clusters["value"]
 
                 meta["plots"][index] = dict(
-                    type=Heatmap.name(), clusters=dict(amount=value)
+                    type=Heatmap.name(), clusters=dict(amount=n_clusters)
                 )
 
             return dict(meta=meta)
@@ -73,11 +71,11 @@ class Heatmap(Plot):
         return fig
 
     @staticmethod
-    def create_new_layout(index, df, columns, config=None):
+    def create_new_layout(index, df, columns, config=dict()):
         jsonschema.validate(
             instance=config,
             schema=dict(
-                type=["object", "null"],
+                type="object",
                 properties=dict(
                     clusters=dict(
                         type="object",

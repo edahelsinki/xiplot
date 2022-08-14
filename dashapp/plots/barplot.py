@@ -78,7 +78,7 @@ class Barplot(Plot):
         return fig
 
     @staticmethod
-    def create_new_layout(index, df, columns, config=None):
+    def create_new_layout(index, df, columns, config=dict()):
         x = [
             c
             for c in columns

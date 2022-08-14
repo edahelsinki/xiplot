@@ -1,4 +1,6 @@
 import pandas as pd
+import dash
+import jsonschema
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
@@ -137,8 +139,55 @@ class Smiles(Plot):
             )
             return dict(smiles=smiles_inputs)
 
+        @app.callback(
+            output=dict(
+                meta=Output("metadata_store", "data"),
+            ),
+            inputs=[
+                State("metadata_store", "data"),
+                Input({"type": "smiles_lock_dropdown", "index": ALL}, "value"),
+                Input({"type": "smiles-input", "index": ALL}, "value"),
+            ],
+            prevent_initial_call=False,
+        )
+        def update_settings(meta, render_modes, smiles_inputs):
+            if meta is None:
+                return dash.no_update
+
+            for render_mode, smiles_input in zip(
+                ctx.args_grouping[1], ctx.args_grouping[2]
+            ):
+                if not render_mode["triggered"] and not smiles_input["triggered"]:
+                    continue
+
+                index = render_mode["id"]["index"]
+                render_mode = render_mode["value"]
+                smiles_input = smiles_input["value"]
+
+                meta["plots"][index] = dict(
+                    type=Smiles.name(),
+                    mode=render_mode,
+                    smiles=smiles_input,
+                )
+
+            return dict(meta=meta)
+
     @staticmethod
-    def create_new_layout(index, df, columns, config=None):
+    def create_new_layout(index, df, columns, config=dict()):
+        jsonschema.validate(
+            instance=config,
+            schema=dict(
+                type="object",
+                properties=dict(
+                    mode=dict(enum=["hover", "click", "lock"]),
+                    smiles=dict(type="string"),
+                ),
+            ),
+        )
+
+        render_mode = config.get("mode", "hover")
+        smiles_input = config.get("smiles", "O.O[Fe]=O")
+
         return html.Div(
             children=[
                 delete_button("plot-delete", index),
@@ -149,7 +198,7 @@ class Smiles(Plot):
                     dcc.Input(
                         id={"type": "smiles-input", "index": index},
                         type="text",
-                        value="O.O[Fe]=O",
+                        value=smiles_input,
                         debounce=True,
                         placeholder="SMILES string",
                     ),
@@ -159,7 +208,7 @@ class Smiles(Plot):
                 layout_wrapper(
                     dcc.Dropdown(
                         id={"type": "smiles_lock_dropdown", "index": index},
-                        value="hover",
+                        value=render_mode,
                         options=["hover", "click", "lock"],
                         clearable=False,
                         searchable=False,

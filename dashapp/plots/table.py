@@ -213,7 +213,7 @@ class Table(Plot):
             return columns_all, selected_columns_all, [None] * len(n_clicks_all)
 
     @staticmethod
-    def create_new_layout(index, df, columns, config=None):
+    def create_new_layout(index, df, columns, config=dict()):
         df = df.rename_axis("index_copy")
 
         columns = df.columns.to_list()

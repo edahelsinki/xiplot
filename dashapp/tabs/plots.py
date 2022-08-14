@@ -144,7 +144,7 @@ class Plots(Tab):
 
                 for index, config in plots.items():
                     plot_type = config["type"]
-                    config = {k: v for k, v in config.items() if k != "type"} or None
+                    config = {k: v for k, v in config.items() if k != "type"}
 
                     try:
                         layout = Plots.plot_types[plot_type].create_new_layout(
