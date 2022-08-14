@@ -1,3 +1,5 @@
+import time
+
 from dashapp.setup import setup_dash_app
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -46,6 +48,7 @@ def render_scatterplot(dash_duo, driver):
 def test_tesc001_render_scatterplot(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_dash_app())
+    time.sleep(1)
     dash_duo.wait_for_page()
 
     render_scatterplot(dash_duo, driver)
@@ -60,6 +63,7 @@ def test_tesc001_render_scatterplot(dash_duo):
 def test_tesc002_change_axis_value(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_dash_app())
+    time.sleep(1)
     dash_duo.wait_for_page()
 
     render_scatterplot(dash_duo, driver)
@@ -89,6 +93,7 @@ def test_tesc002_change_axis_value(dash_duo):
 def test_tesc002_target_setting(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_dash_app())
+    time.sleep(1)
     dash_duo.wait_for_page()
 
     render_scatterplot(dash_duo, driver)
@@ -115,6 +120,7 @@ def test_tesc002_target_setting(dash_duo):
 def test_tesc003_jitter_setting(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_dash_app())
+    time.sleep(1)
     dash_duo.wait_for_page()
 
     render_scatterplot(dash_duo, driver)

@@ -1,3 +1,5 @@
+import time
+
 from dashapp.setup import setup_dash_app
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -46,6 +48,7 @@ def render_histogram(dash_duo, driver):
 def test_tehi001_render_histogram(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_dash_app())
+    time.sleep(1)
     dash_duo.wait_for_page()
 
     render_histogram(dash_duo, driver)
@@ -60,6 +63,7 @@ def test_tehi001_render_histogram(dash_duo):
 def test_tehi002_set_axis(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_dash_app())
+    time.sleep(1)
     dash_duo.wait_for_page()
 
     render_histogram(dash_duo, driver)
@@ -87,6 +91,7 @@ def test_tehi002_set_axis(dash_duo):
 def test_tehi003_clear_clusters(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_dash_app())
+    time.sleep(1)
     dash_duo.wait_for_page()
 
     render_histogram(dash_duo, driver)
