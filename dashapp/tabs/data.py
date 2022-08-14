@@ -5,6 +5,7 @@ import uuid
 import pandas as pd
 import dash
 import dash_mantine_components as dmc
+import jsonschema
 
 from io import BytesIO
 from pathlib import Path
@@ -293,6 +294,37 @@ class Data(Tab):
 
             if meta.get("plots") is None:
                 meta["plots"] = dict()
+
+            try:
+                jsonschema.validate(
+                    instance=meta,
+                    schema=dict(
+                        type="object",
+                        properties=dict(
+                            filename=dict(type="string"),
+                            settings=dict(type="object"),
+                            plots=dict(type="object"),
+                        ),
+                        required=["filename", "settings", "plots"],
+                    ),
+                )
+            except jsonschema.exceptions.ValidationError as err:
+                return (
+                    dash.no_update,
+                    dash.no_update,
+                    dash.no_update,
+                    dash.no_update,
+                    dash.no_update,
+                    dash.no_update,
+                    dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message=f"The file {filepath.name} has invalid metadata at meta{err.json_path[1:]}: {err.message}.",
+                        action="show",
+                        autoClose=10000,
+                    ),
+                )
 
             df = df_from_store(df_store)
 

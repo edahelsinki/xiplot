@@ -6,6 +6,7 @@ import dash
 import dash_daq as daq
 import dash_mantine_components as dmc
 import plotly.express as px
+import jsonschema
 
 from dash import Output, Input, State, ctx, ALL, html, dcc
 from dash.exceptions import PreventUpdate
@@ -272,33 +273,43 @@ class Cluster(Tab):
         )
         def init_from_settings(meta, meta_session, selection_mode):
             try:
-                mode = meta["settings"]["cluster_tab"]["selection"]["mode"]
-            except Exception:
-                return selection_mode, dash.no_update, dash.no_update
-
-            if mode == "fg_bg":
-                return False, dash.no_update, dash.no_update
-
-            if mode == "draw":
-                try:
-                    brush = meta["settings"]["cluster_tab"]["selection"]["brush"]
-                except Exception:
-                    return (
-                        selection_mode,
-                        dash.no_update,
-                        dmc.Notification(
-                            id=str(uuid.uuid4()),
-                            color="yellow",
-                            title="Warning",
-                            message=f'The cluster tab selection was initialised in mode "draw" but without a cluster.',
-                            action="show",
-                            autoClose=10000,
+                jsonschema.validate(
+                    instance=meta,
+                    schema=dict(
+                        type="object",
+                        properties=dict(
+                            settings=dict(
+                                type="object",
+                                properties={
+                                    "cluster-tab": dict(
+                                        type="object",
+                                        properties=dict(
+                                            selection={
+                                                "type": "object",
+                                                "properties": dict(
+                                                    mode=dict(enum=["fg-bg", "draw"]),
+                                                    brush=dict(
+                                                        enum=list(
+                                                            cluster_colours().keys()
+                                                        )
+                                                    ),
+                                                ),
+                                                "if": dict(
+                                                    properties=dict(
+                                                        mode=dict(const="draw")
+                                                    ),
+                                                ),
+                                                "then": dict(required=["brush"]),
+                                            },
+                                        ),
+                                    ),
+                                },
+                            ),
                         ),
-                    )
-
-                if brush in cluster_colours().keys():
-                    return True, brush, dash.no_update
-
+                        required=["settings"],
+                    ),
+                )
+            except jsonschema.exceptions.ValidationError as err:
                 return (
                     selection_mode,
                     dash.no_update,
@@ -306,24 +317,23 @@ class Cluster(Tab):
                         id=str(uuid.uuid4()),
                         color="yellow",
                         title="Warning",
-                        message=f'The cluster tab selection was initialised with an invalid cluster "{brush}".',
+                        message=f"Invalid cluster tab settings at meta{err.json_path[1:]}: {err.message}.",
                         action="show",
                         autoClose=10000,
                     ),
                 )
 
-            return (
-                selection_mode,
-                dash.no_update,
-                dmc.Notification(
-                    id=str(uuid.uuid4()),
-                    color="yellow",
-                    title="Warning",
-                    message=f'The cluster tab selection was initialised with an invalid mode "{mode}".',
-                    action="show",
-                    autoClose=10000,
-                ),
-            )
+            try:
+                mode = meta["settings"]["cluster-tab"]["selection"]["mode"]
+            except Exception:
+                return selection_mode, dash.no_update, dash.no_update
+
+            if mode == "draw":
+                brush = meta["settings"]["cluster-tab"]["selection"]["brush"]
+
+                return True, brush, dash.no_update
+            else:  # mode == "fg-bg"
+                return False, dash.no_update, dash.no_update
 
         @app.callback(
             Output("metadata_store", "data"),
@@ -336,9 +346,9 @@ class Cluster(Tab):
                 return dash.no_update
 
             if not selection_mode:
-                meta["settings"]["cluster_tab"] = dict(selection=dict(mode="fg_bg"))
+                meta["settings"]["cluster-tab"] = dict(selection=dict(mode="fg-bg"))
             else:
-                meta["settings"]["cluster_tab"] = dict(
+                meta["settings"]["cluster-tab"] = dict(
                     selection=dict(mode="draw", brush=selection_cluster)
                 )
 

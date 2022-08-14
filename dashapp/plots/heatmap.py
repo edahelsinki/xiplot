@@ -1,5 +1,6 @@
 import dash
 import plotly.express as px
+import jsonschema
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
@@ -73,15 +74,29 @@ class Heatmap(Plot):
 
     @staticmethod
     def create_new_layout(index, df, columns, config=None):
-        n_clusters = 2
+        jsonschema.validate(
+            instance=config,
+            schema=dict(
+                type=["object", "null"],
+                properties=dict(
+                    clusters=dict(
+                        type="object",
+                        properties=dict(
+                            amount=dict(
+                                type="integer",
+                                minimum=2,
+                                maximum=10,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
 
         try:
             n_clusters = config["clusters"]["amount"]
         except Exception:
             n_clusters = 2
-
-        if not isinstance(n_clusters, int) or n_clusters < 2 or n_clusters > 10:
-            raise Exception("clusters.amount must be in [2; 10].")
 
         num_columns = get_numeric_columns(df, columns)
         return html.Div(

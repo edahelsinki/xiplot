@@ -2,6 +2,7 @@ import uuid
 
 import dash
 import dash_mantine_components as dmc
+import jsonschema
 
 from dash import html, dcc, Output, Input, State, ctx, ALL
 from dash.exceptions import PreventUpdate
@@ -88,9 +89,34 @@ class Plots(Tab):
                 else:
                     children = []
 
-                    plots = meta["plots"]
-
-                    if not isinstance(plots, dict):
+                    try:
+                        jsonschema.validate(
+                            instance=meta,
+                            schema=dict(
+                                type="object",
+                                properties=dict(
+                                    plots=dict(
+                                        type="object",
+                                        patternProperties={
+                                            r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$": dict(
+                                                type="object",
+                                                properties=dict(
+                                                    type=dict(
+                                                        enum=list(
+                                                            Plots.plot_types.keys()
+                                                        )
+                                                    ),
+                                                ),
+                                                required=["type"],
+                                            ),
+                                        },
+                                        additionalProperties=False,
+                                    ),
+                                ),
+                                required=["plots"],
+                            ),
+                        )
+                    except jsonschema.exceptions.ValidationError as err:
                         return (
                             dash.no_update,
                             dash.no_update,
@@ -98,54 +124,13 @@ class Plots(Tab):
                                 id=str(uuid.uuid4()),
                                 color="yellow",
                                 title="Warning",
-                                message='The plots tab must be initialised with a map of "plots".',
+                                message=f"Invalid plots configuration at meta{err.json_path[1:]}: {err.message}.",
                                 action="show",
                                 autoClose=10000,
                             ),
                         )
 
-                    for plot in plots.values():
-                        if not isinstance(plot, dict):
-                            return (
-                                dash.no_update,
-                                dash.no_update,
-                                dmc.Notification(
-                                    id=str(uuid.uuid4()),
-                                    color="yellow",
-                                    title="Warning",
-                                    message="Every plot must be configured with a map.",
-                                    action="show",
-                                    autoClose=10000,
-                                ),
-                            )
-
-                        if plot.get("type") is None:
-                            return (
-                                dash.no_update,
-                                dash.no_update,
-                                dmc.Notification(
-                                    id=str(uuid.uuid4()),
-                                    color="yellow",
-                                    title="Warning",
-                                    message='Every plot must have a "type".',
-                                    action="show",
-                                    autoClose=10000,
-                                ),
-                            )
-
-                        if Plots.plot_types.get(plot["type"]) is None:
-                            return (
-                                dash.no_update,
-                                dash.no_update,
-                                dmc.Notification(
-                                    id=str(uuid.uuid4()),
-                                    color="yellow",
-                                    title="Warning",
-                                    message=f'Unknown plot type "{plot["type"]}".',
-                                    action="show",
-                                    autoClose=10000,
-                                ),
-                            )
+                    plots = meta["plots"]
 
                 # read df from store
                 df = df_from_store(df)
@@ -155,21 +140,34 @@ class Plots(Tab):
                     df["Clusters"] = kmeans_col
                 columns = df.columns.to_list()
 
+                notifications = []
+
                 for index, config in plots.items():
                     plot_type = config["type"]
                     config = {k: v for k, v in config.items() if k != "type"} or None
 
                     try:
                         layout = Plots.plot_types[plot_type].create_new_layout(
-                            str(uuid.uuid4()),
+                            index,
                             df,
                             columns,
                             config=config,
                         )
+
+                        children.append(layout)
+                    except jsonschema.exceptions.ValidationError as err:
+                        notifications.append(
+                            dmc.Notification(
+                                id=str(uuid.uuid4()),
+                                color="yellow",
+                                title="Warning",
+                                message=f"Invalid configuration for a {plot_type} at meta.plots.{index}{err.json_path[1:]}: {err.message}",
+                                action="show",
+                                autoClose=10000,
+                            )
+                        )
                     except Exception as err:
-                        return (
-                            dash.no_update,
-                            dash.no_update,
+                        notifications.append(
                             dmc.Notification(
                                 id=str(uuid.uuid4()),
                                 color="yellow",
@@ -177,12 +175,10 @@ class Plots(Tab):
                                 message=f"Failed to create a {plot_type}: {err}",
                                 action="show",
                                 autoClose=10000,
-                            ),
+                            )
                         )
 
-                    children.append(layout)
-
-                return children, dash.no_update, None
+                return children, dash.no_update, notifications
 
             deletion_id = ctx.triggered_id["index"]
 
