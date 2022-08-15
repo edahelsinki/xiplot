@@ -134,8 +134,12 @@ class Barplot(Plot):
                 y_axis,
                 color_discrete_map=cluster_colours(),
             )
-            fig.update_xaxes(tickangle=45)
-            fig.update_layout(xaxis=dict(fixedrange=True), yaxis=dict(fixedrange=True))
+
+            fig.update_layout(
+                hovermode="x unified",
+                xaxis=dict(fixedrange=True),
+                yaxis=dict(fixedrange=True),
+            )
         return fig
 
     @staticmethod
