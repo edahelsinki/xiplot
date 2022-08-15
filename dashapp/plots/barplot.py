@@ -30,10 +30,12 @@ class Barplot(Plot):
             Input({"type": "bp_cluster_comparison_dropdown", "index": MATCH}, "value"),
             Input({"type": "order_dropdown", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
-            State("data_frame_store", "data"),
+            Input("data_frame_store", "data"),
             prevent_initial_call=False,
         )
         def tmp(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
+            if ctx.triggered_id == "data_frame_store":
+                raise PreventUpdate()
             try:
                 return (
                     Barplot.render(

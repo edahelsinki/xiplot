@@ -16,9 +16,11 @@ class Heatmap(Plot):
         @app.callback(
             Output({"type": "heatmap", "index": MATCH}, "figure"),
             Input({"type": "heatmap_cluster_amount", "index": MATCH}, "value"),
-            State("data_frame_store", "data"),
+            Input("data_frame_store", "data"),
         )
         def tmp(n_clusters, df):
+            if ctx.triggered_id == "data_frame_store":
+                raise PreventUpdate()
             return Heatmap.render(n_clusters, df_from_store(df))
 
         @app.callback(
