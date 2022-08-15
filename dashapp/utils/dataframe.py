@@ -223,7 +223,7 @@ def get_numeric_columns(df, columns):
     columns = [
         c
         for c in columns
-        if type(df[c][0]) in (int, float, np.int32, np.int64, np.float32, np.float64)
+        if df[c].dtype in (int, float, np.int32, np.int64, np.float32, np.float64)
     ]
     return columns
 

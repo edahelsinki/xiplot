@@ -144,7 +144,7 @@ class Barplot(Plot):
             c
             for c in columns
             if isinstance(df[c][0], Iterable)
-            or type(df[c][0]) in (int, np.int32, np.int64)
+            or df[c].dtype in (int, np.int32, np.int64)
         ]
         y_columns = ["frequency"] + get_numeric_columns(df, columns)
 
