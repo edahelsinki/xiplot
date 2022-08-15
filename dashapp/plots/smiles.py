@@ -154,9 +154,7 @@ class Smiles(Plot):
             if meta is None:
                 return dash.no_update
 
-            for render_mode, smiles_input in zip(
-                ctx.args_grouping[1], ctx.args_grouping[2]
-            ):
+            for render_mode, smiles_input in zip(*ctx.args_grouping[1 : 2 + 1]):
                 if not render_mode["triggered"] and not smiles_input["triggered"]:
                     continue
 

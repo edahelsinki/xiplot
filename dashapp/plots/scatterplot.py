@@ -5,6 +5,7 @@ import dash
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import jsonschema
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
@@ -155,6 +156,55 @@ class Scatterplot(Plot):
 
             return dict(clusters=kmeans_col, reset=str(uuid.uuid4()))
 
+        @app.callback(
+            output=dict(
+                meta=Output("metadata_store", "data"),
+            ),
+            inputs=[
+                State("metadata_store", "data"),
+                Input({"type": "scatter_x_axis", "index": ALL}, "value"),
+                Input({"type": "scatter_y_axis", "index": ALL}, "value"),
+                Input({"type": "scatter_target_color", "index": ALL}, "value"),
+                Input({"type": "scatter_target_symbol", "index": ALL}, "value"),
+                Input({"type": "jitter-slider", "index": ALL}, "value"),
+            ],
+            prevent_initial_call=False,
+        )
+        def update_settings(
+            meta, x_axes, y_axes, scatter_colours, scatter_symbols, jitter_sliders
+        ):
+            if meta is None:
+                return dash.no_update
+
+            for x_axis, y_axis, scatter_colour, scatter_symbol, jitter_slider in zip(
+                *ctx.args_grouping[1 : 5 + 1]
+            ):
+                if (
+                    not x_axis["triggered"]
+                    and not y_axis["triggered"]
+                    and not scatter_colour["triggered"]
+                    and not scatter_symbol["triggered"]
+                    and not jitter_slider["triggered"]
+                ):
+                    continue
+
+                index = x_axis["id"]["index"]
+                x_axis = x_axis["value"]
+                y_axis = y_axis["value"]
+                scatter_colour = scatter_colour["value"]
+                scatter_symbol = scatter_symbol["value"]
+                jitter_slider = jitter_slider["value"]
+
+                meta["plots"][index] = dict(
+                    type=Scatterplot.name(),
+                    axes=dict(x=x_axis, y=y_axis),
+                    colour=scatter_colour,
+                    symbol=scatter_symbol,
+                    jitter=jitter_slider,
+                )
+
+            return dict(meta=meta)
+
     @staticmethod
     def render(
         df,
@@ -221,16 +271,59 @@ class Scatterplot(Plot):
 
     @staticmethod
     def create_new_layout(index, df, columns, config=dict()):
-        x = None
-        y = None
-        df["__Auxiliary__"] = [{"index": i} for i in range(len(df))]
         num_columns = get_numeric_columns(df, columns)
+
+        jsonschema.validate(
+            instance=config,
+            schema=dict(
+                type="object",
+                properties=dict(
+                    axes=dict(
+                        type="object",
+                        properties=dict(
+                            x=dict(enum=num_columns),
+                            y=dict(enum=num_columns),
+                        ),
+                    ),
+                    colour=dict(enum=columns + [None]),
+                    symbol=dict(enum=columns + [None]),
+                    jitter=dict(type="number", minimum=0.0),
+                ),
+            ),
+        )
+
+        try:
+            x_axis = config["axes"]["x"]
+        except Exception:
+            x_axis = None
+
+        try:
+            y_axis = config["axes"]["y"]
+        except Exception:
+            y_axis = None
+
+        scatter_colour = config.get("colour", "Clusters")
+        scatter_symbol = config.get("symbol", None)
+        jitter_slider = config.get("jitter", 0.0)
+
         for c in num_columns:
-            if "x-" in c or " 1" in c:
-                x = c
-            elif "y-" in c or " 2" in c:
-                y = c
-                break
+            if x_axis is None and ("x-" in c or " 1" in c):
+                x_axis = c
+
+            if y_axis is None and ("y-" in c or " 2" in c):
+                y_axis = c
+
+        if x_axis is None and len(num_columns) > 0:
+            x_axis = num_columns[0]
+
+        if y_axis is None and len(num_columns) > 0:
+            y_axis = num_columns[min(1, len(num_columns) - 1)]
+
+        if x_axis is None or y_axis is None:
+            raise Exception("The dataframe contains no numeric columns")
+
+        df["__Auxiliary__"] = [{"index": i} for i in range(len(df))]
+
         return html.Div(
             children=[
                 delete_button("plot-delete", index),
@@ -238,8 +331,8 @@ class Scatterplot(Plot):
                     id={"type": "scatterplot", "index": index},
                     figure=px.scatter(
                         df,
-                        x if x else df.columns[0],
-                        y if y else df.columns[1],
+                        x_axis,
+                        y_axis,
                         custom_data=["__Auxiliary__"],
                         render_mode="webgl",
                     ),
@@ -248,7 +341,7 @@ class Scatterplot(Plot):
                     component=dcc.Dropdown(
                         id={"type": "scatter_x_axis", "index": index},
                         options=num_columns,
-                        value=x if x else df.columns[0],
+                        value=x_axis,
                         clearable=False,
                     ),
                     css_class="dd-double-left",
@@ -258,7 +351,7 @@ class Scatterplot(Plot):
                     component=dcc.Dropdown(
                         id={"type": "scatter_y_axis", "index": index},
                         options=num_columns,
-                        value=y if y else df.columns[1],
+                        value=y_axis,
                         clearable=False,
                     ),
                     css_class="dd-double-right",
@@ -268,7 +361,7 @@ class Scatterplot(Plot):
                     component=dcc.Dropdown(
                         id={"type": "scatter_target_color", "index": index},
                         options=columns,
-                        value="Clusters",
+                        value=scatter_colour,
                     ),
                     css_class="dd-double-left",
                     title="target (color)",
@@ -277,6 +370,7 @@ class Scatterplot(Plot):
                     component=dcc.Dropdown(
                         id={"type": "scatter_target_symbol", "index": index},
                         options=columns,
+                        value=scatter_symbol,
                     ),
                     css_class="dd-double-right",
                     title="target (symbol)",
@@ -286,6 +380,7 @@ class Scatterplot(Plot):
                         id={"type": "jitter-slider", "index": index},
                         min=0,
                         max=1,
+                        value=jitter_slider,
                         marks=None,
                         tooltip={"placement": "bottom", "always_visible": True},
                     ),

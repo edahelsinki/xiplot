@@ -35,7 +35,7 @@ class Heatmap(Plot):
             if meta is None:
                 return dash.no_update
 
-            for n_clusters in ctx.args_grouping[1]:
+            for (n_clusters,) in zip(*ctx.args_grouping[1 : 1 + 1]):
                 if not n_clusters["triggered"]:
                     continue
 
