@@ -42,7 +42,7 @@ def render_histogram(dash_duo, driver):
     plot_add = driver.find_element(By.ID, "new_plot-button")
     plot_add.click()
 
-    driver.implicitly_wait(3)
+    time.sleep(1)
 
 
 def test_tehi001_render_histogram(dash_duo):
@@ -78,9 +78,11 @@ def test_tehi002_set_axis(dash_duo):
     x.send_keys("mpg")
     x.send_keys(Keys.RETURN)
 
+    time.sleep(1)
+
     driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[3]/div[2]/div[1]/div[1]/div[1]/div[2]",
+        "//div[@class='plots']/div[3]/div[2]/div[1]/div[1]/div[1]/div[1]",
     ).click()
 
     ActionChains(driver).key_down(Keys.RETURN).key_up(Keys.RETURN)
