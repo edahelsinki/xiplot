@@ -172,7 +172,7 @@ class Plots(Tab):
                                 id=str(uuid.uuid4()),
                                 color="yellow",
                                 title="Warning",
-                                message=f"Failed to create a {plot_type}: {err}",
+                                message=f"Failed to create a {plot_type}: {err}.",
                                 action="show",
                                 autoClose=10000,
                             )

@@ -1,9 +1,13 @@
 import numpy as np
 import pandas as pd
+import uuid
 
 import plotly.express as px
+import dash
+import jsonschema
+import dash_mantine_components as dmc
 
-from dash import html, dcc, Output, Input, MATCH, ctx
+from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
 
 from dashapp.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
@@ -20,28 +24,83 @@ class Barplot(Plot):
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "barplot", "index": MATCH}, "figure"),
+            Output({"type": "barplot-notify-container", "index": MATCH}, "children"),
             Input({"type": "barplot_x_axis", "index": MATCH}, "value"),
             Input({"type": "barplot_y_axis", "index": MATCH}, "value"),
             Input({"type": "bp_cluster_comparison_dropdown", "index": MATCH}, "value"),
             Input({"type": "order_dropdown", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
-            Input("data_frame_store", "data"),
+            State("data_frame_store", "data"),
+            prevent_initial_call=False,
         )
         def tmp(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
-            if ctx.triggered_id == "data_frame_store":
-                raise PreventUpdate()
+            try:
+                return (
+                    Barplot.render(
+                        x_axis,
+                        y_axis,
+                        selected_clusters,
+                        order,
+                        kmeans_col,
+                        df_from_store(df),
+                    ),
+                    dash.no_update,
+                )
+            except Exception as err:
+                return dash.no_update, dmc.Notification(
+                    id=str(uuid.uuid4()),
+                    color="yellow",
+                    title="Warning",
+                    message="The barplot's x and y axis must be different.",
+                    action="show",
+                    autoClose=10000,
+                )
 
-            fig = Barplot.render(
-                x_axis,
-                y_axis,
-                selected_clusters,
-                order,
-                kmeans_col,
-                df_from_store(df),
-            )
-            if not fig:
-                raise PreventUpdate()
-            return fig
+        @app.callback(
+            output=dict(
+                meta=Output("metadata_store", "data"),
+            ),
+            inputs=[
+                State("metadata_store", "data"),
+                Input({"type": "barplot_x_axis", "index": ALL}, "value"),
+                Input({"type": "barplot_y_axis", "index": ALL}, "value"),
+                Input(
+                    {"type": "bp_cluster_comparison_dropdown", "index": ALL}, "value"
+                ),
+                Input({"type": "order_dropdown", "index": ALL}, "value"),
+            ],
+            prevent_initial_call=False,
+        )
+        def update_settings(meta, x_axes, y_axes, selected_clusters, order_dropdowns):
+            if meta is None:
+                return dash.no_update
+
+            for x_axis, y_axis, classes_dropdown, order_dropdown in zip(
+                *ctx.args_grouping[1 : 4 + 1]
+            ):
+                if (
+                    not x_axis["triggered"]
+                    and not y_axis["triggered"]
+                    and not classes_dropdown["triggered"]
+                    and not order_dropdown["triggered"]
+                ):
+                    continue
+
+                index = x_axis["id"]["index"]
+                x_axis = x_axis["value"]
+                y_axis = y_axis["value"]
+                classes_dropdown = classes_dropdown["value"] or []
+                order_dropdown = order_dropdown["value"]
+
+                meta["plots"][index] = dict(
+                    type=Barplot.name(),
+                    axes=dict(x=x_axis, y=y_axis),
+                    groupby="Clusters",
+                    classes=classes_dropdown,
+                    order=order_dropdown,
+                )
+
+            return dict(meta=meta)
 
     @staticmethod
     def render(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
@@ -51,7 +110,7 @@ class Barplot(Plot):
             fig = make_fig_fgs(df, x_axis, y_axis, selected_clusters, order, kmeans_col)
 
         elif x_axis == y_axis:
-            raise PreventUpdate()
+            raise Exception("The x and y axis must be different")
 
         else:
             if type(df[x_axis][0]) in [np.ndarray, list]:
@@ -79,28 +138,83 @@ class Barplot(Plot):
 
     @staticmethod
     def create_new_layout(index, df, columns, config=dict()):
-        x = [
+        x_columns = [
             c
             for c in columns
             if isinstance(df[c][0], Iterable)
             or type(df[c][0]) in (int, np.int32, np.int64)
         ]
-        y = ["frequency"] + get_numeric_columns(df, columns)
+        y_columns = ["frequency"] + get_numeric_columns(df, columns)
+
+        jsonschema.validate(
+            instance=config,
+            schema=dict(
+                type="object",
+                properties=dict(
+                    axes=dict(
+                        type="object",
+                        properties=dict(
+                            x=dict(enum=x_columns),
+                            y=dict(enum=y_columns),
+                        ),
+                    ),
+                    groupby=dict(enum=["Clusters"]),
+                    classes=dict(
+                        type="array",
+                        items=dict(
+                            enum=list(cluster_colours().keys()),
+                        ),
+                        uniqueItems=True,
+                    ),
+                ),
+                dependentRequired=dict(
+                    classes=["groupby"],
+                    groupby=["classes"],
+                ),
+                order=dict(enum=["reldiff", "total"]),
+            ),
+        )
+
+        try:
+            x_axis = config["axes"]["x"]
+        except Exception:
+            x_axis = None
+
+        if x_axis is None and len(x_columns) > 0:
+            x_axis = x_columns[0]
+
+        if x_axis is None:
+            raise Exception(
+                "The dataframe contains no integer or iterable-categorical columns"
+            )
+
+        try:
+            y_axis = config["axes"]["y"]
+        except Exception:
+            y_axis = "frequency"
+
+        if x_axis == y_axis:
+            raise Exception("The x and y axis must be different")
+
+        groupby = config.get("groupby", "Clusters")
+        classes = config.get("classes", [])
+        order = config.get("order", "reldiff")
+
         return html.Div(
             [
                 delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "barplot", "index": index},
                     figure=make_fig_fgs(
-                        df, x[0], "frequency", "all", "reldiff", ["all"] * len(df)
+                        df, x_axis, "frequency", classes, order, ["all"] * len(df)
                     ),
                 ),
                 layout_wrapper(
                     component=dcc.Dropdown(
                         id={"type": "barplot_x_axis", "index": index},
-                        value=x[0],
+                        value=x_axis,
                         clearable=False,
-                        options=x,
+                        options=x_columns,
                     ),
                     css_class="dd-double-left",
                     title="x axis",
@@ -108,9 +222,9 @@ class Barplot(Plot):
                 layout_wrapper(
                     component=dcc.Dropdown(
                         id={"type": "barplot_y_axis", "index": index},
-                        value="frequency",
+                        value=y_axis,
                         clearable=False,
-                        options=y,
+                        options=y_columns,
                     ),
                     css_class="dd-double-right",
                     title="y axis",
@@ -119,7 +233,7 @@ class Barplot(Plot):
                     "bp_cluster_comparison_dropdown",
                     index,
                     multi=True,
-                    value="all",
+                    value=classes,
                     clearable=True,
                     title="Cluster Comparison",
                     css_class="dd-single",
@@ -127,12 +241,16 @@ class Barplot(Plot):
                 layout_wrapper(
                     component=dcc.Dropdown(
                         id={"type": "order_dropdown", "index": index},
-                        value="reldiff",
+                        value=order,
                         clearable=False,
                         options=["reldiff", "total"],
                     ),
                     css_class="dd-single",
                     title="Comparison Order",
+                ),
+                html.Div(
+                    id={"type": "barplot-notify-container", "index": index},
+                    style={"display": "none"},
                 ),
             ],
             id={"type": "barplot-container", "index": index},
@@ -141,10 +259,10 @@ class Barplot(Plot):
 
 
 def make_fig_fgs(df, x_axis, y_axis, selected_clusters, order, clusters):
-    if not selected_clusters:
-        return None
     if type(selected_clusters) == str:
         selected_clusters = [selected_clusters]
+    if not selected_clusters:
+        selected_clusters = sorted(set(clusters))
     fgs_dict = {"all": Counter()}
     for s in selected_clusters:
         if s != "all":

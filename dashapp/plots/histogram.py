@@ -153,25 +153,24 @@ def make_fig_property(df, x_axis, selected_clusters, clusters):
     if type(selected_clusters) == str:
         selected_clusters = [selected_clusters]
 
-    if selected_clusters:
-        props_dict = {"all": []}
-        for s in selected_clusters:
-            if s != "all":
-                props_dict[s] = []
+    if not selected_clusters:
+        selected_clusters = sorted(set(clusters))
 
-        for c, p in zip(clusters, df[x_axis]):
-            if c != "all" and c in selected_clusters:
-                props_dict[c].append(p)
-            props_dict["all"].append(p)
+    props_dict = {"all": []}
+    for s in selected_clusters:
+        if s != "all":
+            props_dict[s] = []
 
-        clusters_col = []
-        x = []
-        for s in selected_clusters:
-            clusters_col += [s for _ in props_dict[s]]
-            x += props_dict[s]
-    else:
-        x = df[x_axis].values
-        clusters_col = clusters
+    for c, p in zip(clusters, df[x_axis]):
+        if c != "all" and c in selected_clusters:
+            props_dict[c].append(p)
+        props_dict["all"].append(p)
+
+    clusters_col = []
+    x = []
+    for s in selected_clusters:
+        clusters_col += [s for _ in props_dict[s]]
+        x += props_dict[s]
 
     dff = pd.DataFrame({"Clusters": clusters_col, x_axis: x})
 
