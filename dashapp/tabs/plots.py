@@ -166,6 +166,8 @@ class Plots(Tab):
                                 autoClose=10000,
                             )
                         )
+                    except ImportError as err:
+                        raise err
                     except Exception as err:
                         notifications.append(
                             dmc.Notification(

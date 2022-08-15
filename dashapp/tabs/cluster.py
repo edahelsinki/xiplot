@@ -102,6 +102,8 @@ class Cluster(Tab):
                         notifications,
                         process_id,
                     )
+                except ImportError as err:
+                    raise err
                 except Exception as err:
                     notifications.append(
                         dmc.Notification(
