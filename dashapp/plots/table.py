@@ -30,30 +30,33 @@ class Table(Plot):
             Input("data_frame_store", "data"),
             State({"type": "table", "index": ALL}, "data"),
             Input({"type": "table", "index": ALL}, "sort_by"),
+            prevent_initial_call=False,
         )
         def update_table_data(kmeans_col, selected_rows, df, table_df, sort_by):
             trigger = ctx.triggered_id
             if trigger == "data_frame_store" or not table_df:
                 raise PreventUpdate()
-            table_amount = len(table_df)
 
-            table_df = table_df[0]
-            table_df = pd.DataFrame(table_df)
-            table_df.rename_axis("index_copy")
-            table_df["Selection"] = selected_rows
+            table_data = []
+            sort_bys = []
 
-            # TODO make a new store for sort by
-            sort_by = sort_by[0]
+            for table_df, sort_by in zip(table_df, sort_by):
+                table_df = pd.DataFrame(table_df)
+                table_df.rename_axis("index_copy")
 
-            if len(kmeans_col) == table_df.shape[0]:
-                table_df["Clusters"] = kmeans_col
+                if len(selected_rows) == table_df.shape[0]:
+                    table_df["Selection"] = selected_rows
+                if len(kmeans_col) == table_df.shape[0]:
+                    table_df["Clusters"] = kmeans_col
 
-            sort_by = get_sort_by(sort_by, selected_rows, trigger)
+                sort_by = get_sort_by(sort_by, selected_rows, trigger)
 
-            columns = table_df.columns.to_list()
-            return [table_df[columns].to_dict("records")] * table_amount, [
-                sort_by
-            ] * table_amount
+                columns = table_df.columns.to_list()
+
+                table_data.append(table_df[columns].to_dict("records"))
+                sort_bys.append(sort_by)
+
+            return table_data, sort_bys
 
         @app.callback(
             Output("selected_rows_store", "data"),
@@ -131,12 +134,18 @@ class Table(Plot):
             State({"type": "table", "index": ALL}, "columns"),
             State({"type": "table", "index": ALL}, "data"),
             State("data_frame_store", "data"),
+            State("clusters_column_store", "data"),
         )
-        def update_table_columns(n_clicks, dropdown_columns, columns, table_df, df):
+        def update_table_columns(
+            n_clicks, dropdown_columns, columns, table_df, df, kmeans_col
+        ):
             if not ctx.triggered_id:
                 raise PreventUpdate()
             trigger_id = ctx.triggered_id["index"]
             df = df_from_store(df)
+
+            if len(kmeans_col) == df.shape[0]:
+                df["Clusters"] = kmeans_col
 
             for id, item in enumerate(ctx.inputs_list[0]):
                 if item["id"]["index"] == trigger_id:
@@ -176,11 +185,14 @@ class Table(Plot):
             State({"type": "table_columns_regex-input", "index": ALL}, "value"),
             State({"type": "table_columns-dd", "index": ALL}, "options"),
             State("data_frame_store", "data"),
+            State("clusters_column_store", "data"),
         )
         def add_matching_values(
-            n_clicks_all, selected_columns_all, keyword_all, columns_all, df
+            n_clicks_all, selected_columns_all, keyword_all, columns_all, df, kmeans_col
         ):
             df = df_from_store(df)
+            if len(kmeans_col) == df.shape[0]:
+                df["Clusters"] = kmeans_col
             id = get_updated_item_id(
                 n_clicks_all, ctx.triggered_id["index"], ctx.inputs_list[0]
             )
