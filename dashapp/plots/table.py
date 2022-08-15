@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 import re
 
+import dash
+import jsonschema
+
 from dash import html, dcc, Output, Input, State, MATCH, ALL, dash_table, ctx, no_update
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
@@ -212,13 +215,118 @@ class Table(Plot):
 
             return columns_all, selected_columns_all, [None] * len(n_clicks_all)
 
+        @app.callback(
+            output=dict(
+                meta=Output("metadata_store", "data"),
+            ),
+            inputs=[
+                State("metadata_store", "data"),
+                Input({"type": "table", "index": ALL}, "page_current"),
+                Input({"type": "table", "index": ALL}, "filter_query"),
+                Input({"type": "table", "index": ALL}, "sort_by"),
+                Input({"type": "table", "index": ALL}, "hidden_columns"),
+                Input({"type": "table", "index": ALL}, "columns"),
+            ],
+            prevent_initial_call=False,
+        )
+        def update_settings(
+            meta,
+            current_pages,
+            filter_queries,
+            sort_bys,
+            hidden_column_lists,
+            column_selections,
+        ):
+            if meta is None:
+                return dash.no_update
+
+            for page_current, filter_query, sort_by, hidden_columns, columns in zip(
+                *ctx.args_grouping[1 : 5 + 1]
+            ):
+                if (
+                    not page_current["triggered"]
+                    and not filter_query["triggered"]
+                    and not sort_by["triggered"]
+                    and not hidden_columns["triggered"]
+                    and not columns["triggered"]
+                ):
+                    continue
+
+                index = page_current["id"]["index"]
+                page_current = page_current["value"] or 0
+                filter_query = filter_query["value"] or ""
+                sort_by = {c["column_id"]: c["direction"] for c in sort_by["value"]}
+                hidden_columns = hidden_columns["value"]
+                columns = [c["id"] for c in columns["value"]]
+
+                meta["plots"][index] = dict(
+                    type=Table.name(),
+                    columns={
+                        c: {
+                            "hidden": c in hidden_columns,
+                            **{"sorting": sort_by[c] for _ in ((),) if c in sort_by},
+                        }
+                        for c in columns
+                    },
+                    query=filter_query,
+                    page=page_current,
+                )
+
+            return dict(meta=meta)
+
     @staticmethod
     def create_new_layout(index, df, columns, config=dict()):
         df = df.rename_axis("index_copy")
-
         columns = df.columns.to_list()
 
-        columns = columns[:5] + ["Clusters"]
+        jsonschema.validate(
+            instance=config,
+            schema=dict(
+                type="object",
+                properties=dict(
+                    columns=dict(
+                        type="object",
+                        properties={
+                            c: dict(
+                                type="object",
+                                properties=dict(
+                                    hidden=dict(type="boolean"),
+                                    sorting=dict(enum=["asc", "desc"]),
+                                ),
+                            )
+                            for c in columns
+                        },
+                    ),
+                    query=dict(type="string"),
+                    page=dict(
+                        type="integer",
+                        minimum=0,
+                    ),
+                ),
+            ),
+        )
+
+        if "columns" in config:
+            columns = list(config["columns"].keys())
+            hidden_columns = [
+                c for c, v in config["columns"].items() if v.get("hidden", False)
+            ]
+            sort_by = [
+                dict(column_id=c, direction=v["sorting"])
+                for c, v in config["columns"].items()
+                if "sorting" in v
+            ]
+        else:
+            columns = columns[:5]
+
+            if "Clusters" not in columns:
+                columns.append("Clusters")
+
+            hidden_columns = ["Clusters"]
+            sort_by = []
+
+        filter_query = config.get("query", "")
+        page_current = config.get("page", 0)
 
         for c in columns:
             if type(df[c][0]) == np.ndarray:
@@ -229,23 +337,20 @@ class Table(Plot):
                 dash_table.DataTable(
                     id={"type": "table", "index": index},
                     columns=[{"name": c, "id": c, "hideable": True} for c in columns],
+                    hidden_columns=hidden_columns,
                     data=df[columns].to_dict("records"),
                     editable=False,
                     page_action="native",
                     page_size=25,
+                    page_current=page_current,
                     sort_action="native",
                     sort_mode="multi",
-                    sort_by=[],
+                    sort_by=sort_by,
                     row_selectable="multi",
                     filter_action="native",
+                    filter_query=filter_query,
                     fixed_rows={"headers": True},
                     style_as_list_view=True,
-                    css=[
-                        {
-                            "selector": ".dash-spreadsheet-menu",
-                            "rule": "position: absolute; bottom: 7px",
-                        },
-                    ],
                     style_table={"overflowX": "auto"},
                     style_cell={
                         "height": "auto",

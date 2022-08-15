@@ -117,6 +117,8 @@ def read_only_dataframe(data, filename):
     if file_extension == ".json":
         if isinstance(data, BytesIO):
             data = data.getvalue().decode("utf-8")
+        elif isinstance(data, tarfile.ExFileObject):
+            data = data.read().decode("utf-8")
 
         try:
             return pd.read_json(data, typ="frame", orient="columns")
