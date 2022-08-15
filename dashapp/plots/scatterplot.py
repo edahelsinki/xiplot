@@ -16,8 +16,6 @@ from dashapp.utils.cluster import cluster_colours
 from dashapp.utils.scatterplot import get_row
 from dashapp.plots import Plot
 
-SCATTERPLOT_CALLBACK_FUNCTIONS = []
-
 
 class Scatterplot(Plot):
     @staticmethod
@@ -231,22 +229,13 @@ class Scatterplot(Plot):
 
             return dict(meta=meta)
 
-        SCATTERPLOT_CALLBACK_FUNCTIONS.extend(
-            [
-                tmp,
-                handle_click_events,
-                handle_hover_events,
-                handle_cluster_drawing,
-                update_settings,
-            ]
-        )
-
-    @staticmethod
-    def get_callback_functions():
-        from dash import Dash
-
-        Scatterplot.register_callbacks(Dash(__name__), lambda x: x, None)
-        return SCATTERPLOT_CALLBACK_FUNCTIONS
+        return [
+            tmp,
+            handle_click_events,
+            handle_hover_events,
+            handle_cluster_drawing,
+            update_settings,
+        ]
 
     @staticmethod
     def render(

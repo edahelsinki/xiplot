@@ -1,5 +1,6 @@
 import time
 import pandas as pd
+import dash
 
 from dashapp.setup import setup_dash_app
 from selenium.webdriver.common.keys import Keys
@@ -14,7 +15,7 @@ from dashapp.plots.scatterplot import Scatterplot
     handle_hover_events,
     handle_cluster_drawing,
     update_settings,
-) = Scatterplot.get_callback_functions()
+) = Scatterplot.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)
 
 
 def load_file(dash_duo, driver):
