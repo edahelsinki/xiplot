@@ -274,6 +274,9 @@ class Cluster(Tab):
             State("cluster_selection_mode", "value"),
         )
         def init_from_settings(meta, meta_session, selection_mode):
+            if meta is None:
+                return selection_mode, dash.no_update, dash.no_update
+
             try:
                 jsonschema.validate(
                     instance=meta,

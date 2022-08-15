@@ -38,6 +38,8 @@ class Scatterplot(Plot):
             try:
                 if ctx.triggered_id == "data_frame_store":
                     raise PreventUpdate()
+            except PreventUpdate:
+                raise
             except:
                 pass
 
@@ -73,6 +75,8 @@ class Scatterplot(Plot):
             try:
                 if ctx.triggered_id is None:
                     raise PreventUpdate()
+            except PreventUpdate:
+                raise
             except:
                 pass
 

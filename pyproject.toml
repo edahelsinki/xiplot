@@ -3,7 +3,7 @@ name = "dashapp"
 version = "0.1.0"
 
 [dependencies]
-dash = "^2.5.1"
+dash = "^2.6.1"
 dash-daq = "^0.5.0"
 dash-extensions = "^0.1.4"
 dash-mantine-components = "^0.10.2"
