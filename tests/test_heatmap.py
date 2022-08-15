@@ -1,0 +1,39 @@
+import time
+import pandas as pd
+import dash
+
+from dashapp.setup import setup_dash_app
+from selenium.webdriver.common.by import By
+
+
+from tests.util_test import render_plot
+from dashapp.plots.heatmap import Heatmap
+
+tmp, update_settings = Heatmap.register_callbacks(
+    dash.Dash(__name__), lambda x: x, lambda x: x
+)
+
+
+def test_tehe001_render_heatmap(dash_duo):
+    driver = dash_duo.driver
+    dash_duo.start_server(setup_dash_app())
+    time.sleep(1)
+    dash_duo.wait_for_page()
+
+    render_plot(dash_duo, driver, "Heatmap")
+
+    plot = driver.find_element(By.CLASS_NAME, "dash-graph")
+
+    assert "heatmap" in plot.get_attribute("outerHTML")
+    assert dash_duo.get_logs() == [], "browser console should contain no error"
+
+    driver.close()
+
+
+def test_create_heatmap():
+    d = {"col1": [1, 2], "col2": [3, 4]}
+    df = pd.DataFrame(data=d)
+    output = tmp(1, df)
+    fig = output
+
+    assert str(type(fig)) == "<class 'plotly.graph_objs._figure.Figure'>"

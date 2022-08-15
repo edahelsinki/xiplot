@@ -19,8 +19,15 @@ class Heatmap(Plot):
             Input("data_frame_store", "data"),
         )
         def tmp(n_clusters, df):
-            if ctx.triggered_id == "data_frame_store":
-                raise PreventUpdate()
+            # Try branch for testing
+            try:
+                if ctx.triggered_id == "data_frame_store":
+                    raise PreventUpdate()
+            except PreventUpdate:
+                raise
+            except:
+                pass
+
             return Heatmap.render(n_clusters, df_from_store(df))
 
         @app.callback(
@@ -49,6 +56,8 @@ class Heatmap(Plot):
                 )
 
             return dict(meta=meta)
+
+        return [tmp, update_settings]
 
     @staticmethod
     def render(n_clusters, df):

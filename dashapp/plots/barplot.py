@@ -34,8 +34,14 @@ class Barplot(Plot):
             prevent_initial_call=False,
         )
         def tmp(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
-            if ctx.triggered_id == "data_frame_store":
-                raise PreventUpdate()
+            try:
+                if ctx.triggered_id == "data_frame_store":
+                    raise PreventUpdate()
+            except PreventUpdate:
+                raise
+            except:
+                pass
+
             try:
                 return (
                     Barplot.render(
@@ -103,6 +109,8 @@ class Barplot(Plot):
                 )
 
             return dict(meta=meta)
+
+        return [tmp, update_settings]
 
     @staticmethod
     def render(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
