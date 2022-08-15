@@ -24,8 +24,14 @@ class Histogram(Plot):
             prevent_initial_call=False,
         )
         def tmp(x_axis, selected_clusters, kmeans_col, df):
-            if ctx.triggered_id == "data_frame_store":
-                raise PreventUpdate()
+            # Try branch for testing
+            try:
+                if ctx.triggered_id == "data_frame_store":
+                    raise PreventUpdate()
+            except PreventUpdate:
+                raise
+            except:
+                pass
 
             return Histogram.render(
                 x_axis, selected_clusters, kmeans_col, df_from_store(df)
@@ -64,6 +70,8 @@ class Histogram(Plot):
                 )
 
             return dict(meta=meta)
+
+        return [tmp, update_settings]
 
     @staticmethod
     def render(x_axis, selected_clusters, kmeans_col, df):

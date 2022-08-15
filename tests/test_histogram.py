@@ -1,9 +1,17 @@
 import time
+import pandas as pd
+import dash
 
 from dashapp.setup import setup_dash_app
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
+
+from dashapp.plots.histogram import Histogram
+
+tmp, update_settings = Histogram.register_callbacks(
+    dash.Dash(__name__), lambda x: x, lambda x: x
+)
 
 
 def load_file(dash_duo, driver):
@@ -108,3 +116,12 @@ def test_tehi003_clear_clusters(dash_duo):
         By.XPATH,
         "//div[@class='plots']/div[3]/div[2]/div[1]/div[1]",
     ).get_attribute("outerHTML")
+
+
+def test_create_histogram():
+    d = {"col1": [1, 2], "col2": [3, 4]}
+    df = pd.DataFrame(data=d)
+    output = tmp("col1", "all", ["all", "all"], df)
+    fig = output
+
+    assert str(type(fig)) == "<class 'plotly.graph_objs._figure.Figure'>"
