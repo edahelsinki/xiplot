@@ -104,16 +104,16 @@ index 00000000..c26a22de
 +  license: MIT
 diff --git a/packages/dash/meta.yaml b/packages/dash/meta.yaml
 new file mode 100644
-index 00000000..360f67a2
+index 00000000..f93fb093
 --- /dev/null
 +++ b/packages/dash/meta.yaml
 @@ -0,0 +1,19 @@
 +package:
 +  name: dash
-+  version: 2.5.1
++  version: 2.6.1
 +source:
-+  url: https://files.pythonhosted.org/packages/a2/d2/d645397dca44d9459e17fcad1a8611ea3e77f930b7af1e7926824f0d42b8/dash-2.5.1-py3-none-any.whl
-+  sha256: 1b9110bcde7559a8405095901d4f7cfcfd18054b0c9758ec8562b3977824fbfe
++  url: https://files.pythonhosted.org/packages/cc/42/e1692b2d34e4135569db680efe3438e809a6b3f0ae607ad41aeff7741672/dash-2.6.1-py3-none-any.whl
++  sha256: 911c0d5ef017e3c2ff2e756a01fb9388f2a80ed6084a5beaac812fb436192f90
 +requirements:
 +  run:
 +    - flask
