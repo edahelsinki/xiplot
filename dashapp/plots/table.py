@@ -164,6 +164,7 @@ class Table(Plot):
         ):
             if not ctx.triggered_id:
                 raise PreventUpdate()
+
             trigger_id = ctx.triggered_id["index"]
             df = df_from_store(df)
 
@@ -216,14 +217,25 @@ class Table(Plot):
             df = df_from_store(df)
             if len(kmeans_col) == df.shape[0]:
                 df["Clusters"] = kmeans_col
-            id = get_updated_item_id(
-                n_clicks_all, ctx.triggered_id["index"], ctx.inputs_list[0]
-            )
+
+            # Try branch for testing
+            try:
+                id = get_updated_item_id(
+                    n_clicks_all, ctx.triggered_id["index"], ctx.inputs_list[0]
+                )
+            except:
+                id = 0
+
             keyword = keyword_all[id]
             columns = columns_all[id]
             selected_columns = selected_columns_all[id]
 
-            trigger = ctx.triggered_id["type"]
+            # Try branch for testing
+            try:
+                trigger = ctx.triggered_id["type"]
+            except:
+                trigger = "table_columns_regex-button"
+
             if trigger == "table_columns-dd":
                 columns = df.columns.to_list()
                 columns, selected_columns, hits = dropdown_regex(

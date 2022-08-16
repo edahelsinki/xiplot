@@ -76,7 +76,13 @@ class Smiles(Plot):
             if not smiles_col:
                 raise PreventUpdate()
 
-            if table_df and sort_by and sort_by[0] and selected_rows and len(sort_by):
+            if (
+                table_df is not None
+                and sort_by is not None
+                and sort_by[0] is not None
+                and selected_rows is not None
+                and len(sort_by)
+            ):
                 sort_by = sort_by[0]
                 table_df = pd.DataFrame(table_df[0])
                 table_df.index.rename("index_copy", inplace=True)
@@ -169,6 +175,13 @@ class Smiles(Plot):
                 )
 
             return dict(meta=meta)
+
+        return [
+            render_active_cell_smiles,
+            render_clicks,
+            render_hovered,
+            update_settings,
+        ]
 
     @staticmethod
     def create_new_layout(index, df, columns, config=dict()):
