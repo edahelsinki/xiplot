@@ -1,3 +1,5 @@
+import uuid
+
 from dash import html, dcc
 
 from dashapp.utils.cluster import cluster_colours
@@ -97,6 +99,15 @@ def cluster_dropdown(
                                 style={
                                     "display": "inline-block",
                                     "padding-left": 10,
+                                },
+                            ),
+                            html.Div(
+                                id={
+                                    "type": f"cluster-dropdown-count",
+                                    "index": f"{cluster}-{uuid.uuid4()}",
+                                },
+                                style={
+                                    "display": "inline-block",
                                 },
                             ),
                         ],

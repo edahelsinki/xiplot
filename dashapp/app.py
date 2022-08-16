@@ -1,10 +1,14 @@
 import dash_mantine_components as dmc
 
-from dash import html, dcc
+from collections import Counter
+
+from dash import html, dcc, Input, Output, ALL, ctx
 
 from dashapp.tabs.data import Data
 from dashapp.tabs.plots import Plots
 from dashapp.tabs.cluster import Cluster
+
+from dashapp.utils.cluster import cluster_colours
 
 
 class DashApp:
@@ -69,6 +73,29 @@ class DashApp:
 
         for tab in TABS:
             tab.register_callbacks(app, df_from_store, df_to_store)
+
+        @app.callback(
+            Output({"type": "cluster-dropdown-count", "index": ALL}, "children"),
+            Input("clusters_column_store", "data"),
+            prevent_initial_call=False,
+        )
+        def cluster_dropdown_count_callback(kmeans_store):
+            if kmeans_store is None:
+                kmeans_store = []
+
+            counter = Counter(kmeans_store)
+
+            counts = []
+
+            for output in ctx.outputs_list:
+                cluster = output["id"]["index"].split("-")[0]
+
+                if cluster == "all":
+                    counts.append(len(kmeans_store))
+                else:
+                    counts.append(counter[cluster])
+
+            return [f": [{c}]" for c in counts]
 
 
 def app_logo():
