@@ -77,7 +77,7 @@ def test_teba003_set_cluster(dash_duo):
 
     time.sleep(1)
 
-    assert "cluster #3" in driver.find_element(
+    assert "cluster #2" in driver.find_element(
         By.XPATH,
         "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]",
     ).get_attribute("outerHTML")
