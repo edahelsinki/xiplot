@@ -73,7 +73,7 @@ class Smiles(Plot):
             df = df_from_store(df)
             smiles_col = get_smiles_column_name(df)
 
-            if not smiles_col:
+            if not smiles_col or row is None:
                 raise PreventUpdate()
 
             if (
