@@ -14,6 +14,7 @@ from xaiplot.utils.cluster import cluster_colours
 class XaiPlot:
     def __init__(self, app, df_from_store, df_to_store) -> None:
         self.app = app
+        self.app.title = "χaiplot"
 
         try:
             import dash_uploader as du
@@ -99,6 +100,4 @@ class XaiPlot:
 
 
 def app_logo():
-    return html.Div(
-        [html.H1("χaiplot")], style={"text-align": "center", "margin": 20}
-    )
+    return html.Div([html.H1("χaiplot")], style={"text-align": "center", "margin": 20})
