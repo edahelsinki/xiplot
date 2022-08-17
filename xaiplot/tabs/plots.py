@@ -7,14 +7,14 @@ import jsonschema
 from dash import html, dcc, Output, Input, State, ctx, ALL
 from dash.exceptions import PreventUpdate
 
-from dashapp.tabs import Tab
-from dashapp.utils.layouts import layout_wrapper
-from dashapp.plots.scatterplot import Scatterplot
-from dashapp.plots.histogram import Histogram
-from dashapp.plots.heatmap import Heatmap
-from dashapp.plots.barplot import Barplot
-from dashapp.plots.table import Table
-from dashapp.plots.smiles import Smiles
+from xaiplot.tabs import Tab
+from xaiplot.utils.layouts import layout_wrapper
+from xaiplot.plots.scatterplot import Scatterplot
+from xaiplot.plots.histogram import Histogram
+from xaiplot.plots.heatmap import Heatmap
+from xaiplot.plots.barplot import Barplot
+from xaiplot.plots.table import Table
+from xaiplot.plots.smiles import Smiles
 
 
 class Plots(Tab):

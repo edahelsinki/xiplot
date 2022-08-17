@@ -12,11 +12,11 @@ from dash import Output, Input, State, ctx, ALL, html, dcc
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
 
-from dashapp.tabs import Tab
-from dashapp.utils.layouts import layout_wrapper, cluster_dropdown
-from dashapp.utils.dcc import dropdown_regex
-from dashapp.utils.dataframe import get_numeric_columns
-from dashapp.utils.cluster import cluster_colours
+from xaiplot.tabs import Tab
+from xaiplot.utils.layouts import layout_wrapper, cluster_dropdown
+from xaiplot.utils.dcc import dropdown_regex
+from xaiplot.utils.dataframe import get_numeric_columns
+from xaiplot.utils.cluster import cluster_colours
 
 
 class Cluster(Tab):

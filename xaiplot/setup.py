@@ -8,11 +8,11 @@ from dash_extensions.enrich import (
     CycleBreakerTransform,
 )
 
-from dashapp.app import DashApp
-from dashapp.utils.store import ServerSideStoreBackend
+from xaiplot.app import XaiPlot
+from xaiplot.utils.store import ServerSideStoreBackend
 
 
-def setup_dash_app(unsafe_local_server=False, **kwargs):
+def setup_xaiplot_dash_app(unsafe_local_server=False, **kwargs):
     dash_transforms = [
         MultiplexerTransform(),
         CycleBreakerTransform(),
@@ -42,14 +42,14 @@ def setup_dash_app(unsafe_local_server=False, **kwargs):
             return df.to_json(date_format="iso", orient="split")
 
     dash = DashProxy(
-        "dashapp.app",
+        "xaiplot.app",
         suppress_callback_exceptions=True,
         transforms=dash_transforms,
         prevent_initial_callbacks=True,
         **kwargs,
     )
 
-    app = DashApp(app=dash, df_from_store=df_from_store, df_to_store=df_to_store)
+    app = XaiPlot(app=dash, df_from_store=df_from_store, df_to_store=df_to_store)
 
     return dash
 

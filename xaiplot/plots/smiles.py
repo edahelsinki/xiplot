@@ -5,10 +5,10 @@ import jsonschema
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
 
-from dashapp.utils.layouts import delete_button, layout_wrapper
-from dashapp.utils.dataframe import get_smiles_column_name
-from dashapp.utils.smiles import get_smiles_inputs
-from dashapp.plots import Plot
+from xaiplot.utils.layouts import delete_button, layout_wrapper
+from xaiplot.utils.dataframe import get_smiles_column_name
+from xaiplot.utils.smiles import get_smiles_inputs
+from xaiplot.plots import Plot
 
 
 class Smiles(Plot):

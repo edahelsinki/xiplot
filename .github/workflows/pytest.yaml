@@ -1,4 +1,4 @@
-name: Test dashapp
+name: Test xaiplot
 
 on:
   push:

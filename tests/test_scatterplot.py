@@ -2,13 +2,13 @@ import time
 import pandas as pd
 import dash
 
-from dashapp.setup import setup_dash_app
+from xaiplot.setup import setup_xaiplot_dash_app
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 
 from tests.util_test import render_plot
-from dashapp.plots.scatterplot import Scatterplot
+from xaiplot.plots.scatterplot import Scatterplot
 
 (
     tmp,
@@ -21,7 +21,7 @@ from dashapp.plots.scatterplot import Scatterplot
 
 def test_tesc001_render_scatterplot(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_dash_app())
+    dash_duo.start_server(setup_xaiplot_dash_app())
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -37,7 +37,7 @@ def test_tesc001_render_scatterplot(dash_duo):
 
 def test_tesc002_change_axis_value(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_dash_app())
+    dash_duo.start_server(setup_xaiplot_dash_app())
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -63,7 +63,7 @@ def test_tesc002_change_axis_value(dash_duo):
 
 def test_tesc003_target_setting(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_dash_app())
+    dash_duo.start_server(setup_xaiplot_dash_app())
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -87,7 +87,7 @@ def test_tesc003_target_setting(dash_duo):
 
 def test_tesc004_jitter_setting(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_dash_app())
+    dash_duo.start_server(setup_xaiplot_dash_app())
     time.sleep(1)
     dash_duo.wait_for_page()
 

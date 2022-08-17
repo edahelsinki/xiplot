@@ -1,11 +1,11 @@
 import time
 
-from dashapp.setup import setup_dash_app
+from xaiplot.setup import setup_xaiplot_dash_app
 
 
 def test_dash001_launch(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_dash_app())
+    dash_duo.start_server(setup_xaiplot_dash_app())
     time.sleep(1)
     dash_duo.wait_for_page()
 

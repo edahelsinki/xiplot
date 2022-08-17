@@ -4,14 +4,14 @@ from collections import Counter
 
 from dash import html, dcc, Input, Output, ALL, ctx
 
-from dashapp.tabs.data import Data
-from dashapp.tabs.plots import Plots
-from dashapp.tabs.cluster import Cluster
+from xaiplot.tabs.data import Data
+from xaiplot.tabs.plots import Plots
+from xaiplot.tabs.cluster import Cluster
 
-from dashapp.utils.cluster import cluster_colours
+from xaiplot.utils.cluster import cluster_colours
 
 
-class DashApp:
+class XaiPlot:
     def __init__(self, app, df_from_store, df_to_store) -> None:
         self.app = app
 
@@ -100,5 +100,5 @@ class DashApp:
 
 def app_logo():
     return html.Div(
-        [html.H1("Dash App 2022")], style={"text-align": "center", "margin": 20}
+        [html.H1("χaiplot")], style={"text-align": "center", "margin": 20}
     )

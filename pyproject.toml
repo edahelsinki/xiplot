@@ -1,5 +1,5 @@
 [project]
-name = "dashapp"
+name = "xaiplot"
 version = "0.1.0"
 
 [dependencies]
@@ -20,6 +20,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["dashapp*"]
+include = ["xaiplot*"]
 exclude = []
 namespaces = true

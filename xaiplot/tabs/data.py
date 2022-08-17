@@ -14,15 +14,15 @@ from dash import Output, Input, State, ctx, html, dcc
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
 
-from dashapp.utils.dataframe import (
+from xaiplot.utils.dataframe import (
     read_dataframe_with_extension,
     get_data_filepaths,
     write_only_dataframe,
     write_dataframe_and_metadata,
 )
-from dashapp.tabs import Tab
-from dashapp.utils.layouts import layout_wrapper
-from dashapp.utils.cluster import cluster_colours
+from xaiplot.tabs import Tab
+from xaiplot.utils.layouts import layout_wrapper
+from xaiplot.utils.cluster import cluster_colours
 
 
 class Data(Tab):

@@ -5,9 +5,9 @@ import jsonschema
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
 
-from dashapp.utils.layouts import layout_wrapper, delete_button
-from dashapp.utils.dataframe import get_numeric_columns
-from dashapp.plots import Plot
+from xaiplot.utils.layouts import layout_wrapper, delete_button
+from xaiplot.utils.dataframe import get_numeric_columns
+from xaiplot.plots import Plot
 
 
 class Heatmap(Plot):
