@@ -2,13 +2,13 @@ import time
 import pandas as pd
 import dash
 
-from xaiplot.setup import setup_xaiplot_dash_app
+from xiplot.setup import setup_xiplot_dash_app
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 
 from tests.util_test import render_plot
-from xaiplot.plots.histogram import Histogram
+from xiplot.plots.histogram import Histogram
 
 tmp, update_settings = Histogram.register_callbacks(
     dash.Dash(__name__), lambda x: x, lambda x: x
@@ -17,7 +17,7 @@ tmp, update_settings = Histogram.register_callbacks(
 
 def test_tehi001_render_histogram(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xaiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app())
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -33,7 +33,7 @@ def test_tehi001_render_histogram(dash_duo):
 
 def test_tehi002_set_axis(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xaiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app())
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -59,7 +59,7 @@ def test_tehi002_set_axis(dash_duo):
 
 def test_tehi003_clear_clusters(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xaiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app())
     time.sleep(1)
     dash_duo.wait_for_page()
 

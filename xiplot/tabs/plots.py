@@ -7,14 +7,14 @@ import jsonschema
 from dash import html, dcc, Output, Input, State, ctx, ALL
 from dash.exceptions import PreventUpdate
 
-from xaiplot.tabs import Tab
-from xaiplot.utils.layouts import layout_wrapper
-from xaiplot.plots.scatterplot import Scatterplot
-from xaiplot.plots.histogram import Histogram
-from xaiplot.plots.heatmap import Heatmap
-from xaiplot.plots.barplot import Barplot
-from xaiplot.plots.table import Table
-from xaiplot.plots.smiles import Smiles
+from xiplot.tabs import Tab
+from xiplot.utils.layouts import layout_wrapper
+from xiplot.plots.scatterplot import Scatterplot
+from xiplot.plots.histogram import Histogram
+from xiplot.plots.heatmap import Heatmap
+from xiplot.plots.barplot import Barplot
+from xiplot.plots.table import Table
+from xiplot.plots.smiles import Smiles
 
 
 class Plots(Tab):

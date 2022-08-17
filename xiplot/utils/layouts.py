@@ -2,7 +2,7 @@ import uuid
 
 from dash import html, dcc
 
-from xaiplot.utils.cluster import cluster_colours
+from xiplot.utils.cluster import cluster_colours
 
 
 def layout_wrapper(component, id="", style=None, css_class=None, title=None):

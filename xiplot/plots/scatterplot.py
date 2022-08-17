@@ -10,11 +10,11 @@ import jsonschema
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
 
-from xaiplot.utils.layouts import layout_wrapper, delete_button
-from xaiplot.utils.dataframe import get_numeric_columns
-from xaiplot.utils.cluster import cluster_colours
-from xaiplot.utils.scatterplot import get_row
-from xaiplot.plots import Plot
+from xiplot.utils.layouts import layout_wrapper, delete_button
+from xiplot.utils.dataframe import get_numeric_columns
+from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.scatterplot import get_row
+from xiplot.plots import Plot
 
 
 class Scatterplot(Plot):

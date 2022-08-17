@@ -2,12 +2,12 @@ import time
 import pandas as pd
 import dash
 
-from xaiplot.setup import setup_xaiplot_dash_app
+from xiplot.setup import setup_xiplot_dash_app
 from selenium.webdriver.common.by import By
 
 
 from tests.util_test import render_plot
-from xaiplot.plots.heatmap import Heatmap
+from xiplot.plots.heatmap import Heatmap
 
 tmp, update_settings = Heatmap.register_callbacks(
     dash.Dash(__name__), lambda x: x, lambda x: x
@@ -16,7 +16,7 @@ tmp, update_settings = Heatmap.register_callbacks(
 
 def test_tehe001_render_heatmap(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xaiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app())
     time.sleep(1)
     dash_duo.wait_for_page()
 

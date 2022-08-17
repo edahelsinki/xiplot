@@ -2,12 +2,12 @@ import time
 import pandas as pd
 import dash
 
-from xaiplot.setup import setup_xaiplot_dash_app
+from xiplot.setup import setup_xiplot_dash_app
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 
 from tests.util_test import render_plot
-from xaiplot.plots.smiles import Smiles
+from xiplot.plots.smiles import Smiles
 
 (
     render_active_cell_smiles,
@@ -19,7 +19,7 @@ from xaiplot.plots.smiles import Smiles
 
 def test_tesm001_render_smiles(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xaiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app())
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -38,7 +38,7 @@ def test_tesm001_render_smiles(dash_duo):
 
 def test_tesm002_input_smiles_string(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xaiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app())
     time.sleep(1)
     dash_duo.wait_for_page()
 

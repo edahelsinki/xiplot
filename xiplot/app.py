@@ -4,17 +4,17 @@ from collections import Counter
 
 from dash import html, dcc, Input, Output, ALL, ctx
 
-from xaiplot.tabs.data import Data
-from xaiplot.tabs.plots import Plots
-from xaiplot.tabs.cluster import Cluster
+from xiplot.tabs.data import Data
+from xiplot.tabs.plots import Plots
+from xiplot.tabs.cluster import Cluster
 
-from xaiplot.utils.cluster import cluster_colours
+from xiplot.utils.cluster import cluster_colours
 
 
-class XaiPlot:
+class XiPlot:
     def __init__(self, app, df_from_store, df_to_store) -> None:
         self.app = app
-        self.app.title = "χaiplot"
+        self.app.title = "χiplot"
 
         try:
             import dash_uploader as du
@@ -100,4 +100,4 @@ class XaiPlot:
 
 
 def app_logo():
-    return html.Div([html.H1("χaiplot")], style={"text-align": "center", "margin": 20})
+    return html.Div([html.H1("χiplot")], style={"text-align": "center", "margin": 20})

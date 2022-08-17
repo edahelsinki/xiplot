@@ -6,10 +6,10 @@ import dash
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
 
-from xaiplot.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
-from xaiplot.utils.dataframe import get_numeric_columns
-from xaiplot.utils.cluster import cluster_colours
-from xaiplot.plots import Plot
+from xiplot.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
+from xiplot.utils.dataframe import get_numeric_columns
+from xiplot.utils.cluster import cluster_colours
+from xiplot.plots import Plot
 
 
 class Histogram(Plot):

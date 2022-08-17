@@ -1,5 +1,5 @@
 from dash import no_update
-from xaiplot.utils.dataframe import get_smiles_column_name
+from xiplot.utils.dataframe import get_smiles_column_name
 
 
 def get_smiles_inputs(smiles_render_modes, render_mode, smiles_inputs, df, row):

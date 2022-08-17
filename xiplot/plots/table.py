@@ -9,12 +9,12 @@ from dash import html, dcc, Output, Input, State, MATCH, ALL, dash_table, ctx, n
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
 
-from xaiplot.utils.layouts import delete_button, layout_wrapper
-from xaiplot.utils.cluster import cluster_colours
-from xaiplot.utils.dataframe import get_smiles_column_name
-from xaiplot.utils.table import get_sort_by, get_updated_item, get_updated_item_id
-from xaiplot.utils.dcc import dropdown_regex
-from xaiplot.plots import Plot
+from xiplot.utils.layouts import delete_button, layout_wrapper
+from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.dataframe import get_smiles_column_name
+from xiplot.utils.table import get_sort_by, get_updated_item, get_updated_item_id
+from xiplot.utils.dcc import dropdown_regex
+from xiplot.plots import Plot
 
 
 class Table(Plot):
