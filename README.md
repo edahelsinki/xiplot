@@ -4,13 +4,25 @@
 
 [^1]: Pronouncing &chi;iplot like "xaiplot" is also recognised.
 
+## Description
+
+&chi;iplot is built on top of ![Dash Framework](https://github.com/plotly/dash) with its various extensions (see the ![requirements.txt](https://github.com/edahelsinki/xiplot/blob/main/requirements.txt)). The goal of the &chi;iplot is to explore new insights from the collected data and to make data exploring user-friendly and intuitive.
+
+&chi;iplot can be executed in server version or WASM-based browser version. 
+
 ## Dependencies
 
 Install the depencies by running `pip install -r requirements.txt`
 
 ## Execution
 
+### Server version
+
 Run `python3 -m xiplot` at the root directory.
+
+### Browser version
+
+[https://www.edahelsinki.fi/xiplot](https://www.edahelsinki.fi/xiplot)
 
 ## Dataframe loading and saving
 
