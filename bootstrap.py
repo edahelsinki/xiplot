@@ -7,10 +7,10 @@ import pyodide_js
 
 from pathlib import Path
 
-from dashapp.setup import setup_dash_app
+from xiplot.setup import setup_xiplot_dash_app
 
 
-""" Bootstrap the dashapp with the data directory """
+""" Bootstrap the xiplot dash app with the data directory """
 
 
 def bootstrap_dash_app(url_base_pathname):
@@ -19,7 +19,7 @@ def bootstrap_dash_app(url_base_pathname):
     for dataset in pyodide.http.open_url("assets/data.ls").read().splitlines():
         pyodide_js.FS.createLazyFile("data", dataset, "data/" + dataset, True, False)
 
-    app = setup_dash_app(
+    app = setup_xiplot_dash_app(
         unsafe_local_server=True,
         url_base_pathname=url_base_pathname,
         compress=False,

@@ -1,3 +1,8 @@
+body {
+    min-width: 1200px;
+    width: auto !important;
+}
+
 .plots {
     display: inline-block;
     width: 32%;
