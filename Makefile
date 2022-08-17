@@ -1,4 +1,4 @@
-.PHONY: pyodide install_pyodide build_pyodide dashapp install_dashapp build_dashapp deploy run all clean nuke
+.PHONY: pyodide install_pyodide build_pyodide xiplot install_xiplot build_xiplot deploy run all clean nuke
 
 all: run
 
@@ -21,37 +21,37 @@ endif
 
 pyodide: install_pyodide build_pyodide
 
-install_dashapp: dashapp/.gitignore
+install_xiplot: xiplot/.gitignore
 
-dashapp/.gitignore:
-	git submodule init dashapp
-	git submodule update dashapp
+xiplot/.gitignore:
+	git submodule init xiplot
+	git submodule update xiplot
 
-build_dashapp: dashapp/dist/dashapp-0.1.0-py3-none-any.whl
+build_xiplot: xiplot/dist/xiplot-0.1.0-py3-none-any.whl
 
-dashapp/dist/dashapp-0.1.0-py3-none-any.whl: dashapp/.gitignore
+xiplot/dist/xiplot-0.1.0-py3-none-any.whl: xiplot/.gitignore
 	pip install build && \
-	cd dashapp && \
+	cd xiplot && \
 	python3 -m build
 
-dashapp: install_dashapp build_dashapp
+xiplot: install_xiplot build_xiplot
 
-deploy: pyodide dashapp
+deploy: pyodide xiplot
 	rm -rf dist
 	mkdir dist
 	cp -r pyodide/dist/* dist/
 	rm -rf dist/*-tests.tar
 	rm -f dist/tsconfig.tsbuildinfo
-	cp dashapp/dist/dashapp-0.1.0-py3-none-any.whl dist/
-	cp -r dashapp/data dist/
-	cp -r dashapp/dashapp/assets dist/
+	cp xiplot/dist/xiplot-0.1.0-py3-none-any.whl dist/
+	cp -r xiplot/data dist/
+	cp -r xiplot/xiplot/assets dist/
 	ls dist/data > dist/assets/data.ls
-	cd dashapp && \
+	cd xiplot && \
 	pip install -r requirements.txt && \
 	pip install toml && \
-	cp ../patches/bundle-dashapp.py . && \
-	python3 bundle-dashapp.py && \
-	rm -f bundle-dashapp.py
+	cp ../patches/bundle-dash-app.py . && \
+	python3 bundle-dash-app.py && \
+	rm -f bundle-dash-app.py
 	cp patches/bootstrap.py dist/
 	npm install
 	npm run build
@@ -64,17 +64,17 @@ clean:
 	rm -rf dist
 	mkdir dist
 	rm -rf .cache
-ifneq (,$(wildcard dashapp/bundle-dashapp.py))
-	rm dashapp/bundle-dashapp.py
+ifneq (,$(wildcard xiplot/bundle-dash-app.py))
+	rm xiplot/bundle-dash-app.py
 endif
 ifneq (,$(wildcard pyodide/packages/dash/meta.yaml))
 	cd pyodide && \
 	git apply --whitespace=nowarn --reverse ../patches/pyodide.patch
 endif
-	rm -rf dashapp/dist
-	rm -rf dashapp/dashapp.egg-info
+	rm -rf xiplot/dist
+	rm -rf xiplot/xiplot.egg-info
 
 nuke: clean
 	rm -rf node_modules
-	git submodule deinit -f dashapp
+	git submodule deinit -f xiplot
 	git submodule deinit -f pyodide

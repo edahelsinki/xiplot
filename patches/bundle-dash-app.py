@@ -7,7 +7,7 @@ import dash
 
 from pathlib import Path
 
-from dashapp.setup import setup_dash_app
+from xiplot.setup import setup_xiplot_dash_app
 
 
 """ Monkey-patch dash to not use time-based fingerprints """
@@ -44,9 +44,9 @@ dash.fingerprint.check_fingerprint = new_check_fingerprint
 dash.dash.check_fingerprint = new_check_fingerprint
 
 
-""" Initialise a minimal version of the dashapp to run requests against """
+""" Initialise a minimal version of the xiplot dash app to run requests against """
 
-app = setup_dash_app(
+app = setup_xiplot_dash_app(
     unsafe_local_server=True,
     compress=False,
     eager_loading=True,
@@ -118,7 +118,7 @@ for script in app._generate_scripts_html().split("</script>"):
     print(src_map)
 
 
-""" Register the dashapp module in the pyodide registry """
+""" Register the xiplot dash app module in the pyodide registry """
 
 with open("pyproject.toml", "r") as file:
     pyproject = toml.load(file)
