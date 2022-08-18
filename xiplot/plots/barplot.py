@@ -3,9 +3,13 @@ import pandas as pd
 import uuid
 
 import plotly.express as px
+import numpy as np
 import dash
 import jsonschema
 import dash_mantine_components as dmc
+
+from collections import defaultdict
+from itertools import product
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
@@ -59,7 +63,7 @@ class Barplot(Plot):
                     id=str(uuid.uuid4()),
                     color="yellow",
                     title="Warning",
-                    message="The barplot's x and y axis must be different.",
+                    message=f"Barplot error: {err}",
                     action="show",
                     autoClose=10000,
                 )
@@ -116,38 +120,136 @@ class Barplot(Plot):
     def render(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
-        if y_axis == "frequency":
-            fig = make_fig_fgs(df, x_axis, y_axis, selected_clusters, order, kmeans_col)
+        if not "frequency" in df.columns:
+            df["frequency"] = [1 for _ in range(len(df))]
 
-        elif x_axis == y_axis:
+        if x_axis == y_axis:
             raise Exception("The x and y axis must be different")
 
+        if not selected_clusters:
+            selected_clusters = sorted(set(kmeans_col))
         else:
-            if type(df[x_axis][0]) in [np.ndarray, list]:
-                grouping = df.groupby(df[x_axis].map(tuple))[y_axis].sum()
+            selected_clusters = set(selected_clusters)
+
+        Xs = []
+        Ys = []
+        Cs = []
+
+        if type(df[x_axis][0]) in [np.ndarray, list]:
+            if y_axis == "frequency":
+                df["frequency"] = [
+                    f / max(len(xs), 1) for f, xs in zip(df["frequency"], df[x_axis])
+                ]
+
+            for xs, y, c in zip(df[x_axis], df[y_axis], df["Clusters"]):
+                for x in xs:
+                    if c in selected_clusters:
+                        Xs.append(x)
+                        Ys.append(y)
+                        Cs.append(c)
+
+                    if c != "all" and "all" in selected_clusters:
+                        Xs.append(x)
+                        Ys.append(y)
+                        Cs.append("all")
+        else:
+            for x, y, c in zip(df[x_axis], df[y_axis], df["Clusters"]):
+                if c in selected_clusters:
+                    Xs.append(x)
+                    Ys.append(y)
+                    Cs.append(c)
+
+                if c != "all" and "all" in selected_clusters:
+                    Xs.append(x)
+                    Ys.append(y)
+                    Cs.append("all")
+
+        flat_df = pd.DataFrame(
+            {
+                x_axis: Xs,
+                y_axis: Ys,
+                **{
+                    "Clusters": Cs
+                    for _ in ((),)
+                    if x_axis != "Clusters" and y_axis != "Clusters"
+                },
+            }
+        )
+
+        grouping = flat_df.groupby([x_axis, "Clusters"])[y_axis]
+
+        if y_axis == "frequency" and type(df[x_axis][0]) not in [np.ndarray, list]:
+            dff = grouping.sum().to_frame().reset_index()
+        else:
+            dff = grouping.mean().to_frame().reset_index()
+            dff["Error"] = grouping.sem().values
+
+        if order == "total" or len(selected_clusters) <= 1:
+            order_lookup = defaultdict(lambda: 0.0)
+
+            for x, y in zip(dff[x_axis].values, dff[y_axis].values):
+                order_lookup[x] += abs(y)
+        elif order == "reldiff":
+            value_lookup = defaultdict(list)
+
+            if "Error" in dff.columns:
+                for x, y, e in zip(
+                    dff[x_axis].values, dff[y_axis].values, dff["Error"].values
+                ):
+                    value_lookup[x].append((y, e))
             else:
-                grouping = df.groupby([x_axis])[y_axis].max()
+                for x, y in zip(dff[x_axis].values, dff[y_axis].values):
+                    value_lookup[x].append((y, 1))
 
-            dff = (
-                grouping.to_frame()
-                .sort_values([y_axis], ascending=False)
-                .head(10)
-                .reset_index()
-            )
-            dff.columns = [x_axis, y_axis]
+            order_lookup = dict()
 
-            fig = px.bar(
-                dff,
-                x_axis,
-                y_axis,
-                color_discrete_map=cluster_colours(),
-            )
+            for x, vs in value_lookup.items():
+                if len(vs) <= 1:
+                    order_lookup[x] = 0.0
+                else:
+                    maxdiff = 0.0
 
-            fig.update_layout(
-                hovermode="x unified",
-                xaxis=dict(fixedrange=True),
-                yaxis=dict(fixedrange=True),
-            )
+                    for (v1, e1), (v2, e2) in product(vs, vs):
+                        if e1 == 0.0 and e2 == 0.0:
+                            e1 = 0.001
+
+                        diff = abs(v1 - v2) / np.sqrt(e1 * e1 + e2 * e2)
+
+                        maxdiff = max(maxdiff, diff)
+
+                    order_lookup[x] = maxdiff
+
+        top_bars = sorted(
+            order_lookup.keys(), key=lambda x: order_lookup[x], reverse=True
+        )[:10]
+
+        dff.drop(
+            index=[i for i, x in zip(dff.index, dff[x_axis]) if x not in top_bars],
+            inplace=True,
+        )
+
+        fig = px.bar(
+            dff,
+            x_axis,
+            y_axis,
+            error_y="Error" if "Error" in dff.columns else None,
+            color="Clusters",
+            barmode="group",
+            hover_data={
+                "Clusters": False,
+                x_axis: False,
+            },
+            color_discrete_map=cluster_colours(),
+        )
+
+        fig.update_layout(
+            hovermode="x unified",
+            margin=dict(l=10, r=10, t=10, b=10),
+            showlegend=False,
+            xaxis=dict(fixedrange=True, categoryorder="array", categoryarray=top_bars),
+            yaxis=dict(fixedrange=True),
+        )
+
         return fig
 
     @staticmethod
@@ -219,8 +321,13 @@ class Barplot(Plot):
                 delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "barplot", "index": index},
-                    figure=make_fig_fgs(
-                        df, x_axis, "frequency", classes, order, ["all"] * len(df)
+                    figure=Barplot.render(
+                        x_axis,
+                        y_axis,
+                        classes,
+                        order,
+                        ["all" for _ in range(len(df))],
+                        df,
                     ),
                 ),
                 layout_wrapper(
@@ -270,93 +377,3 @@ class Barplot(Plot):
             id={"type": "barplot-container", "index": index},
             className="plots",
         )
-
-
-def make_fig_fgs(df, x_axis, y_axis, selected_clusters, order, clusters):
-    if type(selected_clusters) == str:
-        selected_clusters = [selected_clusters]
-    if not selected_clusters:
-        selected_clusters = sorted(set(clusters))
-    fgs_dict = {"all": Counter()}
-    for s in selected_clusters:
-        if s != "all":
-            fgs_dict[s] = Counter()
-    if type(df[x_axis][0]) in (int, np.int32, np.int64, str):
-        for c, row in zip(clusters, df[x_axis]):
-            if c != "all" and c in selected_clusters:
-                fgs_dict[c].update([row])
-            fgs_dict["all"].update([row])
-    else:
-        for c, row in zip(clusters, df[x_axis]):
-            if c != "all" and c in selected_clusters:
-                fgs_dict[c].update(row)
-            fgs_dict["all"].update(row)
-
-    fgs_total = Counter()
-    for s in selected_clusters:
-        fgs_total += fgs_dict[s]
-
-    fgs_max = {}
-    for s in selected_clusters:
-        fgs_max[s] = 1 if len(fgs_dict[s]) == 0 else fgs_dict[s].most_common(1)[0][1]
-
-    for s in selected_clusters:
-        for fg in fgs_dict[s]:
-            fgs_dict[s][fg] = fgs_dict[s][fg] / fgs_max[s]
-
-    if order == "reldiff":
-        fgs_overall = Counter()
-        for s in selected_clusters:
-            fgs_overall += fgs_dict[s]
-
-        for fg in fgs_overall.keys():
-            arr = []
-            for s in selected_clusters:
-                arr.append(fgs_dict[s][fg])
-            fgs_overall[fg] = (
-                abs(max(arr) - min(arr)) / np.sqrt(fgs_total[fg]) * np.sqrt(min(arr))
-            )
-    elif order == "total":
-        fgs_overall = Counter()
-        for s in selected_clusters:
-            fgs_overall += fgs_dict[s]
-
-    clusters_col = []
-    x = []
-    frequencies = []
-    for s in selected_clusters:
-        clusters_col += [s for _ in fgs_overall.most_common(10)]
-        x += [fg for fg, _ in fgs_overall.most_common(10)]
-        frequencies += [fgs_dict[s][fg] for fg, _ in fgs_overall.most_common(10)]
-
-    dff = pd.DataFrame({"Clusters": clusters_col, x_axis: x, "frequency": frequencies})
-    fig_fgs = px.bar(
-        dff,
-        x=x_axis,
-        y=y_axis,
-        color="Clusters",
-        barmode="group",
-        hover_data={
-            "Clusters": False,
-            x_axis: False,
-            "frequency": ":.2%",
-        },
-        color_discrete_map=cluster_colours(),
-    )
-
-    fig_fgs.update_layout(
-        hovermode="x unified",
-        margin=dict(l=10, r=10, t=10, b=10),
-        showlegend=False,
-        xaxis=dict(
-            fixedrange=True,
-            # TODO: Enabling this option freezes the browser,
-            # ticklabelposition="inside",
-        ),
-        yaxis=dict(
-            tickformat=".2%",
-            fixedrange=True,
-        ),
-    )
-
-    return fig_fgs
