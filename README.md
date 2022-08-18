@@ -6,7 +6,7 @@
 
 ## Description
 
-&chi;iplot is built on top of ![Dash Framework](https://github.com/plotly/dash) with its various extensions (see the ![requirements.txt](https://github.com/edahelsinki/xiplot/blob/main/requirements.txt)). The goal of the &chi;iplot is to explore new insights from the collected data and to make data exploring user-friendly and intuitive.
+&chi;iplot is built on top of the [`dash`](https://github.com/plotly/dash) framework with its various extensions (see the [requirements.txt](requirements.txt) file). The goal of the &chi;iplot is to explore new insights from the collected data and to make data exploring user-friendly and intuitive.
 
 &chi;iplot can be executed in server version or WASM-based browser version. 
 
@@ -20,9 +20,9 @@ Install the depencies by running `pip install -r requirements.txt`
 
 Run `python3 -m xiplot` at the root directory.
 
-### Browser version
+### Serverless WASM version
 
-[https://www.edahelsinki.fi/xiplot](https://www.edahelsinki.fi/xiplot)
+You can try out the serverless WASM version of &chi;iplot at [www.edahelsinki.fi/xiplot](https://www.edahelsinki.fi/xiplot). Please refer to the [wasm](https://github.com/edahelsinki/xiplot/tree/wasm#readme) branch for more information on how the WASM version is implemented.
 
 ## Dataframe loading and saving
 
