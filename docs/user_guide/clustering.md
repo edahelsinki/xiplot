@@ -19,7 +19,7 @@ When clusters are made on replace mode, selected points are set to cluster #1 an
 
 ![cluster_replace](../images/cluster_by_drawing_replace_mode.png)
 
-![cluster_replace_2](../images/cluster_by_drawing_replace_mode(1).png)
+![cluster_replace_2](../images/cluster_by_drawing_replace_mode_after.png)
 
 ### Edit mode
 
@@ -28,7 +28,7 @@ On the edit mode, the user can select a cluster from the "Selection Cluster" dro
 Cluster everything cannot be modified.
 
 ![cluster_edit](../images/cluster_by_drawing.png)
-![cluster_edit_2](../images/cluster_by_drawing(1).png)
+![cluster_edit_2](../images/cluster_by_drawing_after.png)
 
 ## Clustering by input
 
@@ -41,7 +41,7 @@ Select features to calculate.
 Click the "Compute the clusters" button.
 
 ![cluster_input](../images/cluster_by_input.png)
-![cluster_input_2](../images/cluster_by_input(1).png)
+![cluster_input_2](../images/cluster_by_input_after.png)
 
 "cluster amount" dropdown has integers from 2 to 9.
 

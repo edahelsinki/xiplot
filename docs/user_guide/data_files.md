@@ -6,7 +6,7 @@ Go to "Data" tab and select a data file in the dropdown.
 
 Click "Load the data file" button.
 
-![load_click](https://github.com/edahelsinki/xiplot/blob/main/docs/images/load_data_file(1).png)
+![load_click](https://github.com/edahelsinki/xiplot/blob/main/docs/images/load_data_file_after.png)
 
 There will appear a notification in the right top corner wether the loading succeeded or were there any errors on the way.
 
