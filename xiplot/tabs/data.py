@@ -7,6 +7,7 @@ import dash
 import dash_mantine_components as dmc
 import jsonschema
 
+from collections import OrderedDict
 from io import BytesIO
 from pathlib import Path
 
@@ -159,16 +160,8 @@ class Data(Tab):
                 )
 
         @app.callback(
-            Output("metadata_session", "data"),
-            Input("will-never-be-called", "data"),
-        )
-        def delay_metadata_session_update(never):
-            return dash.no_update
-
-        @app.callback(
             ServersideOutput("data_frame_store", "data"),
             Output("metadata_store", "data"),
-            Output("metadata_session", "data"),
             Output("clusters_column_store", "data"),
             Output("selected_rows_store", "data"),
             Output("clusters_column_store_reset", "children"),
@@ -190,7 +183,6 @@ class Data(Tab):
 
             if not filepath:
                 return (
-                    dash.no_update,
                     dash.no_update,
                     dash.no_update,
                     dash.no_update,
@@ -246,7 +238,6 @@ class Data(Tab):
                             dash.no_update,
                             dash.no_update,
                             dash.no_update,
-                            dash.no_update,
                             dmc.Notification(
                                 id=str(uuid.uuid4()),
                                 color="yellow",
@@ -293,7 +284,9 @@ class Data(Tab):
                 meta["settings"] = dict()
 
             if meta.get("plots") is None:
-                meta["plots"] = dict()
+                meta["plots"] = OrderedDict()
+
+            meta["session"] = str(uuid.uuid4())
 
             try:
                 jsonschema.validate(
@@ -315,7 +308,6 @@ class Data(Tab):
                     dash.no_update,
                     dash.no_update,
                     dash.no_update,
-                    dash.no_update,
                     dmc.Notification(
                         id=str(uuid.uuid4()),
                         color="yellow",
@@ -331,7 +323,6 @@ class Data(Tab):
             if "is_selected" in aux:
                 if aux.dtypes["is_selected"] != bool:
                     return (
-                        dash.no_update,
                         dash.no_update,
                         dash.no_update,
                         dash.no_update,
@@ -363,7 +354,6 @@ class Data(Tab):
                         dash.no_update,
                         dash.no_update,
                         dash.no_update,
-                        dash.no_update,
                         dmc.Notification(
                             id=str(uuid.uuid4()),
                             color="yellow",
@@ -379,7 +369,6 @@ class Data(Tab):
             return (
                 df_store,
                 meta,
-                str(uuid.uuid4()),
                 clusters,
                 selected_rows,
                 str(uuid.uuid4()),
@@ -583,7 +572,6 @@ class Data(Tab):
                 dcc.Store(id="uploaded_data_file_store"),
                 dcc.Store(id="uploaded_auxiliary_store"),
                 dcc.Store(id="uploaded_metadata_store"),
-                dcc.Store(id="metadata_session"),
                 html.Div(id="data-tab-notify-container", style={"display": "none"}),
                 html.Div(
                     id="data-tab-upload-notify-container", style={"display": "none"}

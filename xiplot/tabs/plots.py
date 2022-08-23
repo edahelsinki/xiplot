@@ -6,6 +6,7 @@ import jsonschema
 
 from dash import html, dcc, Output, Input, State, ctx, ALL
 from dash.exceptions import PreventUpdate
+from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.tabs import Tab
 from xiplot.utils.layouts import layout_wrapper
@@ -30,6 +31,7 @@ class Plots(Tab):
             )
 
         @app.callback(
+            Output("plots-tab-settings-session", "children"),
             Output("plots", "children"),
             Output("metadata_store", "data"),
             Output("plots-tab-notify-container", "children"),
@@ -39,8 +41,8 @@ class Plots(Tab):
             State("plot_type", "value"),
             State("data_frame_store", "data"),
             State("clusters_column_store", "data"),
-            State("metadata_store", "data"),
-            Input("metadata_session", "data"),
+            CycleBreakerInput("metadata_store", "data"),
+            State("plots-tab-settings-session", "children"),
         )
         def add_new_plot(
             n_clicks,
@@ -50,14 +52,21 @@ class Plots(Tab):
             df,
             kmeans_col,
             meta,
-            meta_session,
+            last_meta_session,
         ):
+            if meta is None:
+                return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+
             if not children:
                 children = []
 
-            if ctx.triggered_id in ["new_plot-button", "metadata_session"]:
+            if ctx.triggered_id in [
+                "new_plot-button",
+                "metadata_store_data_breaker",
+            ]:
                 if kmeans_col is None:
                     return (
+                        meta["session"],
                         dash.no_update,
                         dash.no_update,
                         dmc.Notification(
@@ -73,6 +82,7 @@ class Plots(Tab):
                 if ctx.triggered_id == "new_plot-button":
                     if not plot_type:
                         return (
+                            meta["session"],
                             dash.no_update,
                             dash.no_update,
                             dmc.Notification(
@@ -86,6 +96,13 @@ class Plots(Tab):
                         )
 
                     plots = {str(uuid.uuid4()): dict(type=plot_type)}
+                elif meta["session"] == last_meta_session:
+                    return (
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                    )
                 else:
                     children = []
 
@@ -118,6 +135,7 @@ class Plots(Tab):
                         )
                     except jsonschema.exceptions.ValidationError as err:
                         return (
+                            meta["session"],
                             dash.no_update,
                             dash.no_update,
                             dmc.Notification(
@@ -180,7 +198,7 @@ class Plots(Tab):
                             )
                         )
 
-                return children, dash.no_update, notifications
+                return meta["session"], children, dash.no_update, notifications
 
             deletion_id = ctx.triggered_id["index"]
 
@@ -192,7 +210,7 @@ class Plots(Tab):
 
             meta["plots"] = {k: v for k, v in meta["plots"].items() if k != deletion_id}
 
-            return children, meta, None
+            return meta["session"], children, meta, None
 
     @staticmethod
     def create_layout():
@@ -212,4 +230,10 @@ class Plots(Tab):
 
     @staticmethod
     def create_layout_globals():
-        return html.Div(id="plots-tab-notify-container", style={"display": "none"})
+        return html.Div(
+            [
+                html.Div(id="plots-tab-notify-container", style={"display": "none"}),
+                html.Div(id="plots-tab-settings-session", style={"display": "none"}),
+            ],
+            style={"display": "none"},
+        )

@@ -266,16 +266,24 @@ class Cluster(Tab):
             return selection_cluster, False
 
         @app.callback(
+            Output("cluster-tab-settings-session", "children"),
             Output("cluster_selection_mode", "value"),
             Output("selection_cluster_dropdown", "value"),
             Output("cluster-tab-settings-notify-container", "children"),
-            State("metadata_store", "data"),
-            Input("metadata_session", "data"),
+            CycleBreakerInput("metadata_store", "data"),
+            State("cluster-tab-settings-session", "children"),
             State("cluster_selection_mode", "value"),
         )
-        def init_from_settings(meta, meta_session, selection_mode):
+        def init_from_settings(
+            meta,
+            last_meta_session,
+            selection_mode,
+        ):
             if meta is None:
-                return selection_mode, dash.no_update, dash.no_update
+                return dash.no_update, selection_mode, dash.no_update, dash.no_update
+
+            if meta["session"] == last_meta_session:
+                return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
             try:
                 jsonschema.validate(
@@ -316,6 +324,7 @@ class Cluster(Tab):
                 )
             except jsonschema.exceptions.ValidationError as err:
                 return (
+                    meta["session"],
                     selection_mode,
                     dash.no_update,
                     dmc.Notification(
@@ -331,14 +340,14 @@ class Cluster(Tab):
             try:
                 mode = meta["settings"]["cluster-tab"]["selection"]["mode"]
             except Exception:
-                return selection_mode, dash.no_update, dash.no_update
+                return meta["session"], selection_mode, dash.no_update, dash.no_update
 
             if mode == "draw":
                 brush = meta["settings"]["cluster-tab"]["selection"]["brush"]
 
-                return True, brush, dash.no_update
+                return meta["session"], True, brush, dash.no_update
             else:  # mode == "fg-bg"
-                return False, dash.no_update, dash.no_update
+                return meta["session"], False, dash.no_update, dash.no_update
 
         @app.callback(
             Output("metadata_store", "data"),
@@ -522,6 +531,7 @@ class Cluster(Tab):
                     id="cluster-tab-settings-notify-container",
                     style={"display": "none"},
                 ),
+                html.Div(id="cluster-tab-settings-session", style={"display": "none"}),
             ],
             style={"display": "none"},
         )

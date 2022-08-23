@@ -4,6 +4,7 @@ import tarfile
 import pandas as pd
 import numpy as np
 
+from collections import OrderedDict
 from io import BytesIO, StringIO
 from pathlib import Path
 
@@ -84,7 +85,9 @@ def read_dataframe_with_extension(data, filename=None):
             if meta_file is None:
                 raise Exception(f"Tar contains no metadata file called 'meta.json'")
 
-            metadata = json.load(meta_file) or dict()
+            metadata = (
+                json.load(meta_file, object_pairs_hook=OrderedDict) or OrderedDict()
+            )
             metadata["filename"] = str(df_name)
 
             df = read_only_dataframe(df_file, df_name)
@@ -104,7 +107,7 @@ def read_dataframe_with_extension(data, filename=None):
     return (
         read_only_dataframe(data, filename),
         pd.DataFrame(dict()),
-        dict(filename=str(filename)),
+        OrderedDict(filename=str(filename)),
     )
 
 
@@ -167,7 +170,7 @@ def write_dataframe_and_metadata(df, aux, meta, filepath, file):
 
         tar.addfile(aux_info, BytesIO(aux_bytes))
 
-        meta = meta or dict()
+        meta = meta or OrderedDict()
         meta["filename"] = Path(filepath).name
 
         meta_string = json.dumps(meta)
