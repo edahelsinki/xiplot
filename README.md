@@ -40,7 +40,7 @@ The [`wasm`](https://github.com/edahelsinki/xiplot/tree/wasm) branch of the repo
        git add packages
        git diff --cached > ../patches/pyodide.patch
        ```
-    4. Next, you need to update the following command in the [`Makefile`](https://github.com/edahelsinki/xiplot/blob/wasm/Makefile) to include your packages in the build process:
+    4. Next, you need to update the following command in the [`Makefile`](Makefile) to include your packages in the build process:
        https://github.com/edahelsinki/xiplot/blob/67d26cdceea0b436c94ec9ee72e3466eb4f6d72a/Makefile#L19
     5. Make sure that the new packages are also listed in `xiplot`'s [`pyproject.toml`](https://github.com/edahelsinki/xiplot/blob/main/pyproject.toml) and [`requirements.txt`](https://github.com/edahelsinki/xiplot/blob/main/requirements.txt) files.
     6. Finally, you can rebuild the WASM WebDash version:
@@ -82,7 +82,7 @@ The WASM WebDash version of the `xiplot` playground was created by [Juniper Lang
 
 ## License
 
-* The [`src`](https://github.com/edahelsinki/xiplot/tree/wasm/src) directory on the `wasm` branch is licensed under both the BSD 3-Clause License ([`LICENSE-BSD3`](LICENSE-BSD3) or https://opensource.org/licenses/BSD-3-Clause) **and** the MIT License ([`LICENSE-MIT`](LICENSE-MIT) or http://opensource.org/licenses/MIT).
+* The [`src`](src) directory on the `wasm` branch is licensed under both the BSD 3-Clause License ([`LICENSE-BSD3`](LICENSE-BSD3) or https://opensource.org/licenses/BSD-3-Clause) **and** the MIT License ([`LICENSE-MIT`](LICENSE-MIT) or http://opensource.org/licenses/MIT).
 
 * The `pyodide` submodule, which is not part of this project, but whose version is pinned, is licensed under the [Mozilla Public License Version 2.0](https://choosealicense.com/licenses/mpl-2.0/).
 
