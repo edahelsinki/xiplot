@@ -48,62 +48,6 @@ class Smiles(Plot):
         )
 
         @app.callback(
-            output=dict(
-                smiles=Output({"type": "smiles-input", "index": ALL}, "value"),
-            ),
-            inputs=[
-                Input("lastly_clicked_point_store", "data"),
-                State({"type": "smiles_lock_dropdown", "index": ALL}, "value"),
-                State({"type": "smiles-input", "index": ALL}, "value"),
-                State("data_frame_store", "data"),
-                State({"type": "table", "index": ALL}, "data"),
-                State({"type": "table", "index": ALL}, "sort_by"),
-                State("selected_rows_store", "data"),
-            ],
-        )
-        def render_active_cell_smiles(
-            row,
-            smiles_render_modes,
-            smiles_inputs,
-            df,
-            table_df,
-            sort_by,
-            selected_rows,
-        ):
-            df = df_from_store(df)
-            smiles_col = get_smiles_column_name(df)
-
-            if not smiles_col or row is None or len(sort_by) == 0:
-                raise PreventUpdate()
-
-            if (
-                table_df is not None
-                and sort_by is not None
-                and sort_by[0] is not None
-                and selected_rows is not None
-                and len(sort_by)
-            ):
-                sort_by = sort_by[0]
-                table_df = pd.DataFrame(table_df[0])
-                table_df.index.rename("index_copy", inplace=True)
-
-                df = table_df.sort_values(
-                    by=[i["column_id"] for i in sort_by],
-                    ascending=[i["direction"] == "asc" for i in sort_by],
-                    inplace=False,
-                )
-
-            smiles_amount = len(smiles_inputs)
-            smiles = []
-            for i in range(smiles_amount):
-                if smiles_render_modes[i] == "lock":
-                    smiles.append(smiles_inputs[i])
-                else:
-                    smiles.append(df.iloc[row][smiles_col])
-
-            return dict(smiles=smiles)
-
-        @app.callback(
             output=dict(smiles=Output({"type": "smiles-input", "index": ALL}, "value")),
             inputs=[
                 Input("lastly_clicked_point_store", "data"),
@@ -177,7 +121,6 @@ class Smiles(Plot):
             return dict(meta=meta)
 
         return [
-            render_active_cell_smiles,
             render_clicks,
             render_hovered,
             update_settings,

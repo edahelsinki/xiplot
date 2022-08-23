@@ -124,17 +124,18 @@ class Table(Plot):
             ),
             inputs=[
                 Input({"type": "table", "index": ALL}, "active_cell"),
+                Input({"type": "table", "index": ALL}, "derived_viewport_indices"),
                 State("data_frame_store", "data"),
             ],
         )
-        def update_lastly_activated_cell(active_cells, df):
+        def update_lastly_activated_cell(active_cells, table_row_indices, df):
             if active_cells == [None]:
                 raise PreventUpdate()
 
             row = None
-            for cell in active_cells:
+            for cell, indices in zip(active_cells, table_row_indices):
                 if cell:
-                    row = cell["row"]
+                    row = indices[cell["row"]]
                     column = cell["column_id"]
                     break
 
