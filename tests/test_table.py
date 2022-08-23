@@ -149,7 +149,7 @@ def test_update_table_checkbox():
 def test_update_lastly_activated_cell():
     d = {"col1": [1, 2], "col2": [3, 4]}
     df = pd.DataFrame(data=d)
-    output = update_lastly_activated_cell([{"row": 1, "column_id": "col1"}], df)
+    output = update_lastly_activated_cell([{"row": 1, "column_id": "col1"}], [[0, 1]], df)
     lastly_activated_cell_row = output["cell_store"]
     updated_active_cell = output["active_cell"]
 
