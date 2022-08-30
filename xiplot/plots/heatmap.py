@@ -64,12 +64,9 @@ class Heatmap(Plot):
     def render(n_clusters, features, df):
         from sklearn.cluster import KMeans
 
-        df = df.dropna()
-        columns = df.columns.to_list()
-        num_columns = get_numeric_columns(df, columns)
-
         km = KMeans(n_clusters=n_clusters, random_state=42)
-        km.fit(df[features])
+        dff = df.dropna()
+        km.fit(dff[features])
 
         cluster_centers = km.cluster_centers_
 
