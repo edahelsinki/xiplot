@@ -16,9 +16,10 @@ class Heatmap(Plot):
         @app.callback(
             Output({"type": "heatmap", "index": MATCH}, "figure"),
             Input({"type": "heatmap_cluster_amount", "index": MATCH}, "value"),
+            Input({"type": "heatmap_feature_dropdown", "index": MATCH}, "value"),
             Input("data_frame_store", "data"),
         )
-        def tmp(n_clusters, df):
+        def tmp(n_clusters, features, df):
             # Try branch for testing
             try:
                 if ctx.triggered_id == "data_frame_store":
@@ -28,7 +29,7 @@ class Heatmap(Plot):
             except:
                 pass
 
-            return Heatmap.render(n_clusters, df_from_store(df))
+            return Heatmap.render(n_clusters, features, df_from_store(df))
 
         @app.callback(
             output=dict(
@@ -60,7 +61,7 @@ class Heatmap(Plot):
         return [tmp, update_settings]
 
     @staticmethod
-    def render(n_clusters, df):
+    def render(n_clusters, features, df):
         from sklearn.cluster import KMeans
 
         df = df.dropna()
@@ -68,13 +69,13 @@ class Heatmap(Plot):
         num_columns = get_numeric_columns(df, columns)
 
         km = KMeans(n_clusters=n_clusters, random_state=42)
-        km.fit(df[num_columns])
+        km.fit(df[features])
 
         cluster_centers = km.cluster_centers_
 
         fig = px.imshow(
             cluster_centers,
-            x=num_columns,
+            x=features,
             y=[str(n + 1) for n in range(n_clusters)],
             color_continuous_scale="RdBu",
             origin="lower",
@@ -113,7 +114,16 @@ class Heatmap(Plot):
                 delete_button("plot-delete", index),
                 dcc.Graph(
                     id={"type": "heatmap", "index": index},
-                    figure=Heatmap.render(n_clusters, df),
+                    figure=Heatmap.render(n_clusters, num_columns, df),
+                ),
+                layout_wrapper(
+                    component=dcc.Dropdown(
+                        options=num_columns,
+                        multi=True,
+                        id={"type": "heatmap_feature_dropdown", "index": index},
+                    ),
+                    title="Features",
+                    style={"width": "80%"},
                 ),
                 layout_wrapper(
                     component=dcc.Slider(
