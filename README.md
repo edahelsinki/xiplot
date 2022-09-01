@@ -26,7 +26,7 @@ You can try out the serverless WASM version of &chi;iplot at [www.edahelsinki.fi
 
 ## User guide
 
-You can find the user guide ![here](https://www.edahelsinki.fi/docs/user_guide)
+You can find the user guide [here](docs/user_guide).
 
 ## Funding
 
