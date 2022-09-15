@@ -7,6 +7,7 @@ from dash.exceptions import PreventUpdate
 
 from xiplot.utils.layouts import layout_wrapper, delete_button
 from xiplot.utils.dataframe import get_numeric_columns
+from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 from xiplot.plots import Plot
 
 
@@ -30,6 +31,47 @@ class Heatmap(Plot):
                 pass
 
             return Heatmap.render(n_clusters, features, df_from_store(df))
+
+        @app.callback(
+            Output({"type": "heatmap_feature_dropdown", "index": MATCH}, "options"),
+            Output({"type": "heatmap_feature_dropdown", "index": MATCH}, "value"),
+            Output(
+                {"type": "heatmap_feature_dropdown", "index": MATCH}, "search_value"
+            ),
+            Input("data_frame_store", "data"),
+            Input({"type": "heatmap_regex-button", "index": MATCH}, "n_clicks"),
+            Input({"type": "heatmap_feature_dropdown", "index": MATCH}, "value"),
+            State({"type": "heatmap_feature_dropdown", "index": MATCH}, "options"),
+            State({"type": "heatmap_feature-input", "index": MATCH}, "value"),
+        )
+        def add_features_by_regex(df, n_clicks, features, options, keyword):
+            df = df_from_store(df)
+            if ctx.triggered_id == "data_frame_store":
+                options = get_numeric_columns(df, df.columns.to_list())
+                return options, None, dash.no_update
+
+            if not features:
+                features = []
+
+            if ctx.triggered_id["type"] == "heatmap_regex-button":
+                options, features, hits = dropdown_regex(
+                    options or [], features, keyword
+                )
+                return options, features, ""
+
+            if ctx.triggered_id["type"] == "heatmap_feature_dropdown":
+                options = get_numeric_columns(df, df.columns.to_list())
+                options, features, hits = dropdown_regex(options, features)
+                return options, features, ""
+
+        @app.callback(
+            Output({"type": "heatmap_feature-input", "index": MATCH}, "value"),
+            Input({"type": "heatmap_feature_dropdown", "index": MATCH}, "search_value"),
+        )
+        def sync_with_input(keyword):
+            if keyword == "":
+                raise PreventUpdate()
+            return keyword
 
         @app.callback(
             output=dict(
@@ -66,6 +108,10 @@ class Heatmap(Plot):
 
         km = KMeans(n_clusters=n_clusters, random_state=42)
         dff = df.dropna()
+
+        features = get_columns_by_regex(
+            get_numeric_columns(dff, dff.columns.to_list()), features
+        )
         km.fit(dff[features])
 
         cluster_centers = km.cluster_centers_
@@ -121,6 +167,16 @@ class Heatmap(Plot):
                     ),
                     title="Features",
                     style={"width": "80%"},
+                ),
+                html.Button(
+                    "Add features by regex",
+                    id={"type": "heatmap_regex-button", "index": index},
+                ),
+                layout_wrapper(
+                    component=dcc.Input(
+                        id={"type": "heatmap_feature-input", "index": index}
+                    ),
+                    style={"display": "none"},
                 ),
                 layout_wrapper(
                     component=dcc.Slider(

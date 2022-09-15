@@ -66,3 +66,35 @@ def dropdown_regex(options: list, selected: list, keyword=None):
         if " (regex)" in s:
             options, sub_selected, hits = dropdown_regex(options, sub_selected, s[:-8])
     return options, sub_selected or None, hits
+
+
+def get_columns_by_regex(columns, features):
+    new_features = []
+    for f in features:
+        if " (regex)" in f:
+            for c in columns:
+                if re.search(f[:-8], c) and c not in new_features:
+                    new_features.append(c)
+        elif f not in new_features:
+            new_features.append(f)
+    return new_features
+
+
+if __name__ == "__main__":
+    print(
+        dropdown_regex(
+            [
+                "PCA 1",
+                "PCA 2",
+                "mpg",
+                "cylinders",
+                "displacement",
+                "horsepower",
+                "weight",
+                "acceleration",
+                "model-year",
+                "origin",
+            ],
+            ["mpg", "weight", "P.* (regex)"],
+        )
+    )

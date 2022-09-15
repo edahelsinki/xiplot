@@ -13,7 +13,7 @@ from xiplot.utils.layouts import delete_button, layout_wrapper
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.dataframe import get_smiles_column_name
 from xiplot.utils.table import get_sort_by, get_updated_item, get_updated_item_id
-from xiplot.utils.dcc import dropdown_regex
+from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 from xiplot.plots import Plot
 
 
@@ -176,14 +176,9 @@ class Table(Plot):
                 if item["id"]["index"] == trigger_id:
                     if n_clicks[id] is None or dropdown_columns[id] is None:
                         raise PreventUpdate()
-                    new_columns = []
-                    for dc in dropdown_columns[id]:
-                        if " (regex)" in dc:
-                            for c in df.columns:
-                                if re.search(dc[:-8], c) and c not in new_columns:
-                                    new_columns.append(c)
-                        elif dc not in new_columns:
-                            new_columns.append(dc)
+                    new_columns = get_columns_by_regex(
+                        df.columns.to_list(), dropdown_columns[id]
+                    )
                     columns[id] = [
                         {"name": c, "id": c, "hideable": True} for c in new_columns
                     ]

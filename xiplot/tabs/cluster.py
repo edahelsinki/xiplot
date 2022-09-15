@@ -14,7 +14,7 @@ from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.tabs import Tab
 from xiplot.utils.layouts import layout_wrapper, cluster_dropdown
-from xiplot.utils.dcc import dropdown_regex
+from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
 
@@ -421,18 +421,12 @@ class Cluster(Tab):
         from sklearn.cluster import KMeans
         from sklearn.preprocessing import StandardScaler
 
-        columns = get_numeric_columns(df, df.columns.to_list())
-        new_features = []
-        for f in features:
-            if " (regex)" in f:
-                for c in columns:
-                    if re.search(f[:-8], c) and c not in new_features:
-                        new_features.append(c)
-            elif f not in new_features:
-                new_features.append(f)
-
         scaler = StandardScaler()
+
+        columns = get_numeric_columns(df, df.columns.to_list())
+        new_features = get_columns_by_regex(columns, features)
         scale = scaler.fit_transform(df[new_features])
+
         km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
         kmeans_col = [f"c{c+1}" for c in km]
 
