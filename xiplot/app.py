@@ -44,13 +44,7 @@ class XiPlot:
                                 value=f"control-{TABS[0].name().lower()}-tab",
                             ),
                         ],
-                        style={
-                            "width": "100%",
-                            "display": "inline-block",
-                            "background-color": "#dffcde",
-                            "height": "auto",
-                            "border-radius": "8px",
-                        },
+                        className="control",
                     ),
                     html.Div(id="plots"),
                     dcc.Store(id="data_frame_store"),
@@ -100,4 +94,4 @@ class XiPlot:
 
 
 def app_logo():
-    return html.Div([html.H1("χiplot")], style={"text-align": "center", "margin": 20})
+    return html.Div([html.H1("χiplot")], className="logo")

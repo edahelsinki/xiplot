@@ -469,19 +469,36 @@ class Cluster(Tab):
                     "Add features by regex",
                     id="add_by_keyword-button",
                     style={"padding-top": "20"},
+                    className="button",
                 ),
                 html.Div(),
                 html.Div(
-                    [html.Button("Compute the clusters", id="cluster-button")],
+                    [
+                        html.Button(
+                            "Compute the clusters",
+                            id="cluster-button",
+                            className="button",
+                            style={
+                                "margin-left": "auto",
+                                "margin-right": "auto",
+                            },
+                        ),
+                        html.Button(
+                            "Reset the clusters",
+                            id="clusters_reset-button",
+                            className="button",
+                            style={
+                                "margin-left": "auto",
+                                "margin-right": "auto",
+                            },
+                        ),
+                    ],
                     style={
-                        "padding-left": "2%",
-                        "padding-top": "2%",
-                        "display": "inline-block",
+                        "margin-top": "1%",
+                        "margin-left": "5%",
+                        "display": "flex",
+                        "width": "20%",
                     },
-                ),
-                html.Div(
-                    [html.Button("Reset the clusters", id="clusters_reset-button")],
-                    style={"display": "inline-block"},
                 ),
                 html.Div(),
                 cluster_dropdown(

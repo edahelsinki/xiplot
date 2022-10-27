@@ -1,0 +1,99 @@
+.dd-single {
+    margin-left: 10%;
+    width: 82%;
+}
+
+.dd-double-left,
+.dcc-input {
+    margin-left: 10%;
+    display: inline-block;
+    width: 40%;
+}
+
+.dd-double-right {
+    margin-left: 2%;
+    display: inline-block;
+    width: 40%;
+}
+
+.main-svg {
+    background-color: transparent !important;
+}
+
+.bg {
+    fill: #1F2833 !important;
+}
+
+.ytick text,
+.xtick text,
+.g-xtitle text,
+.g-ytitle text {
+    fill: #66FCF1 !important;
+}
+
+.Select-control,
+.Select-menu-outer {
+    background-color: #1F2833 !important;
+}
+
+.Select-value-label,
+.Select-placeholder {
+    color: #66FCF1 !important;
+}
+
+.tab.jsx-2137964197.tab {
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid #45A29E;
+}
+
+.tab.jsx-2137964197.tab:hover {
+    border-bottom: 2px solid #C5C6C7;
+}
+
+.tab.jsx-2137964197.tab.tab--selected {
+    color: #66FCF1 !important;
+    border-bottom: 2px solid rgb(214, 214, 214) !important;
+}
+
+.tab.jsx-2137964197.tab.tab--selected:hover {
+    background-color: transparent;
+}
+
+.tab.jsx-2137964197:last-of-type.tab--selected,
+.tab.jsx-2137964197:last-of-type {
+    border-top: none !important;
+    border-right: none !important;
+}
+
+.slider-single {
+    width: 88.5%;
+    padding-left: 10%;
+}
+
+.color-rect {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+}
+
+.dcc-upload {
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+    border-width: 1px;
+    border-style: dashed;
+    border-radius: 5px;
+    margin: 10px;
+
+    text-align: center;
+}
+
+.dash-uploader {
+    position: relative;
+
+    display: inline-block;
+    width: 40%;
+    margin-left: 16%;
+    top: 10px;
+}

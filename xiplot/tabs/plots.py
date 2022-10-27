@@ -223,7 +223,7 @@ class Plots(Tab):
                     title="Select a plot type",
                     style={"width": "98%"},
                 ),
-                html.Button("Add", id="new_plot-button"),
+                html.Button("Add", id="new_plot-button", className="button"),
             ],
             id="control_plots_content-container",
         )

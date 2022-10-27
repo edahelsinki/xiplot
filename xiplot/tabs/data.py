@@ -509,8 +509,10 @@ class Data(Tab):
                                     for fp in get_data_filepaths()
                                 ],
                                 id="data_files",
+                                className="dd",
                             ),
                             title="Choose a data file",
+                            css_class="dd",
                             style={"margin-left": "5%", "width": "100%"},
                         ),
                         html.Div(
@@ -519,7 +521,7 @@ class Data(Tab):
                                     "Load the data file",
                                     id="submit-button",
                                     n_clicks=0,
-                                    className="btn btn-primary",
+                                    className="button",
                                     style={
                                         "margin-left": "auto",
                                         "margin-right": "auto",
@@ -529,7 +531,7 @@ class Data(Tab):
                                     "Download only the data file",
                                     id="download-data-file-button",
                                     n_clicks=0,
-                                    className="btn btn-primary",
+                                    className="button",
                                     style={
                                         "margin-left": "auto",
                                         "margin-right": "auto",
@@ -539,7 +541,7 @@ class Data(Tab):
                                     "Download the combined plots-and-data file",
                                     id="download-plots-file-button",
                                     n_clicks=0,
-                                    className="btn btn-primary",
+                                    className="button",
                                     style={
                                         "margin-left": "auto",
                                         "margin-right": "auto",
