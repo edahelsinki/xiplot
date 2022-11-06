@@ -28,7 +28,7 @@
 .xtick text,
 .g-xtitle text,
 .g-ytitle text {
-    fill: #66FCF1 !important;
+    fill: white !important;
 }
 
 .Select-control,
@@ -38,7 +38,7 @@
 
 .Select-value-label,
 .Select-placeholder {
-    color: #66FCF1 !important;
+    color: white !important;
 }
 
 .tab.jsx-2137964197.tab {
@@ -52,7 +52,7 @@
 }
 
 .tab.jsx-2137964197.tab.tab--selected {
-    color: #66FCF1 !important;
+    color: white !important;
     border-bottom: 2px solid rgb(214, 214, 214) !important;
 }
 
