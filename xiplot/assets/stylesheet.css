@@ -8,7 +8,7 @@ body {
 .control {
     width: 100%;
     display: inline-block;
-    background-color: hsla(0, 100%, 100%, 0.05);
+    background-color: #212121;
     height: auto;
     border-radius: 8px;
     box-shadow: 0px 4px 5px 0px hsla(0, 0%, 0%, 0.14),
