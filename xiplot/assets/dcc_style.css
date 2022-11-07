@@ -75,6 +75,10 @@
     stroke-width: 1px !important;
 }
 
+.ycbcoloraxistick text {
+    fill: white !important;
+}
+
 .slider-single {
     width: 88.5%;
     padding-left: 10%;
