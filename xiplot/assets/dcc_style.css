@@ -66,6 +66,15 @@
     border-right: none !important;
 }
 
+.xgrid.crisp,
+.ygrid.crisp,
+.xzl.zl.crisp,
+.yzl.zl.crisp {
+    stroke: rgb(63, 63, 63) !important;
+    stroke-opacity: 1 !important;
+    stroke-width: 1px !important;
+}
+
 .slider-single {
     width: 88.5%;
     padding-left: 10%;
