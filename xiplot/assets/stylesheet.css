@@ -23,6 +23,8 @@ body {
 }
 
 .plots {
-    display: inline-block;
+    display: block;
     width: 32%;
+    float: left;
+    height: 650px;
 }
