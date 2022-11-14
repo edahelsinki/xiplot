@@ -31,6 +31,11 @@ class XiPlot:
                     html.Div(
                         [
                             app_logo(),
+                            html.Button(
+                                "Dark",
+                                id="light-dark-toggle",
+                                className="light-dark-toggle",
+                            ),
                             dcc.Tabs(
                                 [
                                     dcc.Tab(
@@ -44,6 +49,7 @@ class XiPlot:
                                 value=f"control-{TABS[0].name().lower()}-tab",
                             ),
                         ],
+                        id="control",
                         className="control",
                     ),
                     html.Div(id="plots"),
@@ -92,6 +98,32 @@ class XiPlot:
 
             return [f": [{c}]" for c in counts]
 
+        """@app.callback(
+            Output("light-dark-toggle", "children"),
+            Input("light-dark-toggle", "n_clicks"),
+            prevent_initial_call=False,
+        )
+        def tmp(n):
+            if not n:
+                n = 0
+
+            return "Dark" if n % 2 == 1 else "Light" """
+
+        app.clientside_callback(
+            """
+            function toggleLightDarkMode(nClicks) {
+                if (nClicks % 2 == 1) {
+                    document.documentElement.setAttribute("data-theme", "dark")
+                    return 'Light'
+                }
+                document.documentElement.setAttribute("data-theme", "light")
+                return 'Dark'
+            }
+            """,
+            Output("light-dark-toggle", "children"),
+            Input("light-dark-toggle", "n_clicks"),
+        )
+
 
 def app_logo():
-    return html.Div([html.H1("χiplot")], className="logo")
+    return html.Div([html.H1("χiplot")], id="logo", className="logo")
