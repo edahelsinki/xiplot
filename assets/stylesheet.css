@@ -1,59 +1,58 @@
+:root {
+    --font-color: black;
+    --placeholder-color: #aaa;
+    --body-bg-color: white;
+    --control-bg-color: #dffcde;
+    --graph-bg-color: rbg(229, 236, 246);
+    --bg-color: white;
+    --graph-stroke: white;
+}
+
+[data-theme="dark"] {
+    --font-color: white;
+    --placeholder-color: #a0aaba;
+    --body-bg-color: #121212;
+    --control-bg-color: #212121;
+    --graph-bg-color: #1F2833;
+    --bg-color: #212121;
+    --graph-stroke: rgb(63, 63, 63)
+}
+
 body {
     min-width: 1200px;
     width: auto !important;
+    color: black;
+    color: var(--font-color);
+    background-color: white;
+    background-color: var(--body-bg-color);
+}
+
+.control {
+    width: 100%;
+    display: inline-block;
+    background-color: #dffcde;
+    background-color: var(--control-bg-color);
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0px 4px 5px 0px hsla(0, 0%, 0%, 0.14),
+        0px 1px 10px 0px hsla(0, 0%, 0%, 0.12),
+        0px 2px 4px -1px hsla(0, 0%, 0%, 0.2);
+}
+
+.logo {
+    text-align: center;
+    margin: 20;
+    color: black;
+    color: var(--font-color)
 }
 
 .plots {
-    display: inline-block;
+    display: block;
     width: 32%;
-}
-
-.dd-single {
-    margin-left: 10%;
-    width: 82%;
-}
-
-.dd-double-left,
-.dcc-input {
-    margin-left: 10%;
-    display: inline-block;
-    width: 40%;
-}
-
-.dd-double-right {
-    margin-left: 2%;
-    display: inline-block;
-    width: 40%;
-}
-
-.slider-single {
-    width: 88.5%;
-    padding-left: 10%;
-}
-
-.color-rect {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-}
-
-.dcc-upload {
-    width: 100%;
-    height: 60px;
-    line-height: 60px;
-    border-width: 1px;
-    border-style: dashed;
-    border-radius: 5px;
-    margin: 10px;
-
-    text-align: center;
-}
-
-.dash-uploader {
-    position: relative;
-
-    display: inline-block;
-    width: 40%;
-    margin-left: 16%;
-    top: 10px;
+    float: left;
+    height: 650px;
+    background-color: #dffcde !important;
+    background-color: var(--control-bg-color) !important;
+    margin: 10px 10px 10px 10px;
+    border-radius: 4px;
 }

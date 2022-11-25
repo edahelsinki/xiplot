@@ -1,0 +1,114 @@
+.dd-single {
+    margin-left: 10%;
+    width: 82%;
+}
+
+.dd-double-left,
+.dcc-input {
+    margin-left: 10%;
+    display: inline-block;
+    width: 40%;
+}
+
+.dd-double-right {
+    margin-left: 2%;
+    display: inline-block;
+    width: 40%;
+}
+
+.slider-single {
+    width: 88.5%;
+    padding-left: 10%;
+}
+
+.color-rect {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+}
+
+.dcc-upload {
+    width: 100%;
+    height: 60px;
+    line-height: 60px;
+    border-width: 1px;
+    border-style: dashed;
+    border-radius: 5px;
+    margin: 10px;
+
+    text-align: center;
+}
+
+.dash-uploader {
+    position: relative;
+
+    display: inline-block;
+    width: 40%;
+    margin-left: 16%;
+    top: 10px;
+}
+
+.main-svg {
+    background-color: transparent !important;
+}
+
+.bg {
+    fill: var(--graph-bg-color);
+}
+
+.ytick text,
+.xtick text,
+.g-xtitle text,
+.g-ytitle text {
+    fill: var(--font-color) !important;
+}
+
+.Select-control,
+.Select-menu-outer {
+    background-color: white !important;
+    background-color: var(--bg-color) !important;
+}
+
+.Select-value-label {
+    color: black !important;
+    color: var(--font-color) !important;
+}
+
+.Select-placeholder {
+    color: black !important;
+    color: var(--placeholder-color) !important;
+}
+
+.tab.jsx-2137964197.tab,
+.tab.jsx-2137964197:last-of-type {
+    background-color: transparent;
+    border: none !important;
+    border-bottom: 2px solid #45A29E !important;
+}
+
+.tab.jsx-2137964197.tab:hover {
+    border-bottom: 2px solid #C5C6C7 !important;
+}
+
+.tab.jsx-2137964197.tab.tab--selected {
+    color: black !important;
+    color: var(--font-color) !important;
+    border-bottom: 2px solid rgb(214, 214, 214) !important;
+}
+
+.tab.jsx-2137964197.tab.tab--selected:hover {
+    background-color: transparent;
+}
+
+.xgrid.crisp,
+.ygrid.crisp,
+.xzl.zl.crisp,
+.yzl.zl.crisp {
+    stroke: white !important;
+    stroke-opacity: 1 !important;
+    stroke-width: 1px !important;
+}
+
+.ycbcoloraxistick text {
+    fill: white !important;
+}

@@ -1,0 +1,35 @@
+.button {
+    background-color: transparent;
+    border: 1px solid rgb(209, 213, 219);
+    box-sizing: border-box;
+    color: white;
+    color: var(--font-color);
+    font-size: .875rem;
+    line-height: 1.25rem;
+    padding: .75rem 1rem;
+    text-align: center;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+
+.button:hover {
+    background-color: rgb(249, 250, 251);
+    color: #1F2833;
+}
+
+.button:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+.button:focus-visible {
+    box-shadow: none;
+}
+
+.light-dark-toggle {
+    background-color: transparent;
+    color: var(--font-color);
+}
