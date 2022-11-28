@@ -7,6 +7,7 @@ from dash import html, dcc, Input, Output, ALL, ctx
 from xiplot.tabs.data import Data
 from xiplot.tabs.plots import Plots
 from xiplot.tabs.cluster import Cluster
+from xiplot.tabs.settings import Settings
 
 from xiplot.utils.cluster import cluster_colours
 
@@ -23,7 +24,7 @@ class XiPlot:
         except ImportError:
             pass
 
-        TABS = [Data, Plots, Cluster]
+        TABS = [Data, Plots, Cluster, Settings]
 
         self.app.layout = dmc.NotificationsProvider(
             html.Div(
@@ -31,11 +32,6 @@ class XiPlot:
                     html.Div(
                         [
                             app_logo(),
-                            html.Button(
-                                "Dark",
-                                id="light-dark-toggle",
-                                className="light-dark-toggle",
-                            ),
                             dcc.Tabs(
                                 [
                                     dcc.Tab(
