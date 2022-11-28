@@ -98,17 +98,6 @@ class XiPlot:
 
             return [f": [{c}]" for c in counts]
 
-        """@app.callback(
-            Output("light-dark-toggle", "children"),
-            Input("light-dark-toggle", "n_clicks"),
-            prevent_initial_call=False,
-        )
-        def tmp(n):
-            if not n:
-                n = 0
-
-            return "Dark" if n % 2 == 1 else "Light" """
-
         app.clientside_callback(
             """
             function toggleLightDarkMode(nClicks) {
