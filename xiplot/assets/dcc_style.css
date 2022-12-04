@@ -84,6 +84,7 @@
     background-color: transparent;
     border: none !important;
     border-bottom: 2px solid #45A29E !important;
+    border-bottom: 2px solid var(--tab-underline) !important;
 }
 
 .tab.jsx-1653633250.tab:hover {
@@ -94,6 +95,7 @@
     color: black !important;
     color: var(--font-color) !important;
     border-bottom: 2px solid rgb(214, 214, 214) !important;
+    border-bottom: 2px solid var(--selected-tab-underline) !important;
 }
 
 .tab.jsx-1653633250.tab.tab--selected:hover {
