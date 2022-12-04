@@ -6,6 +6,8 @@
     --graph-bg-color: rbg(229, 236, 246);
     --bg-color: white;
     --graph-stroke: white;
+    --tab-underline: #adb5bd;
+    --selected-tab-underline: #198754;
 }
 
 [data-theme="dark"] {
@@ -15,7 +17,9 @@
     --control-bg-color: #212121;
     --graph-bg-color: #1F2833;
     --bg-color: #212121;
-    --graph-stroke: rgb(63, 63, 63)
+    --graph-stroke: rgb(63, 63, 63);
+    --tab-underline: #45A29E;
+    --selected-tab-underline: rgb(214, 214, 214);
 }
 
 body {
