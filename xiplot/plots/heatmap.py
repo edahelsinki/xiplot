@@ -7,6 +7,7 @@ from dash.exceptions import PreventUpdate
 
 from xiplot.utils.layouts import layout_wrapper, delete_button
 from xiplot.utils.dataframe import get_numeric_columns
+from xiplot.utils.callbacks import pdf_callback
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 from xiplot.plots import Plot
 
@@ -100,6 +101,8 @@ class Heatmap(Plot):
 
             return dict(meta=meta)
 
+        pdf_callback(app, "heatmap")
+
         return [tmp, update_settings]
 
     @staticmethod
@@ -155,6 +158,9 @@ class Heatmap(Plot):
         return html.Div(
             [
                 delete_button("plot-delete", index),
+                html.Button(
+                    "Download as pdf", id={"type": "download_pdf_btn", "index": index}
+                ),
                 dcc.Graph(
                     id={"type": "heatmap", "index": index},
                     figure=Heatmap.render(n_clusters, num_columns, df),

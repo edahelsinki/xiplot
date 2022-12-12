@@ -1,14 +1,11 @@
 import json
 import uuid
-import base64
 
 import dash
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import jsonschema
-import plotly as po
-from io import BytesIO
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
@@ -17,9 +14,8 @@ from xiplot.utils.layouts import layout_wrapper, delete_button
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.scatterplot import get_row
-from xiplot.plots import Plot
-
 from xiplot.utils.callbacks import pdf_callback
+from xiplot.plots import Plot
 
 
 class Scatterplot(Plot):

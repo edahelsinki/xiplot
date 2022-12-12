@@ -14,14 +14,20 @@ def pdf_callback(app, type):
         prevent_initial_call=True,
     )
     def download_as_pdf(n_clicks, fig):
-        if n_clicks[-1] is None or ctx.triggered_id["type"] == type:
+        if (
+            ctx.triggered[0]["value"] is None
+            or ctx.triggered_id["type"] != "download_pdf_btn"
+        ):
             return dash.no_update
 
         figs = ctx.args_grouping[1]
 
+        figure = None
         for f in figs:
             if f["id"]["index"] == ctx.triggered_id["index"]:
                 figure = f["value"]
+        if not figure:
+            return dash.no_update
         fig_img = po.io.to_image(figure, format="pdf")
         file = BytesIO(fig_img)
         encoded = base64.b64encode(file.getvalue()).decode("ascii")
