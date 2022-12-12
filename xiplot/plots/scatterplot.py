@@ -1,11 +1,14 @@
 import json
 import uuid
+import base64
 
 import dash
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import jsonschema
+import plotly as po
+from io import BytesIO
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
@@ -15,6 +18,8 @@ from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.scatterplot import get_row
 from xiplot.plots import Plot
+
+from xiplot.utils.callbacks import pdf_callback
 
 
 class Scatterplot(Plot):
@@ -233,6 +238,8 @@ class Scatterplot(Plot):
 
             return dict(meta=meta)
 
+        pdf_callback(app, "scatterplot")
+
         return [
             tmp,
             handle_click_events,
@@ -363,6 +370,9 @@ class Scatterplot(Plot):
         return html.Div(
             children=[
                 delete_button("plot-delete", index),
+                html.Button(
+                    "Download as pdf", id={"type": "download_pdf_btn", "index": index}
+                ),
                 dcc.Graph(
                     id={"type": "scatterplot", "index": index},
                     figure=px.scatter(
