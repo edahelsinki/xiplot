@@ -67,7 +67,7 @@ def test_teba003_set_cluster(dash_duo):
 
     cluster_dd = driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[4]/div[2]",
+        "//div[@class='dd-single cluster-comparison']/div[2]",
     )
     cluster_dd.click()
 
@@ -77,10 +77,12 @@ def test_teba003_set_cluster(dash_duo):
 
     time.sleep(1)
 
-    assert "cluster #2" in driver.find_element(
+    cluster_value = driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]",
+        "//div[@class='dd-single cluster-comparison']/div[2]/div[1]/div[1]",
     ).get_attribute("outerHTML")
+
+    assert "cluster #3" in cluster_value
     assert dash_duo.get_logs() == [], "browser console should contain no error"
 
     driver.close()

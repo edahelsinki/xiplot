@@ -362,7 +362,7 @@ class Barplot(Plot):
                     value=classes,
                     clearable=True,
                     title="Cluster Comparison",
-                    css_class="dd-single",
+                    css_class="dd-single cluster-comparison",
                 ),
                 layout_wrapper(
                     component=dcc.Dropdown(
