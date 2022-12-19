@@ -146,7 +146,10 @@ class Smiles(Plot):
             children=[
                 delete_button("plot-delete", index),
                 html.Br(),
-                html.Img(id={"type": "smiles-display", "index": index}, width="100%"),
+                html.Img(
+                    id={"type": "smiles-display", "index": index},
+                    className="smiles-img",
+                ),
                 html.Br(),
                 layout_wrapper(
                     dcc.Input(
@@ -167,7 +170,7 @@ class Smiles(Plot):
                         clearable=False,
                         searchable=False,
                     ),
-                    css_class="dd-double-right",
+                    css_class="dd-smiles",
                 ),
             ],
             id={"type": "smiles-container", "index": index},
