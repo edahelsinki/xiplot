@@ -17,9 +17,9 @@ from dash.exceptions import PreventUpdate
 from xiplot.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.callbacks import pdf_callback
 from xiplot.plots import Plot
 
-from collections import Counter
 from collections.abc import Iterable
 
 
@@ -113,6 +113,8 @@ class Barplot(Plot):
                 )
 
             return dict(meta=meta)
+
+        pdf_callback(app, "barplot")
 
         return [tmp, update_settings]
 
@@ -319,6 +321,9 @@ class Barplot(Plot):
         return html.Div(
             [
                 delete_button("plot-delete", index),
+                html.Button(
+                    "Download as pdf", id={"type": "download_pdf_btn", "index": index}
+                ),
                 dcc.Graph(
                     id={"type": "barplot", "index": index},
                     figure=Barplot.render(

@@ -9,6 +9,7 @@ from dash.exceptions import PreventUpdate
 from xiplot.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.callbacks import pdf_callback
 from xiplot.plots import Plot
 
 
@@ -71,6 +72,8 @@ class Histogram(Plot):
 
             return dict(meta=meta)
 
+        pdf_callback(app, "histogram")
+
         return [tmp, update_settings]
 
     @staticmethod
@@ -129,6 +132,9 @@ class Histogram(Plot):
         return html.Div(
             [
                 delete_button("plot-delete", index),
+                html.Button(
+                    "Download as pdf", id={"type": "download_pdf_btn", "index": index}
+                ),
                 dcc.Graph(
                     id={"type": "histogram", "index": index},
                     figure=make_fig_property(

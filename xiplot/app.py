@@ -62,6 +62,7 @@ class XiPlot:
                         [t.create_layout_globals() for t in TABS],
                         id="globals",
                     ),
+                    dcc.Download(id="graph_to_pdf"),
                 ],
                 id="main",
             ),
