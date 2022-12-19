@@ -73,7 +73,9 @@ def test_teba003_set_cluster(dash_duo):
 
     time.sleep(1)
 
-    driver.find_element(By.CLASS_NAME, "Select-menu-outer").click()
+    driver.find_element(
+        By.XPATH, "//div[@class='ReactVirtualized__Grid__innerScrollContainer']/div[3]"
+    ).click()
 
     time.sleep(1)
 
@@ -82,7 +84,7 @@ def test_teba003_set_cluster(dash_duo):
         "//div[@class='dd-single cluster-comparison']/div[2]/div[1]/div[1]",
     ).get_attribute("outerHTML")
 
-    assert "cluster #3" in cluster_value
+    assert "cluster #2" in cluster_value
     assert dash_duo.get_logs() == [], "browser console should contain no error"
 
     driver.close()
