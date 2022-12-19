@@ -3,7 +3,8 @@
     --placeholder-color: #aaa;
     --body-bg-color: white;
     --control-bg-color: #dffcde;
-    --graph-bg-color: rbg(229, 236, 246);
+    --graph-bg-color: #e5ecf6;
+    --smiles-img-bg-color: white;
     --bg-color: white;
     --graph-stroke: white;
     --tab-underline: #adb5bd;
@@ -16,14 +17,14 @@
     --body-bg-color: #121212;
     --control-bg-color: #212121;
     --graph-bg-color: #1F2833;
+    --smiles-img-bg-color: #e5ecf6;
     --bg-color: #212121;
-    --graph-stroke: rgb(63, 63, 63);
+    --graph-stroke: #3f3f3f;
     --tab-underline: #45A29E;
-    --selected-tab-underline: rgb(214, 214, 214);
+    --selected-tab-underline: #D6D6D6;
 }
 
 body {
-    min-width: 1200px;
     width: auto !important;
     color: black;
     color: var(--font-color);
@@ -58,5 +59,25 @@ body {
     background-color: #dffcde !important;
     background-color: var(--control-bg-color) !important;
     margin: 10px 10px 10px 10px;
-    border-radius: 4px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 5px 0px hsla(0, 0%, 0%, 0.14),
+        0px 1px 10px 0px hsla(0, 0%, 0%, 0.12),
+        0px 2px 4px -1px hsla(0, 0%, 0%, 0.2);
+}
+
+.smiles-img {
+    width: 90%;
+    height: 80%;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: var(--smiles-img-bg-color);
+}
+
+
+@media all and (min-width:0px) and (max-width: 480px) {
+    .plots {
+        width: 100% !important;
+        margin: 10px 0px 0px 0px !important;
+    }
 }

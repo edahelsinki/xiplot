@@ -10,10 +10,24 @@
     width: 40%;
 }
 
+.dcc-input input {
+    width: 90%;
+    background-color: white !important;
+    background-color: var(--bg-color) !important;
+    color: black !important;
+    color: var(--font-color) !important;
+}
+
 .dd-double-right {
     margin-left: 2%;
     display: inline-block;
     width: 40%;
+}
+
+.dd-smiles {
+    width: 30%;
+    display: inline-block;
+    margin-left: 10%;
 }
 
 .slider-single {
@@ -29,8 +43,8 @@
 
 .dcc-upload {
     width: 100%;
-    height: 60px;
-    line-height: 60px;
+    /*height: 60px;
+    line-height: 60px;*/
     border-width: 1px;
     border-style: dashed;
     border-radius: 5px;
@@ -113,4 +127,26 @@
 
 .ycbcoloraxistick text {
     fill: white !important;
+}
+
+@media all and (min-width:0px) and (max-width: 320px) {
+    .dash-uploader {
+        height: 50px !important;
+        font-size: 11px !important;
+    }
+
+    .dash-uploader-default,
+    .dash-uploader-hovered {
+        height: 100% !important;
+        line-height: 0px !important;
+    }
+}
+
+@media all and (min-width:321px) and (max-width: 480px) {
+
+    .dash-uploader-default,
+    .dash-uploader-hovered {
+        margin-left: 20px !important;
+        width: 170px !important;
+    }
 }
