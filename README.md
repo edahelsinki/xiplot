@@ -30,7 +30,7 @@ You can find the user guide [here](docs/user_guide).
 
 ## Funding
 
-The `xiplot` application was created by [Akihiro Tanaka](https://github.com/TanakaAkihiro) and [Juniper Langenstein](https://github.com/MomoLangenstein) as part of their summer internships in Kai Puolamäki's [Exploratory Data Analysis group](https://github.com/edahelsinki) at the University of Helsinki.
+The `xiplot` application was created by [Akihiro Tanaka](https://github.com/TanakaAkihiro) and [Juniper Tyree](https://github.com/juntyr) as part of their summer internships in Kai Puolamäki's [Exploratory Data Analysis group](https://github.com/edahelsinki) at the University of Helsinki.
 
 Akihiro's internpship was paid for by the Academy of Finland (decision 346376) with funding associated with the VILMA Centre of Excellence. Juniper's internship was paid for by "Future Makers Funding Program 2018 of the Technology Industries of Finland Centennial Foundation, and the Jane and Aatos Erkko Foundation", with funding associated with the Atmospheric AI programme of the Finnish Center for Artificial Intelligence.
 
