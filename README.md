@@ -1,6 +1,6 @@
 # [&chi;iplot](https://github.com/edahelsinki/xiplot) WASM WebDash version &emsp; [![CI Status]][workflow]
 
-[CI Status]: https://img.shields.io/github/checks-status/edahelsinki/xiplot/wasm?label=gh-pages
+[CI Status]: https://img.shields.io/github/actions/workflow/status/edahelsinki/xiplot/gh-pages.yaml?branch=wasm&label=gh-pages
 [workflow]: https://github.com/edahelsinki/xiplot/actions/workflows/gh-pages.yaml?query=branch%3Awasm
 
 The WASM WebDash version of [`xiplot`](https://github.com/edahelsinki/xiplot) enables the data analysis playground to run entirely in the browser, i.e. without requiring a non-static server. Hence, the playground can be deployed as a static web app to [GitHub pages](https://www.edahelsinki.fi/xiplot).
@@ -78,7 +78,7 @@ The [`wasm`](https://github.com/edahelsinki/xiplot/tree/wasm) branch of the repo
 
 ## Funding
 
-The WASM WebDash version of the `xiplot` playground was created by [Juniper Langenstein](https://github.com/MomoLangenstein) as part of their summer internship in Kai Puolamäki's [Exploratory Data Analysis group](https://github.com/edahelsinki) at the University of Helsinki. This internship was paid for by "Future Makers Funding Program 2018 of the Technology Industries of Finland Centennial Foundation, and the Jane and Aatos Erkko Foundation", with funding associated with the Atmospheric AI programme of the Finnish Center for Artificial Intelligence.
+The WASM WebDash version of the `xiplot` playground was created by [Juniper Tyree](https://github.com/juntyr) as part of their summer internship in Kai Puolamäki's [Exploratory Data Analysis group](https://github.com/edahelsinki) at the University of Helsinki. This internship was paid for by "Future Makers Funding Program 2018 of the Technology Industries of Finland Centennial Foundation, and the Jane and Aatos Erkko Foundation", with funding associated with the Atmospheric AI programme of the Finnish Center for Artificial Intelligence.
 
 ## License
 
