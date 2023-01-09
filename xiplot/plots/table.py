@@ -30,9 +30,12 @@ class Table(Plot):
             Input("data_frame_store", "data"),
             State({"type": "table", "index": ALL}, "data"),
             Input({"type": "table", "index": ALL}, "sort_by"),
+            Input("pca_column_store", "data"),
             prevent_initial_call=False,
         )
-        def update_table_data(kmeans_col, selected_rows, df, table_df, sort_by):
+        def update_table_data(
+            kmeans_col, selected_rows, df, table_df, sort_by, pca_cols
+        ):
             # Try branch for testing
             try:
                 trigger = ctx.triggered_id
@@ -46,6 +49,10 @@ class Table(Plot):
             table_data = []
             sort_bys = []
 
+            if pca_cols:
+                pca1 = [row[0] for row in pca_cols]
+                pca2 = [row[1] for row in pca_cols]
+
             for table_df, sort_by in zip(table_df, sort_by):
                 table_df = pd.DataFrame(table_df)
                 table_df.rename_axis("index_copy")
@@ -56,6 +63,11 @@ class Table(Plot):
                     table_df["Clusters"] = kmeans_col
 
                 sort_by = get_sort_by(sort_by, selected_rows, trigger)
+
+                if pca_cols:
+                    if len(pca_cols) == table_df.shape[0]:
+                        table_df["Xiplot_PCA_1"] = pca1
+                        table_df["Xiplot_PCA_2"] = pca2
 
                 columns = table_df.columns.to_list()
 
@@ -159,9 +171,10 @@ class Table(Plot):
             State({"type": "table", "index": ALL}, "data"),
             State("data_frame_store", "data"),
             State("clusters_column_store", "data"),
+            State("pca_column_store", "data"),
         )
         def update_table_columns(
-            n_clicks, dropdown_columns, columns, table_df, df, kmeans_col
+            n_clicks, dropdown_columns, columns, table_df, df, kmeans_col, pca_cols
         ):
             if not ctx.triggered_id:
                 raise PreventUpdate()
@@ -171,6 +184,13 @@ class Table(Plot):
 
             if len(kmeans_col) == df.shape[0]:
                 df["Clusters"] = kmeans_col
+
+            if pca_cols and len(pca_cols) == df.shape[0]:
+                pca1 = [row[0] for row in pca_cols]
+                pca2 = [row[1] for row in pca_cols]
+
+                df["Xiplot_PCA_1"] = pca1
+                df["Xiplot_PCA_2"] = pca2
 
             for id, item in enumerate(ctx.inputs_list[0]):
                 if item["id"]["index"] == trigger_id:
@@ -202,17 +222,31 @@ class Table(Plot):
             Output({"type": "table_columns-dd", "index": ALL}, "search_value"),
             Input({"type": "table_columns_regex-button", "index": ALL}, "n_clicks"),
             Input({"type": "table_columns-dd", "index": ALL}, "value"),
+            Input("pca_column_store", "data"),
             State({"type": "table_columns_regex-input", "index": ALL}, "value"),
             State({"type": "table_columns-dd", "index": ALL}, "options"),
             State("data_frame_store", "data"),
             State("clusters_column_store", "data"),
         )
         def add_matching_values(
-            n_clicks_all, selected_columns_all, keyword_all, columns_all, df, kmeans_col
+            n_clicks_all,
+            selected_columns_all,
+            pca_cols,
+            keyword_all,
+            columns_all,
+            df,
+            kmeans_col,
         ):
             df = df_from_store(df)
             if len(kmeans_col) == df.shape[0]:
                 df["Clusters"] = kmeans_col
+
+            if pca_cols and len(pca_cols) == df.shape[0]:
+                pca1 = [row[0] for row in pca_cols]
+                pca2 = [row[1] for row in pca_cols]
+
+                df["Xiplot_PCA_1"] = pca1
+                df["Xiplot_PCA_2"] = pca2
 
             # Try branch for testing
             try:
@@ -230,7 +264,17 @@ class Table(Plot):
             try:
                 trigger = ctx.triggered_id["type"]
             except:
-                trigger = "table_columns_regex-button"
+                trigger = ctx.triggered_id
+
+            if trigger == "pca_column_store":
+                columns_all = [df.columns.to_list() for i in range(len(columns_all))]
+                selected_columns_all = [[] for i in range(len(selected_columns_all))]
+
+                return (
+                    columns_all,
+                    selected_columns_all,
+                    [no_update] * len(n_clicks_all),
+                )
 
             if trigger == "table_columns-dd":
                 columns = df.columns.to_list()
