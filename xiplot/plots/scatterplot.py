@@ -23,7 +23,6 @@ class Scatterplot(Plot):
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
             Output({"type": "scatterplot", "index": MATCH}, "figure"),
-            Output({"type": "jitter-slider", "index": MATCH}, "max"),
             Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
             Input({"type": "scatter_y_axis", "index": MATCH}, "value"),
             Input({"type": "scatter_target_color", "index": MATCH}, "value"),
@@ -32,9 +31,20 @@ class Scatterplot(Plot):
             Input("selected_rows_store", "data"),
             Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
+            Input("pca_column_store", "data"),
             prevent_initial_call=False,
         )
-        def tmp(x_axis, y_axis, color, symbol, jitter, selected_rows, kmeans_col, df):
+        def tmp(
+            x_axis,
+            y_axis,
+            color,
+            symbol,
+            jitter,
+            selected_rows,
+            kmeans_col,
+            df,
+            pca_cols,
+        ):
             # Try branch for testing
             try:
                 if ctx.triggered_id == "data_frame_store":
@@ -45,20 +55,28 @@ class Scatterplot(Plot):
                 pass
 
             df = df_from_store(df)
-            jitter_max = (df[x_axis].max() - df[x_axis].min()) * 0.05
-            return (
-                Scatterplot.render(
-                    df,
-                    x_axis,
-                    y_axis,
-                    color,
-                    symbol,
-                    jitter,
-                    selected_rows,
-                    kmeans_col,
-                ),
-                jitter_max,
+            return Scatterplot.render(
+                df,
+                x_axis,
+                y_axis,
+                color,
+                symbol,
+                jitter,
+                selected_rows,
+                kmeans_col,
+                pca_cols,
             )
+
+        @app.callback(
+            Output({"type": "jitter-slider", "index": MATCH}, "max"),
+            Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
+            State("data_frame_store", "data"),
+        )
+        def update_jitter_max(x_axis, df):
+            df = df_from_store(df)
+            if x_axis in df.columns.to_list():
+                return (df[x_axis].max() - df[x_axis].min()) * 0.05
+            return dash.no_update
 
         @app.callback(
             output=dict(
@@ -234,6 +252,33 @@ class Scatterplot(Plot):
 
             return dict(meta=meta)
 
+        @app.callback(
+            output=dict(
+                scatter_x=Output({"type": "scatter_x_axis", "index": ALL}, "options"),
+                scatter_y=Output({"type": "scatter_y_axis", "index": ALL}, "options"),
+            ),
+            inputs=[
+                Input("pca_column_store", "data"),
+                State("data_frame_store", "data"),
+                State({"type": "scatter_y_axis", "index": ALL}, "options"),
+            ],
+        )
+        def update_columns(pca_cols, df, all_options):
+            df = df_from_store(df)
+            options = all_options[0] if all_options else []
+            if (
+                pca_cols
+                and len(pca_cols) == df.shape[0]
+                and "Xiplot_PCA_1" not in options
+                and "Xiplot_PCA_2" not in options
+            ):
+                options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
+
+            return dict(
+                scatter_x=[options] * len(all_options),
+                scatter_y=[options] * len(all_options),
+            )
+
         pdf_callback(app, "scatterplot")
 
         return [
@@ -254,11 +299,19 @@ class Scatterplot(Plot):
         jitter=None,
         selected_rows=None,
         kmeans_col=[],
+        pca_cols=[],
     ):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
         else:
             df["Clusters"] = ["all"] * df.shape[0]
+
+        if pca_cols and len(pca_cols) == df.shape[0]:
+            pca1 = [row[0] for row in pca_cols]
+            pca2 = [row[1] for row in pca_cols]
+
+            df["Xiplot_PCA_1"] = pca1
+            df["Xiplot_PCA_2"] = pca2
 
         if jitter:
             jitter = float(jitter)
