@@ -457,6 +457,7 @@ class Scatterplot(Plot):
                         id={"type": "scatter_target_color", "index": index},
                         options=columns,
                         value=scatter_colour,
+                        clearable=False,
                     ),
                     css_class="dd-double-left",
                     title="target (color)",
