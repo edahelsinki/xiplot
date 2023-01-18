@@ -261,9 +261,10 @@ class Scatterplot(Plot):
                 Input("pca_column_store", "data"),
                 State("data_frame_store", "data"),
                 State({"type": "scatter_y_axis", "index": ALL}, "options"),
+                Input({"type": "scatterplot", "index": ALL}, "figure"),
             ],
         )
-        def update_columns(pca_cols, df, all_options):
+        def update_columns(pca_cols, df, all_options, fig):
             df = df_from_store(df)
             options = all_options[0] if all_options else []
             if (
