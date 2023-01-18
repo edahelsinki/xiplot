@@ -266,7 +266,12 @@ class Scatterplot(Plot):
         )
         def update_columns(pca_cols, df, all_options, fig):
             df = df_from_store(df)
-            options = all_options[0] if all_options else []
+
+            if all_options:
+                options = all_options[0]
+            else:
+                return dash.no_update
+
             if (
                 pca_cols
                 and len(pca_cols) == df.shape[0]
