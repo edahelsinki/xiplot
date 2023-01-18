@@ -18,6 +18,7 @@ from xiplot.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.callbacks import pdf_callback
+from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.plots import Plot
 
 from collections.abc import Iterable
@@ -118,22 +119,19 @@ class Barplot(Plot):
 
         @app.callback(
             output=dict(
-                scatter_x=Output({"type": "barplot_x_axis", "index": ALL}, "options"),
-                scatter_y=Output({"type": "barplot_y_axis", "index": ALL}, "options"),
+                barplot_y=Output({"type": "barplot_y_axis", "index": ALL}, "options"),
             ),
             inputs=[
                 Input("pca_column_store", "data"),
                 State("data_frame_store", "data"),
-                State({"type": "barplot_x_axis", "index": ALL}, "options"),
                 State({"type": "barplot_y_axis", "index": ALL}, "options"),
                 Input({"type": "barplot", "index": ALL}, "figure"),
             ],
         )
-        def update_columns(pca_cols, df, x_all_options, y_all_options, fig):
+        def update_columns(pca_cols, df, y_all_options, fig):
             df = df_from_store(df)
 
-            if x_all_options and y_all_options:
-                x_options = x_all_options[0]
+            if y_all_options:
                 y_options = y_all_options[0]
             else:
                 return dash.no_update
@@ -141,17 +139,13 @@ class Barplot(Plot):
             if (
                 pca_cols
                 and len(pca_cols) == df.shape[0]
-                and "Xiplot_PCA_1" not in x_options
-                and "Xiplot_PCA_2" not in x_options
                 and "Xiplot_PCA_1" not in y_options
                 and "Xiplot_PCA_2" not in y_options
             ):
-                x_options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
                 y_options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
 
             return dict(
-                scatter_x=[x_options] * len(x_all_options),
-                scatter_y=[y_options] * len(y_all_options),
+                barplot_y=[y_options] * len(y_all_options),
             )
 
         pdf_callback(app, "barplot")
@@ -165,12 +159,7 @@ class Barplot(Plot):
         if not "frequency" in df.columns:
             df["frequency"] = [1 for _ in range(len(df))]
 
-        if pca_cols and len(pca_cols) == df.shape[0]:
-            pca1 = [row[0] for row in pca_cols]
-            pca2 = [row[1] for row in pca_cols]
-
-            df["Xiplot_PCA_1"] = pca1
-            df["Xiplot_PCA_2"] = pca2
+        df = add_pca_columns_to_df(df, pca_cols)
 
         if x_axis == y_axis:
             raise Exception("The x and y axis must be different")
