@@ -258,6 +258,39 @@ class Scatterplot(Plot):
 
             return dict(meta=meta)
 
+        @app.callback(
+            output=dict(
+                scatter_x=Output({"type": "scatter_x_axis", "index": ALL}, "options"),
+                scatter_y=Output({"type": "scatter_y_axis", "index": ALL}, "options"),
+            ),
+            inputs=[
+                Input("pca_column_store", "data"),
+                State("data_frame_store", "data"),
+                State({"type": "scatter_y_axis", "index": ALL}, "options"),
+                Input({"type": "scatterplot", "index": ALL}, "figure"),
+            ],
+        )
+        def update_columns(pca_cols, df, all_options, fig):
+            df = df_from_store(df)
+
+            if all_options:
+                options = all_options[0]
+            else:
+                return dash.no_update
+
+            if (
+                pca_cols
+                and len(pca_cols) == df.shape[0]
+                and "Xiplot_PCA_1" not in options
+                and "Xiplot_PCA_2" not in options
+            ):
+                options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
+
+            return dict(
+                scatter_x=[options] * len(all_options),
+                scatter_y=[options] * len(all_options),
+            )
+
         pdf_callback(app, "scatterplot")
 
         return [
