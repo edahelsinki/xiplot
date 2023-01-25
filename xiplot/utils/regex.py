@@ -69,7 +69,11 @@ def dropdown_regex(options: list, selected: list, keyword=None):
 
 
 def get_columns_by_regex(columns, features):
+    if features is None:
+        return []
+
     new_features = []
+
     for f in features:
         if " (regex)" in f:
             for c in columns:
