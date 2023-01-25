@@ -160,18 +160,6 @@ class Plots(Tab):
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col
 
-                # create column for embeddings if needed
-                if pca_cols and len(pca_cols) == df.shape[0]:
-                    pca1 = [row[0] for row in pca_cols]
-                    pca2 = [row[1] for row in pca_cols]
-
-                    df["Xiplot_PCA_1"] = pca1
-                    df["Xiplot_PCA_2"] = pca2
-
-                else:
-                    df["Xiplot_PCA_1"] = [0] * df.shape[0]
-                    df["Xiplot_PCA_2"] = [0] * df.shape[0]
-
                 columns = df.columns.to_list()
 
                 notifications = []
