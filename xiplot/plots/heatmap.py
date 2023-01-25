@@ -9,6 +9,7 @@ from xiplot.utils.layouts import layout_wrapper, delete_button
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.callbacks import pdf_callback
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
+from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.plots import Plot
 
 
@@ -20,8 +21,9 @@ class Heatmap(Plot):
             Input({"type": "heatmap_cluster_amount", "index": MATCH}, "value"),
             Input({"type": "heatmap_feature_dropdown", "index": MATCH}, "value"),
             Input("data_frame_store", "data"),
+            Input("pca_column_store", "data"),
         )
-        def tmp(n_clusters, features, df):
+        def tmp(n_clusters, features, df, pca_cols):
             # Try branch for testing
             try:
                 if ctx.triggered_id == "data_frame_store":
@@ -31,7 +33,7 @@ class Heatmap(Plot):
             except:
                 pass
 
-            return Heatmap.render(n_clusters, features, df_from_store(df))
+            return Heatmap.render(n_clusters, features, df_from_store(df), pca_cols)
 
         @app.callback(
             Output({"type": "heatmap_feature_dropdown", "index": MATCH}, "options"),
@@ -106,15 +108,18 @@ class Heatmap(Plot):
         return [tmp, update_settings]
 
     @staticmethod
-    def render(n_clusters, features, df):
+    def render(n_clusters, features, df, pca_cols=[]):
         from sklearn.cluster import KMeans
 
         km = KMeans(n_clusters=n_clusters, random_state=42)
+        df = add_pca_columns_to_df(df, pca_cols)
         dff = df.dropna()
 
-        features = get_columns_by_regex(
-            get_numeric_columns(dff, dff.columns.to_list()), features
-        )
+        features = get_columns_by_regex(dff.columns.to_list(), features)
+
+        features = features if features else df.columns.to_list()
+        features = get_numeric_columns(dff, features)
+
         km.fit(dff[features])
 
         cluster_centers = km.cluster_centers_
@@ -170,6 +175,7 @@ class Heatmap(Plot):
                         options=num_columns,
                         multi=True,
                         id={"type": "heatmap_feature_dropdown", "index": index},
+                        clearable=False,
                     ),
                     title="Features",
                     style={"width": "80%"},
