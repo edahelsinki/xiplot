@@ -42,16 +42,27 @@ class Heatmap(Plot):
                 {"type": "heatmap_feature_dropdown", "index": MATCH}, "search_value"
             ),
             Input("data_frame_store", "data"),
+            Input("pca_column_store", "data"),
             Input({"type": "heatmap_regex-button", "index": MATCH}, "n_clicks"),
             Input({"type": "heatmap_feature_dropdown", "index": MATCH}, "value"),
             State({"type": "heatmap_feature_dropdown", "index": MATCH}, "options"),
             State({"type": "heatmap_feature-input", "index": MATCH}, "value"),
         )
-        def add_features_by_regex(df, n_clicks, features, options, keyword):
+        def add_features_by_regex(df, pca_cols, n_clicks, features, options, keyword):
             df = df_from_store(df)
+
             if ctx.triggered_id == "data_frame_store":
                 options = get_numeric_columns(df, df.columns.to_list())
                 return options, None, dash.no_update
+
+            if (
+                ctx.triggered_id == "pca_column_store"
+                and "Xiplot_PCA_1" not in options
+                and "Xiplot_PCA_2" not in options
+            ):
+
+                options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
+                return options, dash.no_update, dash.no_update
 
             if not features:
                 features = []
@@ -64,6 +75,10 @@ class Heatmap(Plot):
 
             if ctx.triggered_id["type"] == "heatmap_feature_dropdown":
                 options = get_numeric_columns(df, df.columns.to_list())
+
+                if pca_cols:
+                    options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
+
                 options, features, hits = dropdown_regex(options, features)
                 return options, features, ""
 
