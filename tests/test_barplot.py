@@ -126,7 +126,7 @@ def test_teba004_set_order(dash_duo):
 def test_create_barplot():
     d = {"col1": [1, 2], "col2": [3, 4]}
     df = pd.DataFrame(data=d)
-    output = tmp("col1", "col2", ["all"], "reldiff", ["all", "all"], df)
+    output = tmp("col1", "col2", ["all"], "reldiff", ["all", "all"], df, [])
     fig = output[0]
 
     assert str(type(fig)) == "<class 'plotly.graph_objs._figure.Figure'>"

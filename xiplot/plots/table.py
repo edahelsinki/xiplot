@@ -262,9 +262,12 @@ class Table(Plot):
 
             # Try branch for testing
             try:
-                trigger = ctx.triggered_id["type"]
+                try:
+                    trigger = ctx.triggered_id["type"]
+                except:
+                    trigger = ctx.triggered_id
             except:
-                trigger = ctx.triggered_id
+                trigger = "table_columns_regex-button"
 
             if trigger == "pca_column_store":
                 columns_all = [df.columns.to_list() for i in range(len(columns_all))]

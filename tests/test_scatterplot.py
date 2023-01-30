@@ -93,12 +93,12 @@ def test_tesc004_jitter_setting(dash_duo):
 
     render_plot(dash_duo, driver, "Scatterplot")
 
-    jitter_value = driver.find_element(By.CLASS_NAME, "rc-slider-handle")
-
     jitter_slider = driver.find_element(By.CLASS_NAME, "rc-slider-step")
     jitter_slider.click()
 
-    assert "0.23" in jitter_value.get_attribute("outerHTML")
+    jitter_value = driver.find_element(By.CLASS_NAME, "rc-slider-handle")
+
+    assert "0.5" in jitter_value.get_attribute("outerHTML")
     assert dash_duo.get_logs() == [], "browser console should contain no error"
     driver.close()
 
@@ -106,11 +106,9 @@ def test_tesc004_jitter_setting(dash_duo):
 def test_create_scatterplot():
     d = {"col1": [1, 2], "col2": [3, 4]}
     df = pd.DataFrame(data=d)
-    output = tmp("col1", "col2", "Clusters", None, 0, [True, True], ["all", "all"], df)
-    fig, jitter = output
+    fig = tmp("col1", "col2", "Clusters", None, 0, [True, True], ["all", "all"], df, [])
 
     assert str(type(fig)) == "<class 'plotly.graph_objs._figure.Figure'>"
-    assert jitter == 0.05
 
 
 def test_handle_click_events():

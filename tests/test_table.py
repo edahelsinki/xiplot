@@ -117,7 +117,7 @@ def test_teta003_toggle_columns(dash_duo):
 def test_create_table():
     d = {"col1": [1, 2], "col2": [3, 4]}
     df = pd.DataFrame(data=d)
-    output = update_table_data(["all", "all"], [True, True], df, [df], [[]])
+    output = update_table_data(["all", "all"], [True, True], df, [df], [[]], [])
     table_df = output[0][0][0]
     sort_by = output[1][0]
 
@@ -149,7 +149,9 @@ def test_update_table_checkbox():
 def test_update_lastly_activated_cell():
     d = {"col1": [1, 2], "col2": [3, 4]}
     df = pd.DataFrame(data=d)
-    output = update_lastly_activated_cell([{"row": 1, "column_id": "col1"}], [[0, 1]], df)
+    output = update_lastly_activated_cell(
+        [{"row": 1, "column_id": "col1"}], [[0, 1]], df
+    )
     lastly_activated_cell_row = output["cell_store"]
     updated_active_cell = output["active_cell"]
 
@@ -161,7 +163,7 @@ def test_add_matching_values():
     d = {"col1": [1, 2], "col2": [3, 4]}
     df = pd.DataFrame(data=d)
     output = add_matching_values(
-        [1], [[]], ["col.*"], [["col1", "col2"]], df, ["all", "all"]
+        [1], [[]], [], ["col.*"], [["col1", "col2"]], df, ["all", "all"]
     )
     selected_columns_options = output[0][0]
     selected_columns_values = output[1][0]
