@@ -10,6 +10,7 @@ from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.tabs import Tab
 from xiplot.utils.layouts import layout_wrapper
+from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.plots.scatterplot import Scatterplot
 from xiplot.plots.histogram import Histogram
 from xiplot.plots.heatmap import Heatmap
@@ -41,6 +42,7 @@ class Plots(Tab):
             State("plot_type", "value"),
             State("data_frame_store", "data"),
             State("clusters_column_store", "data"),
+            State("pca_column_store", "data"),
             CycleBreakerInput("metadata_store", "data"),
             State("plots-tab-settings-session", "children"),
         )
@@ -51,6 +53,7 @@ class Plots(Tab):
             plot_type,
             df,
             kmeans_col,
+            pca_cols,
             meta,
             last_meta_session,
         ):
@@ -156,6 +159,7 @@ class Plots(Tab):
                 # create column for clusters if needed
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col
+
                 columns = df.columns.to_list()
 
                 notifications = []

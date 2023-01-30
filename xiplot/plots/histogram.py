@@ -10,6 +10,7 @@ from xiplot.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.callbacks import pdf_callback
+from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.plots import Plot
 
 
@@ -22,9 +23,10 @@ class Histogram(Plot):
             Input({"type": "hg_cluster_comparison_dropdown", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
+            Input("pca_column_store", "data"),
             prevent_initial_call=False,
         )
-        def tmp(x_axis, selected_clusters, kmeans_col, df):
+        def tmp(x_axis, selected_clusters, kmeans_col, df, pca_cols):
             # Try branch for testing
             try:
                 if ctx.triggered_id == "data_frame_store":
@@ -35,7 +37,7 @@ class Histogram(Plot):
                 pass
 
             return Histogram.render(
-                x_axis, selected_clusters, kmeans_col, df_from_store(df)
+                x_axis, selected_clusters, kmeans_col, df_from_store(df), pca_cols
             )
 
         @app.callback(
@@ -72,14 +74,48 @@ class Histogram(Plot):
 
             return dict(meta=meta)
 
+        @app.callback(
+            output=dict(
+                histogram_x=Output({"type": "x_axis_histo", "index": ALL}, "options"),
+            ),
+            inputs=[
+                Input("pca_column_store", "data"),
+                State("data_frame_store", "data"),
+                State({"type": "x_axis_histo", "index": ALL}, "options"),
+                Input({"type": "histogram", "index": ALL}, "figure"),
+            ],
+        )
+        def update_columns(pca_cols, df, x_all_options, fig):
+            df = df_from_store(df)
+
+            if x_all_options:
+                x_options = x_all_options[0]
+            else:
+                return dash.no_update
+
+            if (
+                pca_cols
+                and len(pca_cols) == df.shape[0]
+                and "Xiplot_PCA_1" not in x_options
+                and "Xiplot_PCA_2" not in x_options
+            ):
+                x_options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
+
+            return dict(
+                histogram_x=[x_options] * len(x_all_options),
+            )
+
         pdf_callback(app, "histogram")
 
         return [tmp, update_settings]
 
     @staticmethod
-    def render(x_axis, selected_clusters, kmeans_col, df):
+    def render(x_axis, selected_clusters, kmeans_col, df, pca_cols=[]):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
+
+        df = add_pca_columns_to_df(df, pca_cols)
+
         fig = make_fig_property(df, x_axis, selected_clusters, kmeans_col)
 
         return fig

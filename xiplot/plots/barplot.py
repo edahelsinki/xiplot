@@ -18,6 +18,7 @@ from xiplot.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.callbacks import pdf_callback
+from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.plots import Plot
 
 from collections.abc import Iterable
@@ -35,9 +36,10 @@ class Barplot(Plot):
             Input({"type": "order_dropdown", "index": MATCH}, "value"),
             Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
+            Input("pca_column_store", "data"),
             prevent_initial_call=False,
         )
-        def tmp(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
+        def tmp(x_axis, y_axis, selected_clusters, order, kmeans_col, df, pca_cols):
             try:
                 if ctx.triggered_id == "data_frame_store":
                     raise PreventUpdate()
@@ -55,6 +57,7 @@ class Barplot(Plot):
                         order,
                         kmeans_col,
                         df_from_store(df),
+                        pca_cols,
                     ),
                     dash.no_update,
                 )
@@ -114,16 +117,49 @@ class Barplot(Plot):
 
             return dict(meta=meta)
 
+        @app.callback(
+            output=dict(
+                barplot_y=Output({"type": "barplot_y_axis", "index": ALL}, "options"),
+            ),
+            inputs=[
+                Input("pca_column_store", "data"),
+                State("data_frame_store", "data"),
+                State({"type": "barplot_y_axis", "index": ALL}, "options"),
+                Input({"type": "barplot", "index": ALL}, "figure"),
+            ],
+        )
+        def update_columns(pca_cols, df, y_all_options, fig):
+            df = df_from_store(df)
+
+            if y_all_options:
+                y_options = y_all_options[0]
+            else:
+                return dash.no_update
+
+            if (
+                pca_cols
+                and len(pca_cols) == df.shape[0]
+                and "Xiplot_PCA_1" not in y_options
+                and "Xiplot_PCA_2" not in y_options
+            ):
+                y_options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
+
+            return dict(
+                barplot_y=[y_options] * len(y_all_options),
+            )
+
         pdf_callback(app, "barplot")
 
         return [tmp, update_settings]
 
     @staticmethod
-    def render(x_axis, y_axis, selected_clusters, order, kmeans_col, df):
+    def render(x_axis, y_axis, selected_clusters, order, kmeans_col, df, pca_cols=[]):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
         if not "frequency" in df.columns:
             df["frequency"] = [1 for _ in range(len(df))]
+
+        df = add_pca_columns_to_df(df, pca_cols)
 
         if x_axis == y_axis:
             raise Exception("The x and y axis must be different")

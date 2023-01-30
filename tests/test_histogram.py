@@ -83,7 +83,7 @@ def test_tehi003_clear_clusters(dash_duo):
 def test_create_histogram():
     d = {"col1": [1, 2], "col2": [3, 4]}
     df = pd.DataFrame(data=d)
-    output = tmp("col1", "all", ["all", "all"], df)
+    output = tmp("col1", "all", ["all", "all"], df, [])
     fig = output
 
     assert str(type(fig)) == "<class 'plotly.graph_objs._figure.Figure'>"

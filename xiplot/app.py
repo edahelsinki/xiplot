@@ -8,6 +8,7 @@ from xiplot.tabs.data import Data
 from xiplot.tabs.plots import Plots
 from xiplot.tabs.cluster import Cluster
 from xiplot.tabs.settings import Settings
+from xiplot.tabs.embedding import Embedding
 
 from xiplot.utils.cluster import cluster_colours
 
@@ -24,7 +25,7 @@ class XiPlot:
         except ImportError:
             pass
 
-        TABS = [Data, Plots, Cluster, Settings]
+        TABS = [Data, Plots, Cluster, Embedding, Settings]
 
         self.app.layout = dmc.NotificationsProvider(
             html.Div(
@@ -52,6 +53,7 @@ class XiPlot:
                     dcc.Store(id="data_frame_store"),
                     dcc.Store(id="metadata_store"),
                     dcc.Store(id="clusters_column_store"),
+                    dcc.Store(id="pca_column_store"),
                     html.Div(
                         id="clusters_column_store_reset", style={"display": "none"}
                     ),
