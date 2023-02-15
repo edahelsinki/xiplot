@@ -22,7 +22,7 @@ class XiPlot:
             import dash_uploader as du
 
             du.configure_upload(app=self.app, folder="uploads", use_upload_id=False)
-        except ImportError:
+        except (ImportError, AttributeError):
             pass
 
         TABS = [Data, Plots, Cluster, Embedding, Settings]

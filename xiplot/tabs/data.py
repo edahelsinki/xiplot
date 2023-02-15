@@ -95,7 +95,7 @@ class Data(Tab):
                     None,
                 )
 
-        except ImportError:
+        except (ImportError, AttributeError):
 
             @app.callback(
                 ServersideOutput("uploaded_data_file_store", "data"),
@@ -485,7 +485,7 @@ class Data(Tab):
                 text="Drag and Drop or Select a File to upload",
                 default_style={"minHeight": 1, "lineHeight": 4, "height": "85px"},
             )
-        except ImportError:
+        except (ImportError, AttributeError):
             uploader = dcc.Upload(
                 id="file_uploader",
                 children=html.Div(
