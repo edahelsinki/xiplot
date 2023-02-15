@@ -10,4 +10,4 @@ pandas==1.4.2
 plotly==5.9.0
 scikit-learn==1.1.1
 kaleido==0.2.1
-packaging<22
+packaging==21.3.0
