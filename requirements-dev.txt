@@ -2,4 +2,4 @@ black
 build
 dash[testing]
 webdriver-manager
-selenium>4
+selenium
