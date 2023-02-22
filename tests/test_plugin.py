@@ -26,4 +26,5 @@ def install_the_test_plugin():
 
 
 def test_load_plugin() -> None:
+    print(load_plugins_read())
     assert any(ext == ".test" for _, ext in load_plugins_read())
