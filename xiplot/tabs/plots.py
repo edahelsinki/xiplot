@@ -1,3 +1,4 @@
+from importlib.metadata import entry_points
 import uuid
 
 import dash
@@ -19,9 +20,27 @@ from xiplot.plots.table import Table
 from xiplot.plots.smiles import Smiles
 
 
+def load_plugins_plot():
+    try:
+        return load_plugins_plot.output
+    except AttributeError:
+
+        try:
+            # Python 3.10+
+            read_plugins = entry_points(group="xiplot.plugin.plot")
+        except TypeError:
+            # Python 3.8-3.9
+            read_plugins = entry_points().get("xiplot.plugin.plot", ())
+
+        load_plugins_plot.output = [plugin.load()() for plugin in read_plugins]
+    return load_plugins_plot.output
+
+
 class Plots(Tab):
     plot_types = {
-        p.name(): p for p in [Scatterplot, Histogram, Heatmap, Barplot, Table, Smiles]
+        p.name(): p
+        for p in [Scatterplot, Histogram, Heatmap, Barplot, Table, Smiles]
+        + load_plugins_plot()
     }
 
     @staticmethod

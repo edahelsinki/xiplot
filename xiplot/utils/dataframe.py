@@ -8,6 +8,8 @@ from collections import OrderedDict
 from io import BytesIO, StringIO
 from pathlib import Path
 
+from importlib.metadata import entry_points
+
 
 def get_data_filepaths():
     return sorted((fp for fp in Path("data").iterdir() if fp.is_file()), reverse=True)
@@ -114,6 +116,11 @@ def read_dataframe_with_extension(data, filename=None):
 def read_only_dataframe(data, filename):
     file_extension = Path(filename).suffix
 
+    for plugin_read_function, plugin_file_extension in load_plugins_read():
+
+        if file_extension == plugin_file_extension:
+            return plugin_read_function(data)
+
     if file_extension == ".csv":
         return pd.read_csv(data)
 
@@ -138,6 +145,22 @@ def read_only_dataframe(data, filename):
             pass
 
     raise Exception(f"Unsupported dataframe format '{file_extension}'")
+
+
+def load_plugins_read():
+    try:
+        return load_plugins_read.output
+    except AttributeError:
+
+        try:
+            # Python 3.10+
+            read_plugins = entry_points(group="xiplot.plugin.read")
+        except TypeError:
+            # Python 3.8-3.9
+            read_plugins = entry_points().get("xiplot.plugin.read", ())
+
+        load_plugins_read.output = [plugin.load()() for plugin in read_plugins]
+    return load_plugins_read.output
 
 
 def write_dataframe_and_metadata(df, aux, meta, filepath, file):
