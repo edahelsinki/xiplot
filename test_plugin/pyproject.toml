@@ -1,0 +1,24 @@
+
+[project]
+name = "xiplot_test_plugin"
+version = "0.1.1"
+
+dependencies = [
+    "pandas"
+]
+
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["xiplot_test_plugin"]
+exclude = []
+namespaces = true
+
+[project.entry-points."xiplot.plugin.read"]
+callback = "xiplot_test_plugin:plugin_load"
+
+[project.entry-points."xiplot.plugin.plot"]
+callback = "xiplot_test_plugin:plugin_plot"

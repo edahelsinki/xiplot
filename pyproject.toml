@@ -13,16 +13,16 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Visualization",
 ]
 dependencies = [
-    "dash ~= ^2.6.1",
-    "dash-daq ~= ^0.5.0",
-    "dash-extensions ~= ^0.1.4",
-    "dash-mantine-components ~= ^0.10.2",
+    "dash ~= 2.6.1",
+    "dash-daq ~= 0.5.0",
+    "dash-extensions ~= 0.1.4",
+    "dash-mantine-components ~= 0.10.2",
     "feather-format ~= 0.4.1",
     "dash-uploader ~= 0.6.0",
-    "flask ~= ^2.1.2",
-    "jsonschema ~= ^4.6.0",
-    "pandas ~= ^1.4.2",
-    "plotly ~= ^5.9.0",
+    "flask ~= 2.1.2",
+    "jsonschema ~= 4.6.0",
+    "pandas ~= 1.4.2",
+    "plotly ~= 5.9.0",
     "kaleido ~= 0.2.1",
 ]
 
@@ -35,6 +35,9 @@ dev = ["pytest", "black", "dash[testing]", "webdriver-manager", "selenium"]
 homepage = "https://github.com/edahelsinki/xiplot"
 repository = "https://github.com/edahelsinki/xiplot.git"
 
+#[project.scripts]
+#xiplot = "xiplot"
+
 [build-system]
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
@@ -44,3 +47,4 @@ where = ["."]
 include = ["xiplot*"]
 exclude = []
 namespaces = true
+
