@@ -44,9 +44,7 @@ def delete_button(type, index):
 
         html.Button element
     """
-    return html.Button(
-        "x", id={"type": type, "index": index}, style={"background-color": "red"}
-    )
+    return html.Button("x", id={"type": type, "index": index}, className="delete")
 
 
 def cluster_dropdown(

@@ -28,7 +28,7 @@ class Settings(Tab):
                     component=html.Button(
                         "Dark",
                         id="light-dark-toggle",
-                        className="light-dark-toggle",
+                        className="light-dark-toggle button",
                     ),
                     title="Light/Dark mode",
                 )
