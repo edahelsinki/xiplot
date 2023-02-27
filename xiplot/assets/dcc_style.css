@@ -125,10 +125,6 @@
     stroke-width: 1px !important;
 }
 
-.ycbcoloraxistick text {
-    fill: white !important;
-}
-
 @media all and (min-width:0px) and (max-width: 320px) {
     .dash-uploader {
         height: 50px !important;
