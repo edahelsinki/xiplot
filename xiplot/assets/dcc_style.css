@@ -93,6 +93,10 @@
     color: var(--placeholder-color) !important;
 }
 
+.tab.jsx-3201076643 {
+    padding: 20px 25px 5px 25px;
+}
+
 .tab.jsx-3201076643.tab,
 .tab.jsx-3201076643:last-of-type {
     background-color: transparent;
@@ -102,18 +106,22 @@
 }
 
 .tab.jsx-3201076643.tab:hover {
-    border-bottom: 2px solid #C5C6C7 !important;
+    border-bottom: 4px solid #C5C6C7 !important;
 }
 
 .tab.jsx-3201076643.tab.tab--selected {
     color: black !important;
     color: var(--font-color) !important;
-    border-bottom: 2px solid rgb(214, 214, 214) !important;
-    border-bottom: 2px solid var(--selected-tab-underline) !important;
+    border-bottom: 4px solid rgb(214, 214, 214) !important;
+    border-bottom: 4px solid var(--selected-tab-underline) !important;
 }
 
 .tab.jsx-3201076643.tab.tab--selected:hover {
     background-color: transparent;
+}
+
+.tab-content {
+    padding: 10px;
 }
 
 .xgrid.crisp,
