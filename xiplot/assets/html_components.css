@@ -21,7 +21,7 @@ button {
 }
 
 .button {
-    padding: 0.75rem 1rem;
+    padding: 0.45rem 1rem;
 }
 
 .button:hover,
@@ -70,4 +70,21 @@ button.delete:active,
 .light-dark-toggle {
     background-color: transparent;
     color: var(--font-color);
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: end;
+}
+
+.flex-row .dash-dropdown {
+    min-width: 12em;
+    flex: 1;
+}
+
+.stretch {
+    flex: 1;
 }

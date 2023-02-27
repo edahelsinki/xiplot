@@ -7,6 +7,7 @@ from dash import html, Input, Output, State, dcc, ctx
 import dash_mantine_components as dmc
 
 from xiplot.tabs import Tab
+from xiplot.utils.components import FlexRow
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.embedding import get_pca_columns
@@ -195,28 +196,22 @@ class Embedding(Tab):
 
     @staticmethod
     def create_layout():
-        return html.Div(
-            [
-                layout_wrapper(
-                    dcc.Dropdown(id="embedding_type", options=["PCA"]),
-                    css_class="dd-double-right",
-                    title="Embedding type",
-                ),
-                layout_wrapper(
-                    component=dcc.Dropdown(id="embedding_feature", multi=True),
-                    css_class="dd-double-right",
-                    title="Features",
-                ),
-                html.Button(
-                    "Compute the embedding",
-                    id="embedding-button",
-                    className="button",
-                    style={
-                        "margin-left": "auto",
-                        "margin-right": "auto",
-                    },
-                ),
-            ],
+        return FlexRow(
+            layout_wrapper(
+                dcc.Dropdown(id="embedding_type", options=["PCA"]),
+                css_class="dash-dropdown",
+                title="Embedding type",
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(id="embedding_feature", multi=True),
+                css_class="dash-dropdown",
+                title="Features",
+            ),
+            html.Button(
+                "Compute the embedding",
+                id="embedding-button",
+                className="button",
+            ),
             id="control-embedding-container",
         )
 
