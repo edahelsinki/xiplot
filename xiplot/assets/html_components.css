@@ -81,7 +81,7 @@ button.delete:active,
 }
 
 .flex-row .dash-dropdown {
-    min-width: 12em;
+    min-width: 12rem;
     flex: 1;
 }
 

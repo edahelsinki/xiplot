@@ -52,7 +52,7 @@ body {
 }
 
 .logo>h1 {
-    margin: 0.2em;
+    margin: 0.2rem;
 }
 
 #plots {
@@ -68,7 +68,7 @@ body {
 
 .plots {
     display: block;
-    min-width: 35em;
+    min-width: 20rem;
     flex: 1 1 32%;
     background-color: #dffcde !important;
     background-color: var(--control-bg-color) !important;
