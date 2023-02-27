@@ -9,6 +9,7 @@
     --graph-stroke: white;
     --tab-underline: #adb5bd;
     --selected-tab-underline: #198754;
+    --base-column-size: 30%;
 }
 
 [data-theme="dark"] {
@@ -22,6 +23,22 @@
     --graph-stroke: #3f3f3f;
     --tab-underline: #45A29E;
     --selected-tab-underline: #D6D6D6;
+}
+
+[data-cols="1"] .plots {
+    --base-column-size: 80%;
+}
+
+[data-cols="2"] .plots {
+    --base-column-size: 40%;
+}
+
+[data-cols="4"] .plots {
+    --base-column-size: 22%;
+}
+
+[data-cols="5"] .plots {
+    --base-column-size: 18%;
 }
 
 body {
@@ -69,7 +86,7 @@ body {
 .plots {
     display: block;
     min-width: 20rem;
-    flex: 1 1 32%;
+    flex: 1 1 var(--base-column-size);
     background-color: #dffcde !important;
     background-color: var(--control-bg-color) !important;
     border-radius: 8px;
