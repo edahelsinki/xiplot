@@ -12,6 +12,7 @@ from xiplot.tabs.settings import Settings
 from xiplot.tabs.embedding import Embedding
 
 from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.components import PdfButton
 
 
 class XiPlot:
@@ -65,7 +66,7 @@ class XiPlot:
                         [t.create_layout_globals() for t in TABS],
                         id="globals",
                     ),
-                    dcc.Download(id="graph_to_pdf"),
+                    PdfButton.create_global(),
                 ]
                 + [g() for g in get_plugins_cached("global")],
                 id="main",

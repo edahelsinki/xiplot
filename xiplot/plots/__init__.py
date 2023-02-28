@@ -46,6 +46,8 @@ class APlot(ABC):
             df_from_store: Functions that transforms `dcc.Store` data into a dataframe.
             df_to_store: Function that transform a dataframe into `dcc.Store` data.
         """
+        # If a "pdf dpwnload" button is added, remember to do:
+        # PdfButton.register_callback(app, cls.get_id(None))
         pass
 
     @abstractclassmethod
@@ -66,6 +68,7 @@ class APlot(ABC):
         """
         children = cls.create_layout(index, df, columns, config)
         if any(isinstance(e, dcc.Graph) for e in children):
+            # Remember to add `PdfButton.register_callback` to `APlot.register_callbacks`!
             buttons = FlexRow(
                 DeleteButton(index), html.Div(className="stretch"), PdfButton(index)
             )

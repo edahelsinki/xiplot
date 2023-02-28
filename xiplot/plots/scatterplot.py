@@ -9,13 +9,12 @@ import jsonschema
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
-from xiplot.utils.components import DeleteButton
+from xiplot.utils.components import DeleteButton, PdfButton
 
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.scatterplot import get_row
-from xiplot.utils.callbacks import pdf_callback
 from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.plots import APlot
 
@@ -23,6 +22,8 @@ from xiplot.plots import APlot
 class Scatterplot(APlot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
+        PdfButton.register_callback(app, {"type": "scatterplot"})
+
         @app.callback(
             Output({"type": "scatterplot", "index": MATCH}, "figure"),
             Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
@@ -292,8 +293,6 @@ class Scatterplot(APlot):
                 scatter_y=[options] * len(all_options),
             )
 
-        pdf_callback(app, "scatterplot")
-
         return [
             tmp,
             handle_click_events,
@@ -430,9 +429,7 @@ class Scatterplot(APlot):
         return html.Div(
             children=[
                 DeleteButton(index),
-                html.Button(
-                    "Download as pdf", id={"type": "download_pdf_btn", "index": index}
-                ),
+                PdfButton(index),
                 dcc.Graph(
                     id={"type": "scatterplot", "index": index},
                     figure=px.scatter(

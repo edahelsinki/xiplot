@@ -5,12 +5,11 @@ import dash
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
-from xiplot.utils.components import DeleteButton
+from xiplot.utils.components import DeleteButton, PdfButton
 
 from xiplot.utils.layouts import layout_wrapper, cluster_dropdown
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.callbacks import pdf_callback
 from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.plots import APlot
 
@@ -18,6 +17,8 @@ from xiplot.plots import APlot
 class Histogram(APlot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
+        PdfButton.register_callback(app, {"type": "histogram"})
+
         @app.callback(
             Output({"type": "histogram", "index": MATCH}, "figure"),
             Input({"type": "x_axis_histo", "index": MATCH}, "value"),
@@ -106,8 +107,6 @@ class Histogram(APlot):
                 histogram_x=[x_options] * len(x_all_options),
             )
 
-        pdf_callback(app, "histogram")
-
         return [tmp, update_settings]
 
     @staticmethod
@@ -169,9 +168,7 @@ class Histogram(APlot):
         return html.Div(
             [
                 DeleteButton(index),
-                html.Button(
-                    "Download as pdf", id={"type": "download_pdf_btn", "index": index}
-                ),
+                PdfButton(index),
                 dcc.Graph(
                     id={"type": "histogram", "index": index},
                     figure=make_fig_property(

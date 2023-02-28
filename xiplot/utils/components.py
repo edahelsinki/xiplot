@@ -1,9 +1,10 @@
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 import base64
 from io import BytesIO
 
 import plotly as po
-from dash import dcc, html, Dash, Input, Output, State, ALL, ctx, no_update
+from dash import dcc, html, Dash, Input, Output, State, ALL, ctx, no_update, MATCH
+from dash_extensions.enrich import State
 
 from xiplot.utils import generate_id
 
@@ -57,14 +58,25 @@ class PdfButton(html.Button):
 
     @classmethod
     def create_global(cls) -> Any:
+        """Create the `dcc.Download` component needed for the pdf button (add it to your layout)."""
         return dcc.Download(id=generate_id(cls, None, "download"))
 
     @classmethod
-    def register_callback(cls, app: Dash):
+    def register_callback(cls, app: Dash, graph_id: Dict[str, Any]):
+        """Register callbacks.
+        NOTE: Currently this method has to be called separately for every type of graph.
+        This is because Dash cannot match based on properties (i.e., select only the `State`s with a "figure" property).
+
+        Args:
+            app: Xiplot app.
+            graph_id: Id of the graph.
+        """
+        graph_id["index"] = ALL
+
         @app.callback(
             Output(generate_id(cls, None, "download"), "data"),
             Input(generate_id(cls, ALL), "n_clicks"),
-            State(generate_id(ALL, ALL), "figure"),
+            State(graph_id, "figure"),
             prevent_initial_call=True,
         )
         def download_as_pdf(n_clicks, fig):
@@ -88,5 +100,3 @@ class PdfButton(html.Button):
                 filename="xiplot.pdf",
                 type="application/pdf",
             )
-
-        # TODO register this somewhere

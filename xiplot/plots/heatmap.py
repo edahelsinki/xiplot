@@ -4,11 +4,10 @@ import jsonschema
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
-from xiplot.utils.components import DeleteButton
+from xiplot.utils.components import DeleteButton, PdfButton
 
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.callbacks import pdf_callback
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.plots import APlot
@@ -17,6 +16,8 @@ from xiplot.plots import APlot
 class Heatmap(APlot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
+        PdfButton.register_callback(app, {"type": "heatmap"})
+
         @app.callback(
             Output({"type": "heatmap", "index": MATCH}, "figure"),
             Input({"type": "heatmap_cluster_amount", "index": MATCH}, "value"),
@@ -119,8 +120,6 @@ class Heatmap(APlot):
 
             return dict(meta=meta)
 
-        pdf_callback(app, "heatmap")
-
         return [tmp, update_settings]
 
     @staticmethod
@@ -179,9 +178,7 @@ class Heatmap(APlot):
         return html.Div(
             [
                 DeleteButton(index),
-                html.Button(
-                    "Download as pdf", id={"type": "download_pdf_btn", "index": index}
-                ),
+                PdfButton(index),
                 dcc.Graph(
                     id={"type": "heatmap", "index": index},
                     figure=Heatmap.render(n_clusters, num_columns, df),

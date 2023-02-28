@@ -13,12 +13,11 @@ from itertools import product
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
-from xiplot.utils.components import DeleteButton
+from xiplot.utils.components import DeleteButton, PdfButton
 
 from xiplot.utils.layouts import layout_wrapper, cluster_dropdown
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.callbacks import pdf_callback
 from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.plots import APlot
 
@@ -28,6 +27,8 @@ from collections.abc import Iterable
 class Barplot(APlot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
+        PdfButton.register_callback(app, {"type": "barbplot"})
+
         @app.callback(
             Output({"type": "barplot", "index": MATCH}, "figure"),
             Output({"type": "barplot-notify-container", "index": MATCH}, "children"),
@@ -148,8 +149,6 @@ class Barplot(APlot):
             return dict(
                 barplot_y=[y_options] * len(y_all_options),
             )
-
-        pdf_callback(app, "barplot")
 
         return [tmp, update_settings]
 
@@ -358,9 +357,7 @@ class Barplot(APlot):
         return html.Div(
             [
                 DeleteButton(index),
-                html.Button(
-                    "Download as pdf", id={"type": "download_pdf_btn", "index": index}
-                ),
+                PdfButton(index),
                 dcc.Graph(
                     id={"type": "barplot", "index": index},
                     figure=Barplot.render(
