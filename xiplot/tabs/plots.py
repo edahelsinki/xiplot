@@ -15,7 +15,8 @@ from xiplot.plots.smiles import Smiles
 from xiplot.plots.table import Table
 from xiplot.plugin import get_plugins_cached
 from xiplot.tabs import Tab
-from xiplot.utils.components import FlexRow
+from xiplot.utils import generate_id
+from xiplot.utils.components import DeleteButton, FlexRow
 from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.utils.layouts import layout_wrapper
 
@@ -40,7 +41,7 @@ class Plots(Tab):
             Output("metadata_store", "data"),
             Output("plots-tab-notify-container", "children"),
             Input("new_plot-button", "n_clicks"),
-            Input({"type": "plot-delete", "index": ALL}, "n_clicks"),
+            Input(generate_id(DeleteButton, ALL), "n_clicks"),
             State("plots", "children"),
             State("plot_type", "value"),
             State("data_frame_store", "data"),
@@ -221,17 +222,15 @@ class Plots(Tab):
 
     @staticmethod
     def create_layout():
+        plots = list(Plots.plot_types.keys())
         return html.Div(
             [
                 layout_wrapper(
                     component=FlexRow(
-                        dcc.Dropdown(
-                            options=list(Plots.plot_types.keys()), id="plot_type"
-                        ),
+                        dcc.Dropdown(plots, plots[0], id="plot_type", clearable=False),
                         html.Button("Add", id="new_plot-button", className="button"),
                     ),
                     title="Select a plot type",
-                    # style={"width": "98%"},
                 ),
             ],
             id="control_plots_content-container",

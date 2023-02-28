@@ -8,8 +8,9 @@ import jsonschema
 from dash import html, dcc, Output, Input, State, MATCH, ALL, dash_table, ctx, no_update
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
+from xiplot.utils.components import DeleteButton
 
-from xiplot.utils.layouts import delete_button, layout_wrapper
+from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.dataframe import get_smiles_column_name
 from xiplot.utils.table import get_sort_by, get_updated_item, get_updated_item_id
@@ -434,7 +435,7 @@ class Table(APlot):
                 df = df.astype({c: str})
         return html.Div(
             children=[
-                delete_button("plot-delete", index),
+                DeleteButton(index),
                 dash_table.DataTable(
                     id={"type": "table", "index": index},
                     columns=[{"name": c, "id": c, "hideable": True} for c in columns],

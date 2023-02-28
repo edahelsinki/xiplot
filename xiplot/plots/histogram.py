@@ -5,8 +5,9 @@ import dash
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
+from xiplot.utils.components import DeleteButton
 
-from xiplot.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
+from xiplot.utils.layouts import layout_wrapper, cluster_dropdown
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.callbacks import pdf_callback
@@ -167,7 +168,7 @@ class Histogram(APlot):
 
         return html.Div(
             [
-                delete_button("plot-delete", index),
+                DeleteButton(index),
                 html.Button(
                     "Download as pdf", id={"type": "download_pdf_btn", "index": index}
                 ),

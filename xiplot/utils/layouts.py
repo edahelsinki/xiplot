@@ -27,24 +27,7 @@ def layout_wrapper(component, id="", style=None, css_class=None, title=None):
         style=style,
         className=css_class,
     )
-
     return layout
-
-
-def delete_button(type, index):
-    """
-    Creates a delete button by html.Button element
-
-    Parameters:
-
-        type: type of the id dictionary
-        index: index of the id dictionary
-
-    Returns:
-
-        html.Button element
-    """
-    return html.Button("x", id={"type": type, "index": index}, className="delete")
 
 
 def cluster_dropdown(

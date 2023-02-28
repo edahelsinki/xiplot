@@ -4,8 +4,9 @@ import jsonschema
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
+from xiplot.utils.components import DeleteButton
 
-from xiplot.utils.layouts import delete_button, layout_wrapper
+from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.dataframe import get_smiles_column_name
 from xiplot.utils.smiles import get_smiles_inputs
 from xiplot.plots import APlot
@@ -144,7 +145,7 @@ class Smiles(APlot):
 
         return html.Div(
             children=[
-                delete_button("plot-delete", index),
+                DeleteButton(index),
                 html.Br(),
                 html.Img(
                     id={"type": "smiles-display", "index": index},

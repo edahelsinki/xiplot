@@ -4,8 +4,9 @@ import jsonschema
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
+from xiplot.utils.components import DeleteButton
 
-from xiplot.utils.layouts import layout_wrapper, delete_button
+from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.callbacks import pdf_callback
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
@@ -177,7 +178,7 @@ class Heatmap(APlot):
         num_columns = get_numeric_columns(df, columns)
         return html.Div(
             [
-                delete_button("plot-delete", index),
+                DeleteButton(index),
                 html.Button(
                     "Download as pdf", id={"type": "download_pdf_btn", "index": index}
                 ),

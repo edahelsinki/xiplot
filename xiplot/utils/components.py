@@ -42,7 +42,6 @@ class DeleteButton(html.Button):
             className="delete",
             **kwargs
         )
-        # TODO: update the callback in xiplot.tabs.plots
 
 
 class PdfButton(html.Button):
