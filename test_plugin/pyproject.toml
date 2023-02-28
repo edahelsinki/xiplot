@@ -3,9 +3,7 @@
 name = "xiplot_test_plugin"
 version = "0.1.1"
 
-dependencies = [
-    "pandas"
-]
+dependencies = ["pandas"]
 
 [build-system]
 requires = ["setuptools>=42", "wheel"]
@@ -21,4 +19,4 @@ namespaces = true
 callback = "xiplot_test_plugin:plugin_load"
 
 [project.entry-points."xiplot.plugin.plot"]
-callback = "xiplot_test_plugin:plugin_plot"
+class = "xiplot_test_plugin:Plot"
