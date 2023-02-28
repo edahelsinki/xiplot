@@ -8,7 +8,7 @@ from collections import OrderedDict
 from io import BytesIO, StringIO
 from pathlib import Path
 
-from importlib.metadata import entry_points
+from xiplot.plugin import get_plugins_cached
 
 
 def get_data_filepaths():
@@ -151,15 +151,7 @@ def load_plugins_read():
     try:
         return load_plugins_read.output
     except AttributeError:
-
-        try:
-            # Python 3.10+
-            read_plugins = entry_points(group="xiplot.plugin.read")
-        except TypeError:
-            # Python 3.8-3.9
-            read_plugins = entry_points().get("xiplot.plugin.read", ())
-
-        load_plugins_read.output = [plugin.load()() for plugin in read_plugins]
+        load_plugins_read.output = [plugin() for plugin in get_plugins_cached("read")]
     return load_plugins_read.output
 
 

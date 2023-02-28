@@ -1,47 +1,30 @@
-from importlib.metadata import entry_points
 import uuid
 
 import dash
 import dash_mantine_components as dmc
 import jsonschema
-
-from dash import html, dcc, Output, Input, State, ctx, ALL
+from dash import ALL, Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
 
-from xiplot.tabs import Tab
-from xiplot.utils.layouts import layout_wrapper
-from xiplot.utils.embedding import add_pca_columns_to_df
-from xiplot.plots.scatterplot import Scatterplot
-from xiplot.plots.histogram import Histogram
-from xiplot.plots.heatmap import Heatmap
 from xiplot.plots.barplot import Barplot
-from xiplot.plots.table import Table
+from xiplot.plots.heatmap import Heatmap
+from xiplot.plots.histogram import Histogram
+from xiplot.plots.scatterplot import Scatterplot
 from xiplot.plots.smiles import Smiles
+from xiplot.plots.table import Table
+from xiplot.plugin import get_plugins_cached
+from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
-
-
-def load_plugins_plot():
-    try:
-        return load_plugins_plot.output
-    except AttributeError:
-
-        try:
-            # Python 3.10+
-            read_plugins = entry_points(group="xiplot.plugin.plot")
-        except TypeError:
-            # Python 3.8-3.9
-            read_plugins = entry_points().get("xiplot.plugin.plot", ())
-
-        load_plugins_plot.output = [plugin.load()() for plugin in read_plugins]
-    return load_plugins_plot.output
+from xiplot.utils.embedding import add_pca_columns_to_df
+from xiplot.utils.layouts import layout_wrapper
 
 
 class Plots(Tab):
     plot_types = {
         p.name(): p
         for p in [Scatterplot, Histogram, Heatmap, Barplot, Table, Smiles]
-        + load_plugins_plot()
+        + get_plugins_cached("plot")
     }
 
     @staticmethod

@@ -12,7 +12,7 @@ class APlot(ABC):
     """Abstract class that defines the API for implementing a new plot"""
 
     def __init__(self):
-        raise TypeError("Plot should not be constructed")
+        raise TypeError("APlot should not be constructed")
 
     @classmethod
     def name(cls) -> str:

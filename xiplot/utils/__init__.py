@@ -4,9 +4,7 @@ from dash import ALL, ALLSMALLER, MATCH
 
 
 def generate_id(
-    cls: Union[type, MATCH, ALL, ALLSMALLER],
-    index: Optional[Any],
-    subtype: Optional[str] = None,
+    cls: type, index: Optional[Any] = None, subtype: Optional[str] = None
 ) -> Dict[str, Any]:
     """Generate id:s for (dash) objects.
 
@@ -14,7 +12,7 @@ def generate_id(
     Furthermore, using this function instead of a handcrafted dict leads to fewer typos.
 
     Args:
-        cls: The type for which the id is generated, e.g., a subclass of `xiplot.plots.Plot`.
+        cls: The type for which the id is generated, e.g., a subclass of `xiplot.plots.APlot`.
         index: The index of the id. Defaults to None.
         subtype: If multiple id:s are generated for the same class (e.g. children of a `html.Div`) then this can be used for differentiation. Defaults to None.
 

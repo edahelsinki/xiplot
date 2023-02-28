@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, List, Literal, Tuple, Union
 from importlib_metadata import entry_points as _entry_points
 from io import BytesIO
 from os import PathLike
+import warnings
 
 import pandas as pd
 
@@ -85,6 +86,12 @@ def get_plugins_cached(plugin_type: Literal["read", "plot"]) -> List[Any]:
         # Python 3.8-3.9
         plugins = _entry_points().get(f"xiplot.plugin.{plugin_type}", ())
 
-    plugins = [plugin.load() for plugin in plugins]
-    get_plugins_cached.cache[plugin_type] = plugins
-    return plugins
+    loaded_plugins = []
+    for plugin in plugins:
+        try:
+            loaded_plugins.append(plugin.load())
+        except Exception as e:
+            warnings.warn(f"Could not load plugin: {e}")
+
+    get_plugins_cached.cache[plugin_type] = loaded_plugins
+    return loaded_plugins
