@@ -4,7 +4,7 @@
     But there are also some plugin-specific functions and objects.
 """
 
-from typing import Any, Callable, List, Literal, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Tuple, Union
 from importlib_metadata import entry_points as _entry_points
 from io import BytesIO
 from os import PathLike
@@ -24,12 +24,45 @@ STORE_CLICKED_ID = "lastly_clicked_point_store"
 STORE_SELECTED_ID = "selected_rows_store"
 
 
+# Useful CSS classes
+CSS_STRETCH_CLASS = "stretch"
+CSS_LARGE_BUTTON_CLASS = "button"
+CSS_DELTE_BUTTON_CLASS = "delete"
+
+
 # Helpful typehints:
 AReadFunction = Callable[[Union[BytesIO, PathLike]], pd.DataFrame]
 AReadPlugin = Callable[[], Tuple[AReadFunction, str]]  # str==file extension
 
 
 # Helper functions:
+def placeholder_figure(text: str) -> Dict[str, Any]:
+    """Display a placeholder text instead of a graph.
+    This can be used in a "callback" function when a graph cannot be rendered.
+
+    Args:
+        text: Placeholder text.
+
+    Returns:
+        Dash figure (to place into a `Output(dcc.Graph.id, "figure")`).
+    """
+    return {
+        "layout": {
+            "xaxis": {"visible": False},
+            "yaxis": {"visible": False},
+            "annotations": [
+                {
+                    "text": text,
+                    "xref": "paper",
+                    "yref": "paper",
+                    "showarrow": False,
+                    "font": {"size": 28},
+                }
+            ],
+        }
+    }
+
+
 def get_plugins_cached(plugin_type: Literal["read", "plot"]) -> List[Any]:
     """Get a list of all plugins of the specified type (this call is cached for future reuse).
 
