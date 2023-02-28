@@ -108,7 +108,7 @@ def test_teba004_set_order(dash_duo):
 
     dropdown_input = driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[5]/div[2]/div[1]/div[1]/div[1]/div[@class='Select-input']/input",
+        "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]/div[1]/div[@class='Select-input']/input",
     )
     dropdown_input.send_keys("total", Keys.RETURN)
 
@@ -116,7 +116,7 @@ def test_teba004_set_order(dash_duo):
 
     assert "total" in driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[5]/div[2]/div[1]/div[1]",
+        "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]",
     ).get_attribute("outerHTML")
     assert dash_duo.get_logs() == [], "browser console should contain no error"
 

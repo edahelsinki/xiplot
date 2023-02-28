@@ -73,7 +73,7 @@ def test_tehi003_clear_clusters(dash_duo):
 
     assert "Select..." in driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[3]/div[2]/div[1]/div[1]",
+        "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]",
     ).get_attribute("outerHTML")
     assert dash_duo.get_logs() == [], "browser console should contain no error"
 
