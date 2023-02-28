@@ -291,7 +291,7 @@ class Barplot(APlot):
         return fig
 
     @staticmethod
-    def create_new_layout(index, df, columns, config=dict()):
+    def create_layout(index, df, columns, config=dict()):
         x_columns = [
             c
             for c in columns
@@ -354,65 +354,59 @@ class Barplot(APlot):
         classes = config.get("classes", [])
         order = config.get("order", "reldiff")
 
-        return html.Div(
-            [
-                DeleteButton(index),
-                PdfButton(index),
-                dcc.Graph(
-                    id={"type": "barplot", "index": index},
-                    figure=Barplot.render(
-                        x_axis,
-                        y_axis,
-                        classes,
-                        order,
-                        ["all" for _ in range(len(df))],
-                        df,
-                    ),
+        return [
+            dcc.Graph(
+                id={"type": "barplot", "index": index},
+                figure=Barplot.render(
+                    x_axis,
+                    y_axis,
+                    classes,
+                    order,
+                    ["all" for _ in range(len(df))],
+                    df,
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "barplot_x_axis", "index": index},
-                        value=x_axis,
-                        clearable=False,
-                        options=x_columns,
-                    ),
-                    css_class="dd-double-left",
-                    title="x axis",
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id={"type": "barplot_x_axis", "index": index},
+                    value=x_axis,
+                    clearable=False,
+                    options=x_columns,
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "barplot_y_axis", "index": index},
-                        value=y_axis,
-                        clearable=False,
-                        options=y_columns,
-                    ),
-                    css_class="dd-double-right",
-                    title="y axis",
+                css_class="dd-double-left",
+                title="x axis",
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id={"type": "barplot_y_axis", "index": index},
+                    value=y_axis,
+                    clearable=False,
+                    options=y_columns,
                 ),
-                cluster_dropdown(
-                    "bp_cluster_comparison_dropdown",
-                    index,
-                    multi=True,
-                    value=classes,
-                    clearable=True,
-                    title="Cluster Comparison",
-                    css_class="dd-single cluster-comparison",
+                css_class="dd-double-right",
+                title="y axis",
+            ),
+            cluster_dropdown(
+                "bp_cluster_comparison_dropdown",
+                index,
+                multi=True,
+                value=classes,
+                clearable=True,
+                title="Cluster Comparison",
+                css_class="dd-single cluster-comparison",
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id={"type": "order_dropdown", "index": index},
+                    value=order,
+                    clearable=False,
+                    options=["reldiff", "total"],
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "order_dropdown", "index": index},
-                        value=order,
-                        clearable=False,
-                        options=["reldiff", "total"],
-                    ),
-                    css_class="dd-single",
-                    title="Comparison Order",
-                ),
-                html.Div(
-                    id={"type": "barplot-notify-container", "index": index},
-                    style={"display": "none"},
-                ),
-            ],
-            id={"type": "barplot-container", "index": index},
-            className="plots",
-        )
+                css_class="dd-single",
+                title="Comparison Order",
+            ),
+            html.Div(
+                id={"type": "barplot-notify-container", "index": index},
+                style={"display": "none"},
+            ),
+        ]

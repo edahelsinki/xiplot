@@ -149,7 +149,7 @@ class Heatmap(APlot):
         return fig
 
     @staticmethod
-    def create_new_layout(index, df, columns, config=dict()):
+    def create_layout(index, df, columns, config=dict()):
         jsonschema.validate(
             instance=config,
             schema=dict(
@@ -175,46 +175,40 @@ class Heatmap(APlot):
             n_clusters = 2
 
         num_columns = get_numeric_columns(df, columns)
-        return html.Div(
-            [
-                DeleteButton(index),
-                PdfButton(index),
-                dcc.Graph(
-                    id={"type": "heatmap", "index": index},
-                    figure=Heatmap.render(n_clusters, num_columns, df),
+        return [
+            dcc.Graph(
+                id={"type": "heatmap", "index": index},
+                figure=Heatmap.render(n_clusters, num_columns, df),
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    options=num_columns,
+                    multi=True,
+                    id={"type": "heatmap_feature_dropdown", "index": index},
+                    clearable=False,
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        options=num_columns,
-                        multi=True,
-                        id={"type": "heatmap_feature_dropdown", "index": index},
-                        clearable=False,
-                    ),
-                    title="Features",
-                    style={"width": "80%"},
+                title="Features",
+                style={"width": "80%"},
+            ),
+            html.Button(
+                "Add features by regex",
+                id={"type": "heatmap_regex-button", "index": index},
+            ),
+            layout_wrapper(
+                component=dcc.Input(
+                    id={"type": "heatmap_feature-input", "index": index}
                 ),
-                html.Button(
-                    "Add features by regex",
-                    id={"type": "heatmap_regex-button", "index": index},
+                style={"display": "none"},
+            ),
+            layout_wrapper(
+                component=dcc.Slider(
+                    min=2,
+                    max=10,
+                    step=1,
+                    value=n_clusters,
+                    id={"type": "heatmap_cluster_amount", "index": index},
                 ),
-                layout_wrapper(
-                    component=dcc.Input(
-                        id={"type": "heatmap_feature-input", "index": index}
-                    ),
-                    style={"display": "none"},
-                ),
-                layout_wrapper(
-                    component=dcc.Slider(
-                        min=2,
-                        max=10,
-                        step=1,
-                        value=n_clusters,
-                        id={"type": "heatmap_cluster_amount", "index": index},
-                    ),
-                    title="Cluster amount",
-                    style={"width": "80%"},
-                ),
-            ],
-            id={"type": "heatmap-container", "index": index},
-            className="plots",
-        )
+                title="Cluster amount",
+                style={"width": "80%"},
+            ),
+        ]

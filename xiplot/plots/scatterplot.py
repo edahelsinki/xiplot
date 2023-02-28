@@ -372,7 +372,7 @@ class Scatterplot(APlot):
         return fig
 
     @staticmethod
-    def create_new_layout(index, df, columns, config=dict()):
+    def create_layout(index, df, columns, config=dict()):
         num_columns = get_numeric_columns(df, columns)
 
         jsonschema.validate(
@@ -426,72 +426,66 @@ class Scatterplot(APlot):
 
         df["__Auxiliary__"] = [{"index": i} for i in range(len(df))]
 
-        return html.Div(
-            children=[
-                DeleteButton(index),
-                PdfButton(index),
-                dcc.Graph(
-                    id={"type": "scatterplot", "index": index},
-                    figure=px.scatter(
-                        df,
-                        x_axis,
-                        y_axis,
-                        custom_data=["__Auxiliary__"],
-                        render_mode="webgl",
-                    ),
+        return [
+            dcc.Graph(
+                id={"type": "scatterplot", "index": index},
+                figure=px.scatter(
+                    df,
+                    x_axis,
+                    y_axis,
+                    custom_data=["__Auxiliary__"],
+                    render_mode="webgl",
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "scatter_x_axis", "index": index},
-                        options=num_columns,
-                        value=x_axis,
-                        clearable=False,
-                    ),
-                    css_class="dd-double-left",
-                    title="x",
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id={"type": "scatter_x_axis", "index": index},
+                    options=num_columns,
+                    value=x_axis,
+                    clearable=False,
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "scatter_y_axis", "index": index},
-                        options=num_columns,
-                        value=y_axis,
-                        clearable=False,
-                    ),
-                    css_class="dd-double-right",
-                    title="y",
+                css_class="dd-double-left",
+                title="x",
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id={"type": "scatter_y_axis", "index": index},
+                    options=num_columns,
+                    value=y_axis,
+                    clearable=False,
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "scatter_target_color", "index": index},
-                        options=columns,
-                        value=scatter_colour,
-                        clearable=False,
-                    ),
-                    css_class="dd-double-left",
-                    title="target (color)",
+                css_class="dd-double-right",
+                title="y",
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id={"type": "scatter_target_color", "index": index},
+                    options=columns,
+                    value=scatter_colour,
+                    clearable=False,
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "scatter_target_symbol", "index": index},
-                        options=columns,
-                        value=scatter_symbol,
-                    ),
-                    css_class="dd-double-right",
-                    title="target (symbol)",
+                css_class="dd-double-left",
+                title="target (color)",
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id={"type": "scatter_target_symbol", "index": index},
+                    options=columns,
+                    value=scatter_symbol,
                 ),
-                layout_wrapper(
-                    component=dcc.Slider(
-                        id={"type": "jitter-slider", "index": index},
-                        min=0,
-                        max=1,
-                        value=jitter_slider,
-                        marks=None,
-                        tooltip={"placement": "bottom", "always_visible": True},
-                    ),
-                    css_class="slider-single",
-                    title="jitter",
+                css_class="dd-double-right",
+                title="target (symbol)",
+            ),
+            layout_wrapper(
+                component=dcc.Slider(
+                    id={"type": "jitter-slider", "index": index},
+                    min=0,
+                    max=1,
+                    value=jitter_slider,
+                    marks=None,
+                    tooltip={"placement": "bottom", "always_visible": True},
                 ),
-            ],
-            id={"type": "scatterplot-container", "index": index},
-            className="plots",
-        )
+                css_class="slider-single",
+                title="jitter",
+            ),
+        ]

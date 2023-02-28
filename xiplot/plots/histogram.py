@@ -121,7 +121,7 @@ class Histogram(APlot):
         return fig
 
     @staticmethod
-    def create_new_layout(index, df, columns, config=dict()):
+    def create_layout(index, df, columns, config=dict()):
         num_columns = get_numeric_columns(df, columns)
 
         jsonschema.validate(
@@ -165,39 +165,31 @@ class Histogram(APlot):
         groupby = config.get("groupby", "Clusters")
         classes = config.get("classes", [])
 
-        return html.Div(
-            [
-                DeleteButton(index),
-                PdfButton(index),
-                dcc.Graph(
-                    id={"type": "histogram", "index": index},
-                    figure=make_fig_property(
-                        df, x_axis, classes, ["all"] * df.shape[0]
-                    ),
+        return [
+            dcc.Graph(
+                id={"type": "histogram", "index": index},
+                figure=make_fig_property(df, x_axis, classes, ["all"] * df.shape[0]),
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id={"type": "x_axis_histo", "index": index},
+                    value=x_axis,
+                    clearable=False,
+                    options=num_columns,
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "x_axis_histo", "index": index},
-                        value=x_axis,
-                        clearable=False,
-                        options=num_columns,
-                    ),
-                    css_class="dd-single",
-                    title="x axis",
-                ),
-                cluster_dropdown(
-                    "hg_cluster_comparison_dropdown",
-                    index,
-                    multi=True,
-                    clearable=True,
-                    value=classes,
-                    title="Cluster Comparison",
-                    css_class="dd-single",
-                ),
-            ],
-            id={"type": "histogram-container", "index": index},
-            className="plots",
-        )
+                css_class="dd-single",
+                title="x axis",
+            ),
+            cluster_dropdown(
+                "hg_cluster_comparison_dropdown",
+                index,
+                multi=True,
+                clearable=True,
+                value=classes,
+                title="Cluster Comparison",
+                css_class="dd-single",
+            ),
+        ]
 
 
 def make_fig_property(df, x_axis, selected_clusters, clusters):
