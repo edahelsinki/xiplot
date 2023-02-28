@@ -3,6 +3,7 @@ import dash_mantine_components as dmc
 from collections import Counter
 
 from dash import html, dcc, Input, Output, ALL, ctx
+from xiplot.plugin import get_plugins_cached
 
 from xiplot.tabs.data import Data
 from xiplot.tabs.plots import Plots
@@ -65,7 +66,8 @@ class XiPlot:
                         id="globals",
                     ),
                     dcc.Download(id="graph_to_pdf"),
-                ],
+                ]
+                + [g() for g in get_plugins_cached("global")],
                 id="main",
             ),
             position="top-right",
@@ -73,6 +75,9 @@ class XiPlot:
 
         for tab in TABS:
             tab.register_callbacks(app, df_from_store, df_to_store)
+
+        for cb in get_plugins_cached("callback"):
+            cb(app, df_from_store, df_to_store)
 
         @app.callback(
             Output({"type": "cluster-dropdown-count", "index": ALL}, "children"),
@@ -96,21 +101,6 @@ class XiPlot:
                     counts.append(counter[cluster])
 
             return [f": [{c}]" for c in counts]
-
-        app.clientside_callback(
-            """
-            function toggleLightDarkMode(nClicks) {
-                if (nClicks % 2 == 1) {
-                    document.documentElement.setAttribute("data-theme", "dark")
-                    return 'Light'
-                }
-                document.documentElement.setAttribute("data-theme", "light")
-                return 'Dark'
-            }
-            """,
-            Output("light-dark-toggle", "children"),
-            Input("light-dark-toggle", "n_clicks"),
-        )
 
 
 def app_logo():

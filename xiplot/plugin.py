@@ -64,7 +64,9 @@ def placeholder_figure(text: str) -> Dict[str, Any]:
     }
 
 
-def get_plugins_cached(plugin_type: Literal["read", "plot"]) -> List[Any]:
+def get_plugins_cached(
+    plugin_type: Literal["read", "plot", "global", "callback"]
+) -> List[Any]:
     """Get a list of all plugins of the specified type (this call is cached for future reuse).
 
     Args:
@@ -91,7 +93,7 @@ def get_plugins_cached(plugin_type: Literal["read", "plot"]) -> List[Any]:
         try:
             loaded_plugins.append(plugin.load())
         except Exception as e:
-            warnings.warn(f"Could not load plugin: {e}")
+            warnings.warn(f"Could not load plugin {plugin}: {e}")
 
     get_plugins_cached.cache[plugin_type] = loaded_plugins
     return loaded_plugins
