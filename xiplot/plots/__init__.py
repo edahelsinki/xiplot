@@ -5,7 +5,7 @@ import pandas as pd
 from dash import Dash, html, dcc
 
 from xiplot.utils import generate_id
-from xiplot.utils.components import DeleteButton, PdfButton
+from xiplot.utils.components import DeleteButton, FlexRow, PdfButton
 
 
 class APlot(ABC):
@@ -66,7 +66,10 @@ class APlot(ABC):
         """
         children = cls.create_layout(index, df, columns, config)
         if any(isinstance(e, dcc.Graph) for e in children):
-            children = [DeleteButton(index), PdfButton(index)] + children
+            buttons = FlexRow(
+                DeleteButton(index), html.Div(className="stretch"), PdfButton(index)
+            )
+            children = [buttons] + children
         else:
             children = [DeleteButton(index)] + children
         return html.Div(children, id=cls.get_id(index, "panel"), className="plots")
