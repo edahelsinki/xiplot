@@ -8,7 +8,7 @@ from xiplot.utils import generate_id
 from xiplot.utils.components import DeleteButton, PdfButton
 
 
-class Plot(ABC):
+class APlot(ABC):
     """Abstract class that defines the API for implementing a new plot"""
 
     def __init__(self):
@@ -53,7 +53,7 @@ class Plot(ABC):
         cls, index: Any, df: pd.DataFrame, columns: Any, config: Dict[str, Any] = dict()
     ) -> html.Div:
         """Overide this method to create a layout for your plot.
-        Alternatively you can overload `Plot.create_layout` for a simplified setup.
+        Alternatively you can overload `APlot.create_layout` for a simplified setup.
 
         Args:
             index: The index of the plot.
@@ -75,7 +75,7 @@ class Plot(ABC):
     def create_layout(
         cls, index: Any, df: pd.DataFrame, columns: Any, config: Dict[str, Any]
     ) -> List[Any]:
-        """If `Plot.create_new_layout` is not overriden, then this method can be overriden to provide a "Standard" plot.
+        """If `APlot.create_new_layout` is not overriden, then this method can be overriden to provide a "Standard" plot.
 
         A "standard" plot has the following features:
             - The children (given by this function) are wrapped in a Div with `className="plots"`.

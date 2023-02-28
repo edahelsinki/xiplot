@@ -8,10 +8,10 @@ from dash.exceptions import PreventUpdate
 from xiplot.utils.layouts import delete_button, layout_wrapper
 from xiplot.utils.dataframe import get_smiles_column_name
 from xiplot.utils.smiles import get_smiles_inputs
-from xiplot.plots import Plot
+from xiplot.plots import APlot
 
 
-class Smiles(Plot):
+class Smiles(APlot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         app.clientside_callback(

@@ -12,8 +12,8 @@ from os import PathLike
 import pandas as pd
 
 # Export useful parts of xiplot:
-from xiplot.plots import Plot
-from xiplot.utils.components import FlexRow
+from xiplot.plots import APlot
+from xiplot.utils.components import FlexRow, DeleteButton, PdfButton
 
 
 # IDs for important `dcc.Store` components:

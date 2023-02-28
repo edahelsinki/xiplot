@@ -16,10 +16,10 @@ from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.scatterplot import get_row
 from xiplot.utils.callbacks import pdf_callback
 from xiplot.utils.embedding import add_pca_columns_to_df
-from xiplot.plots import Plot
+from xiplot.plots import APlot
 
 
-class Scatterplot(Plot):
+class Scatterplot(APlot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(

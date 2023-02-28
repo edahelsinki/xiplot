@@ -14,10 +14,10 @@ from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.dataframe import get_smiles_column_name
 from xiplot.utils.table import get_sort_by, get_updated_item, get_updated_item_id
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
-from xiplot.plots import Plot
+from xiplot.plots import APlot
 
 
-class Table(Plot):
+class Table(APlot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(

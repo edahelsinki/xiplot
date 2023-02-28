@@ -10,10 +10,10 @@ from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.callbacks import pdf_callback
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 from xiplot.utils.embedding import add_pca_columns_to_df
-from xiplot.plots import Plot
+from xiplot.plots import APlot
 
 
-class Heatmap(Plot):
+class Heatmap(APlot):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
