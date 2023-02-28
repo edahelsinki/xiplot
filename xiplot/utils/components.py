@@ -1,5 +1,11 @@
-from typing import Optional
-from dash import dcc, html
+from typing import Any, Optional
+import base64
+from io import BytesIO
+
+import plotly as po
+from dash import dcc, html, Dash, Input, Output, State, ALL, ctx, no_update
+
+from xiplot.utils import generate_id
 
 
 class FlexRow(html.Div):
@@ -19,3 +25,69 @@ class FlexRow(html.Div):
         else:
             className = className + " flex-row"
         super().__init__(children=list(children), className=className, **kwargs)
+
+
+class DeleteButton(html.Button):
+    def __init__(self, index: Any, children: str = "x", **kwargs: Any):
+        """Create a delete button.
+
+        Args:
+            index: Which index should be deleted.
+            children: The visuals of the button. Defaults to "x".
+            **kwargs: additional arguments forwarded to `html.Button`.
+        """
+        super().__init__(
+            children=children,
+            id=generate_id(DeleteButton, index),
+            className="delete",
+            **kwargs
+        )
+        # TODO: update the callback in xiplot.tabs.plots
+
+
+class PdfButton(html.Button):
+    def __init__(self, index: Any, children: str = "Download as pdf", **kwargs: Any):
+        """Create a button for donwloading plots as pdf.
+
+        Args:
+            index: Which plot should be downloaded.
+            children: The text of the button. Defaults to "Download as pdf".
+            **kwargs: additional arguments forwarded to `html.Button`.
+        """
+        super().__init__(children=children, id=generate_id(type(self), index), **kwargs)
+
+    @classmethod
+    def create_global(cls) -> Any:
+        return dcc.Download(id=generate_id(cls, None, "download"))
+
+    @classmethod
+    def register_callback(cls, app: Dash):
+        @app.callback(
+            Output(generate_id(cls, None, "download"), "data"),
+            Input(generate_id(cls, ALL), "n_clicks"),
+            State(generate_id(ALL, ALL), "figure"),
+            prevent_initial_call=True,
+        )
+        def download_as_pdf(n_clicks, fig):
+            if ctx.triggered[0]["value"] is None:
+                return no_update
+
+            figs = ctx.args_grouping[1]
+
+            figure = None
+            for f in figs:
+                if f["id"]["index"] == ctx.triggered_id["index"]:
+                    figure = f["value"]
+            if not figure:
+                return no_update
+            fig_img = po.io.to_image(figure, format="pdf")
+            file = BytesIO(fig_img)
+            encoded = base64.b64encode(file.getvalue()).decode("ascii")
+            return dict(
+                base64=True,
+                content=encoded,
+                filename="xiplot.pdf",
+                type="application/pdf",
+            )
+
+        # TODO register this somewhere
