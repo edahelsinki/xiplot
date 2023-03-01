@@ -4,7 +4,7 @@ import jsonschema
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
-from xiplot.utils.components import DeleteButton
+from xiplot.utils.components import DeleteButton, PlotData
 
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.dataframe import get_smiles_column_name
@@ -13,8 +13,8 @@ from xiplot.plots import APlot
 
 
 class Smiles(APlot):
-    @staticmethod
-    def register_callbacks(app, df_from_store, df_to_store):
+    @classmethod
+    def register_callbacks(cls, app, df_from_store, df_to_store):
         app.clientside_callback(
             """
             async function svgFromSMILES(smiles) {
@@ -90,45 +90,19 @@ class Smiles(APlot):
             )
             return dict(smiles=smiles_inputs)
 
-        @app.callback(
-            output=dict(
-                meta=Output("metadata_store", "data"),
+        PlotData.register_callback(
+            cls.name(),
+            app,
+            dict(
+                mode=Input({"type": "smiles_lock_dropdown", "index": ALL}, "value"),
+                smiles=Input({"type": "smiles-input", "index": ALL}, "value"),
             ),
-            inputs=[
-                State("metadata_store", "data"),
-                Input({"type": "smiles_lock_dropdown", "index": ALL}, "value"),
-                Input({"type": "smiles-input", "index": ALL}, "value"),
-            ],
-            prevent_initial_call=False,
         )
-        def update_settings(meta, render_modes, smiles_inputs):
-            if meta is None:
-                return dash.no_update
 
-            for render_mode, smiles_input in zip(*ctx.args_grouping[1 : 2 + 1]):
-                if not render_mode["triggered"] and not smiles_input["triggered"]:
-                    continue
+        return [render_clicks, render_hovered]
 
-                index = render_mode["id"]["index"]
-                render_mode = render_mode["value"]
-                smiles_input = smiles_input["value"]
-
-                meta["plots"][index] = dict(
-                    type=Smiles.name(),
-                    mode=render_mode,
-                    smiles=smiles_input,
-                )
-
-            return dict(meta=meta)
-
-        return [
-            render_clicks,
-            render_hovered,
-            update_settings,
-        ]
-
-    @staticmethod
-    def create_new_layout(index, df, columns, config=dict()):
+    @classmethod
+    def create_new_layout(cls, index, df, columns, config=dict()):
         jsonschema.validate(
             instance=config,
             schema=dict(
@@ -173,6 +147,7 @@ class Smiles(APlot):
                     ),
                     css_class="dd-smiles",
                 ),
+                PlotData(index, cls.name()),
             ],
             id={"type": "smiles-container", "index": index},
             className="plots",

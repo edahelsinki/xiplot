@@ -9,7 +9,7 @@ import jsonschema
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
-from xiplot.utils.components import DeleteButton, PdfButton
+from xiplot.utils.components import DeleteButton, PdfButton, PlotData
 
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.dataframe import get_numeric_columns
@@ -20,8 +20,8 @@ from xiplot.plots import APlot
 
 
 class Scatterplot(APlot):
-    @staticmethod
-    def register_callbacks(app, df_from_store, df_to_store):
+    @classmethod
+    def register_callbacks(cls, app, df_from_store, df_to_store):
         PdfButton.register_callback(app, {"type": "scatterplot"})
 
         @app.callback(
@@ -211,54 +211,20 @@ class Scatterplot(APlot):
 
             return dict(clusters=kmeans_col, reset=str(uuid.uuid4()))
 
-        @app.callback(
-            output=dict(
-                meta=Output("metadata_store", "data"),
+        PlotData.register_callback(
+            cls.name(),
+            app,
+            (
+                Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
+                Input({"type": "scatter_y_axis", "index": MATCH}, "value"),
+                Input({"type": "scatter_target_color", "index": MATCH}, "value"),
+                Input({"type": "scatter_target_symbol", "index": MATCH}, "value"),
+                Input({"type": "jitter-slider", "index": MATCH}, "value"),
             ),
-            inputs=[
-                State("metadata_store", "data"),
-                Input({"type": "scatter_x_axis", "index": ALL}, "value"),
-                Input({"type": "scatter_y_axis", "index": ALL}, "value"),
-                Input({"type": "scatter_target_color", "index": ALL}, "value"),
-                Input({"type": "scatter_target_symbol", "index": ALL}, "value"),
-                Input({"type": "jitter-slider", "index": ALL}, "value"),
-            ],
-            prevent_initial_call=False,
+            lambda i: dict(
+                axes=dict(x=i[0], y=i[1]), colour=i[2], symbol=i[3], jitter=i[4]
+            ),
         )
-        def update_settings(
-            meta, x_axes, y_axes, scatter_colours, scatter_symbols, jitter_sliders
-        ):
-            if meta is None:
-                return dash.no_update
-
-            for x_axis, y_axis, scatter_colour, scatter_symbol, jitter_slider in zip(
-                *ctx.args_grouping[1 : 5 + 1]
-            ):
-                if (
-                    not x_axis["triggered"]
-                    and not y_axis["triggered"]
-                    and not scatter_colour["triggered"]
-                    and not scatter_symbol["triggered"]
-                    and not jitter_slider["triggered"]
-                ):
-                    continue
-
-                index = x_axis["id"]["index"]
-                x_axis = x_axis["value"]
-                y_axis = y_axis["value"]
-                scatter_colour = scatter_colour["value"]
-                scatter_symbol = scatter_symbol["value"]
-                jitter_slider = jitter_slider["value"]
-
-                meta["plots"][index] = dict(
-                    type=Scatterplot.name(),
-                    axes=dict(x=x_axis, y=y_axis),
-                    colour=scatter_colour,
-                    symbol=scatter_symbol,
-                    jitter=jitter_slider,
-                )
-
-            return dict(meta=meta)
 
         @app.callback(
             output=dict(
@@ -293,13 +259,7 @@ class Scatterplot(APlot):
                 scatter_y=[options] * len(all_options),
             )
 
-        return [
-            tmp,
-            handle_click_events,
-            handle_hover_events,
-            handle_cluster_drawing,
-            update_settings,
-        ]
+        return [tmp, handle_click_events, handle_hover_events, handle_cluster_drawing]
 
     @staticmethod
     def render(

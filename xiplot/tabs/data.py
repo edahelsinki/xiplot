@@ -11,10 +11,10 @@ from collections import OrderedDict
 from io import BytesIO
 from pathlib import Path
 
-from dash import Output, Input, State, ctx, html, dcc
+from dash import Output, Input, State, ctx, html, dcc, ALL
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
-from xiplot.utils.components import FlexRow
+from xiplot.utils.components import FlexRow, PlotData
 
 from xiplot.utils.dataframe import (
     read_dataframe_with_extension,
@@ -386,6 +386,7 @@ class Data(Tab):
             State("metadata_store", "data"),
             State("clusters_column_store", "data"),
             State("selected_rows_store", "data"),
+            State(PlotData.get_id(ALL, ALL), "data"),
             prevent_initial_call=True,
         )
         def download_file(
@@ -396,6 +397,7 @@ class Data(Tab):
             meta,
             clusters,
             selected_rows,
+            plot_data,
         ):
             df = df_from_store(df)
 
@@ -445,6 +447,11 @@ class Data(Tab):
 
                     if selected_rows is not None:
                         aux["is_selected"] = [not s for s in selected_rows]
+
+                    for data in plot_data:
+                        index = data["index"]
+                        del data["index"]
+                        meta["plots"][index] = data
 
                     filename, mime = write_dataframe_and_metadata(
                         df, pd.DataFrame(aux), meta, meta["filename"], file
@@ -529,7 +536,7 @@ class Data(Tab):
                             ),
                             " ",
                             html.Button(
-                                "Download a plots and data",
+                                "Download plots and data",
                                 id="download-plots-file-button",
                                 n_clicks=0,
                                 className="button",

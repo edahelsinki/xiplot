@@ -1,10 +1,10 @@
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional, Sequence, Tuple, Union
 import base64
 from io import BytesIO
 
 import plotly as po
+import dash
 from dash import dcc, html, Dash, Input, Output, State, ALL, ctx, no_update, MATCH
-from dash_extensions.enrich import State
 
 from xiplot.utils import generate_id
 
@@ -100,3 +100,72 @@ class PdfButton(html.Button):
                 filename="xiplot.pdf",
                 type="application/pdf",
             )
+
+
+class PlotData(dcc.Store):
+    @classmethod
+    def get_id(cls, index: Any, plot_name: str) -> Dict[str, Any]:
+        id = generate_id(cls, index)
+        id["plot"] = plot_name
+        return id
+
+    def __init__(self, index: Any, plot_name: str, **kwargs):
+        """
+        Create a `dcc.Store` for storing plot configurations.
+        These are used to save the xiplot state to a file.
+
+        Args:
+            index: The plot index.
+            plot_name: The plot name (`APlot.name()`).
+        """
+        super().__init__(
+            id=self.get_id(index, plot_name),
+            data=dict(index=index, type=plot_name),
+            **kwargs
+        )
+
+    @classmethod
+    def register_callback(
+        cls,
+        plot_name: str,
+        app: Dash,
+        inputs: Union[Dict[str, Union[Input, State]], Any],
+        process: Optional[Callable[[Any], Dict[str, Any]]] = None,
+    ):
+        """Register callbacks for updating whenever the configuration changes.
+        NOTE: This method has to be called separately for every type of plot.
+
+        Args:
+            plot_name: The plot name (`APlot.name()`).
+            app: The xiplot app.
+            inputs: Dictionary of `Input`s that control the plot. Note that index must be `MATCH`. Example: `dict(var=Input({"type": "var-dropdown", "index": MATCH}, "value"))`.
+            process: Optional function that processes the `inputs` into a storable dictionary. Defaults to None.
+        """
+        # This assert does not verify that 'process' returns a dict
+        assert callable(process) or isinstance(
+            inputs, dict
+        ), "'inputs' must be a `dict` or 'process' must be a function returning a `dict`"
+
+        # Try to enforce MATCH on the "index"
+        if isinstance(inputs, dict):
+            for v in inputs.values():
+                v.component_id["index"] = MATCH
+        elif isinstance(inputs, Sequence):
+            for v in inputs:
+                v.component_id["index"] = MATCH
+        elif isinstance(inputs, Input):
+            inputs.component_id["index"] = MATCH
+
+        id = cls.get_id(MATCH, plot_name)
+
+        @app.callback(
+            Output(id, "data"),
+            inputs={"meta": State(id, "data"), "inputs": inputs},
+            prevent_initial_call=False,
+        )
+        def update_metadata(meta, inputs):
+            if callable(process):
+                inputs = process(inputs)
+            for key, value in inputs.items():
+                meta[key] = value
+            return meta

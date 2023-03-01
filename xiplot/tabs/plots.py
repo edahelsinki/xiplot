@@ -206,7 +206,11 @@ class Plots(Tab):
                             )
                         )
 
-                return meta["session"], children, dash.no_update, notifications
+                if ctx.triggered_id == "new_plot-button":
+                    return meta["session"], children, dash.no_update, notifications
+                else:
+                    meta["plots"].clear()
+                    return meta["session"], children, meta, notifications
 
             deletion_id = ctx.triggered_id["index"]
 
@@ -216,9 +220,7 @@ class Plots(Tab):
                 if chart["props"]["id"]["index"] != deletion_id
             ]
 
-            meta["plots"] = {k: v for k, v in meta["plots"].items() if k != deletion_id}
-
-            return meta["session"], children, meta, None
+            return meta["session"], children, dash.no_update, None
 
     @staticmethod
     def create_layout():

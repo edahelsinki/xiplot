@@ -4,7 +4,7 @@ import jsonschema
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
-from xiplot.utils.components import DeleteButton, PdfButton
+from xiplot.utils.components import DeleteButton, PdfButton, PlotData
 
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.dataframe import get_numeric_columns
@@ -14,8 +14,8 @@ from xiplot.plots import APlot
 
 
 class Heatmap(APlot):
-    @staticmethod
-    def register_callbacks(app, df_from_store, df_to_store):
+    @classmethod
+    def register_callbacks(cls, app, df_from_store, df_to_store):
         PdfButton.register_callback(app, {"type": "heatmap"})
 
         @app.callback(
@@ -93,34 +93,17 @@ class Heatmap(APlot):
                 raise PreventUpdate()
             return keyword
 
-        @app.callback(
-            output=dict(
-                meta=Output("metadata_store", "data"),
-            ),
-            inputs=[
-                State("metadata_store", "data"),
-                Input({"type": "heatmap_cluster_amount", "index": ALL}, "value"),
-            ],
-            prevent_initial_call=False,
-        )
-        def update_settings(meta, n_clusters):
-            if meta is None:
-                return dash.no_update
-
-            for (n_clusters,) in zip(*ctx.args_grouping[1 : 1 + 1]):
-                if not n_clusters["triggered"]:
-                    continue
-
-                index = n_clusters["id"]["index"]
-                n_clusters = n_clusters["value"]
-
-                meta["plots"][index] = dict(
-                    type=Heatmap.name(), clusters=dict(amount=n_clusters)
+        PlotData.register_callback(
+            cls.name(),
+            app,
+            dict(
+                clusters=Input(
+                    {"type": "heatmap_cluster_amount", "index": MATCH}, "value"
                 )
+            ),
+        )
 
-            return dict(meta=meta)
-
-        return [tmp, update_settings]
+        return [tmp]
 
     @staticmethod
     def render(n_clusters, features, df, pca_cols=[]):

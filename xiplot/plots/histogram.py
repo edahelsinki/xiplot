@@ -5,7 +5,7 @@ import dash
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
-from xiplot.utils.components import DeleteButton, PdfButton
+from xiplot.utils.components import DeleteButton, PdfButton, PlotData
 
 from xiplot.utils.layouts import layout_wrapper, cluster_dropdown
 from xiplot.utils.dataframe import get_numeric_columns
@@ -15,8 +15,8 @@ from xiplot.plots import APlot
 
 
 class Histogram(APlot):
-    @staticmethod
-    def register_callbacks(app, df_from_store, df_to_store):
+    @classmethod
+    def register_callbacks(cls, app, df_from_store, df_to_store):
         PdfButton.register_callback(app, {"type": "histogram"})
 
         @app.callback(
@@ -42,39 +42,17 @@ class Histogram(APlot):
                 x_axis, selected_clusters, kmeans_col, df_from_store(df), pca_cols
             )
 
-        @app.callback(
-            output=dict(
-                meta=Output("metadata_store", "data"),
-            ),
-            inputs=[
-                State("metadata_store", "data"),
+        PlotData.register_callback(
+            cls.name(),
+            app,
+            (
                 Input({"type": "x_axis_histo", "index": ALL}, "value"),
                 Input(
                     {"type": "hg_cluster_comparison_dropdown", "index": ALL}, "value"
                 ),
-            ],
-            prevent_initial_call=False,
+            ),
+            lambda i: dict(axes=dict(x=i[0]), groupby="Clusters", classes=i[1] or []),
         )
-        def update_settings(meta, x_axes, classes_dropdowns):
-            if meta is None:
-                return dash.no_update
-
-            for x_axis, classes_dropdown in zip(*ctx.args_grouping[1 : 2 + 1]):
-                if not x_axis["triggered"] and not classes_dropdown["triggered"]:
-                    continue
-
-                index = x_axis["id"]["index"]
-                x_axis = x_axis["value"]
-                classes_dropdown = classes_dropdown["value"] or []
-
-                meta["plots"][index] = dict(
-                    type=Histogram.name(),
-                    axes=dict(x=x_axis),
-                    groupby="Clusters",
-                    classes=classes_dropdown,
-                )
-
-            return dict(meta=meta)
 
         @app.callback(
             output=dict(
@@ -107,7 +85,7 @@ class Histogram(APlot):
                 histogram_x=[x_options] * len(x_all_options),
             )
 
-        return [tmp, update_settings]
+        return [tmp]
 
     @staticmethod
     def render(x_axis, selected_clusters, kmeans_col, df, pca_cols=[]):

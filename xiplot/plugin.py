@@ -16,7 +16,7 @@ from dash import Dash
 
 # Export useful parts of xiplot:
 from xiplot.plots import APlot
-from xiplot.utils.components import FlexRow, DeleteButton, PdfButton
+from xiplot.utils.components import FlexRow, DeleteButton, PdfButton, PlotData
 
 
 # IDs for important `dcc.Store` components:

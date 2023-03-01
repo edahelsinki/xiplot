@@ -17,7 +17,6 @@ from xiplot.plots.table import Table
     update_table_columns,
     sync_with_input,
     add_matching_values,
-    update_settings,
 ) = Table.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)
 
 

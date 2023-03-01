@@ -10,9 +10,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from tests.util_test import render_plot
 from xiplot.plots.barplot import Barplot
 
-tmp, update_settings = Barplot.register_callbacks(
-    dash.Dash(__name__), lambda x: x, lambda x: x
-)
+tmp = Barplot.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)[0]
 
 
 def test_teba001_render_barplot(dash_duo):

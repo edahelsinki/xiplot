@@ -10,9 +10,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from tests.util_test import render_plot
 from xiplot.plots.histogram import Histogram
 
-tmp, update_settings = Histogram.register_callbacks(
-    dash.Dash(__name__), lambda x: x, lambda x: x
-)
+tmp = Histogram.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)[0]
 
 
 def test_tehi001_render_histogram(dash_duo):
