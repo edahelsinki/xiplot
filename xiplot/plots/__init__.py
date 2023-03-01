@@ -60,8 +60,8 @@ class APlot(ABC):
         Args:
             index: The index of the plot.
             df: Dataframe.
-            columns: TODO
-            config: TODO. Defaults to dict().
+            columns: Columns from the dataframe to use in the plot.
+            config: Plot configuration (used when restoring saved plots). Defaults to dict().
 
         Returns:
             A html element presenting the plot.
@@ -79,7 +79,7 @@ class APlot(ABC):
 
     @abstractclassmethod
     def create_layout(
-        cls, index: Any, df: pd.DataFrame, columns: Any, config: Dict[str, Any]
+        cls, index: Any, df: pd.DataFrame, columns: Any, config: Dict[str, Any] = dict()
     ) -> List[Any]:
         """If `APlot.create_new_layout` is not overriden, then this method can be overriden to provide a "Standard" plot.
 
@@ -91,8 +91,8 @@ class APlot(ABC):
         Args:
             index: The index of the plot
             df: Dataframe.
-            columns: TODO
-            config: TODO
+            columns: Columns from the dataframe to use in the plot.
+            config: Plot configuration (used when restoring saved plots). Defaults to dict().
 
         Returns:
             A list of (child) html components.
