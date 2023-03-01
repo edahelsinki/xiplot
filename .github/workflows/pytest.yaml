@@ -40,7 +40,7 @@ jobs:
       - name: Build package
         run: |
           python -m build .
-          python -c "import os, glob; assert os.path.getsize(sorted(glob.glob('dist/slisemap-*.whl'))[-1]) > 10_000"
+          python -c "import os, glob; assert os.path.getsize(sorted(glob.glob('dist/*-*.whl'))[-1]) > 10_000"
 
       - name: Test with pytest
         run: |
