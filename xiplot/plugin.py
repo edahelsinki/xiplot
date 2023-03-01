@@ -5,10 +5,10 @@
 """
 
 from typing import Any, Callable, Dict, List, Literal, Tuple, Union
-from importlib_metadata import entry_points as _entry_points
+from importlib.metadata import entry_points as _entry_points
 from io import BytesIO
 from os import PathLike
-import warnings
+from warnings import warn as _warn
 
 import pandas as pd
 from dash.development.base_component import Component
@@ -98,7 +98,7 @@ def get_plugins_cached(
         try:
             loaded_plugins.append(plugin.load())
         except Exception as e:
-            warnings.warn(f"Could not load plugin {plugin}: {e}")
+            _warn(f"Could not load plugin {plugin}: {e}")
 
     get_plugins_cached.cache[plugin_type] = loaded_plugins
     return loaded_plugins
