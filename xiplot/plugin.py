@@ -11,6 +11,8 @@ from os import PathLike
 import warnings
 
 import pandas as pd
+from dash.development.base_component import Component
+from dash import Dash
 
 # Export useful parts of xiplot:
 from xiplot.plots import APlot
@@ -34,7 +36,10 @@ CSS_DELTE_BUTTON_CLASS = "delete"
 # Helpful typehints:
 AReadFunction = Callable[[Union[BytesIO, PathLike]], pd.DataFrame]
 AReadPlugin = Callable[[], Tuple[AReadFunction, str]]  # str==file extension
-
+AGlobalPlugin = Callable[[], Component]
+ACallbackPlugin = Callable[
+    [Dash, Callable[[Any], pd.DataFrame], Callable[[pd.DataFrame], Any]], None
+]
 
 # Helper functions:
 def placeholder_figure(text: str) -> Dict[str, Any]:
