@@ -14,6 +14,7 @@ from pathlib import Path
 from dash import Output, Input, State, ctx, html, dcc
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
+from xiplot.utils.components import FlexRow
 
 from xiplot.utils.dataframe import (
     read_dataframe_with_extension,
@@ -483,87 +484,67 @@ class Data(Tab):
             uploader = du.Upload(
                 id="file_uploader",
                 text="Drag and Drop or Select a File to upload",
-                default_style={"minHeight": 1, "lineHeight": 4, "height": "85px"},
+                default_style={"minHeight": 1, "lineHeight": 4},
             )
         except (ImportError, AttributeError):
             uploader = dcc.Upload(
                 id="file_uploader",
                 children=html.Div(
-                    [
-                        "Drag and Drop or ",
-                        html.A("Select a File"),
-                        " to upload",
-                    ]
+                    ["Drag and Drop or ", html.A("Select a File"), " to upload"]
                 ),
                 className="dcc-upload",
             )
 
-        return html.Div(
-            [
-                html.Div(
-                    [
-                        layout_wrapper(
-                            component=dcc.Dropdown(
+        return FlexRow(
+            html.Div(
+                [
+                    layout_wrapper(
+                        component=FlexRow(
+                            dcc.Dropdown(
                                 [
                                     {"label": fp.name, "value": str(fp)}
                                     for fp in get_data_filepaths()
                                 ],
                                 id="data_files",
-                                className="dd",
                             ),
-                            title="Choose a data file",
-                            css_class="dd",
-                            style={"margin-left": "5%", "width": "100%"},
+                            html.Button(
+                                "Load",
+                                id="submit-button",
+                                n_clicks=0,
+                                className="button",
+                            ),
                         ),
-                        html.Div(
-                            [
-                                html.Button(
-                                    "Load the data file",
-                                    id="submit-button",
-                                    n_clicks=0,
-                                    className="button",
-                                    style={
-                                        "margin-left": "auto",
-                                        "margin-right": "auto",
-                                    },
-                                ),
-                                html.Button(
-                                    "Download only the data file",
-                                    id="download-data-file-button",
-                                    n_clicks=0,
-                                    className="button",
-                                    style={
-                                        "margin-left": "auto",
-                                        "margin-right": "auto",
-                                    },
-                                ),
-                                html.Button(
-                                    "Download the combined plots-and-data file",
-                                    id="download-plots-file-button",
-                                    n_clicks=0,
-                                    className="button",
-                                    style={
-                                        "margin-left": "auto",
-                                        "margin-right": "auto",
-                                    },
-                                ),
-                                dcc.Download(
-                                    id="data-download",
-                                ),
-                            ],
-                            style={
-                                "margin-top": "1%",
-                                "margin-left": "5%",
-                                "display": "flex",
-                            },
-                        ),
-                    ],
-                    style={"float": "left", "width": "40%"},
-                ),
-                html.Div(
-                    [uploader], id="file_uploader_container", className="dash-uploader"
-                ),
-            ],
+                        title="Choose a data file",
+                        css_class="dash-dropdown",
+                    ),
+                    html.Br(),
+                    html.Div(
+                        [
+                            html.Div("Download the data"),
+                            html.Button(
+                                "Download only the data",
+                                id="download-data-file-button",
+                                n_clicks=0,
+                                className="button",
+                            ),
+                            " ",
+                            html.Button(
+                                "Download a plots and data",
+                                id="download-plots-file-button",
+                                n_clicks=0,
+                                className="button",
+                            ),
+                            dcc.Download(
+                                id="data-download",
+                            ),
+                        ],
+                    ),
+                ],
+                className="stretch",
+            ),
+            html.Div(
+                [uploader], id="file_uploader_container", className="dash-uploader"
+            ),
             id="control_data_content-container",
         )
 

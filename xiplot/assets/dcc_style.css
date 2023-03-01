@@ -42,24 +42,31 @@
 }
 
 .dcc-upload {
-    width: 100%;
-    /*height: 60px;
-    line-height: 60px;*/
+    width: auto;
     border-width: 1px;
     border-style: dashed;
     border-radius: 5px;
     margin: 10px;
-
     text-align: center;
+    min-height: 1;
+    padding: 2rem 1rem 2rem 1rem;
 }
 
 .dash-uploader {
     position: relative;
-
     display: inline-block;
-    width: 40%;
-    margin-left: 16%;
-    top: 10px;
+    flex: 1;
+    min-height: 1;
+    align-self: stretch;
+    min-width: 12rem;
+    margin: 0px;
+    margin-bottom: auto;
+    margin-top: auto;
+}
+
+.dash-uploader>* {
+    margin: 1rem;
+    width: auto !important;
 }
 
 .main-svg {
@@ -93,6 +100,10 @@
     color: var(--placeholder-color) !important;
 }
 
+.tab.jsx-3201076643 {
+    padding: 20px 25px 5px 25px;
+}
+
 .tab.jsx-3201076643.tab,
 .tab.jsx-3201076643:last-of-type {
     background-color: transparent;
@@ -102,18 +113,22 @@
 }
 
 .tab.jsx-3201076643.tab:hover {
-    border-bottom: 2px solid #C5C6C7 !important;
+    border-bottom: 4px solid #C5C6C7 !important;
 }
 
 .tab.jsx-3201076643.tab.tab--selected {
     color: black !important;
     color: var(--font-color) !important;
-    border-bottom: 2px solid rgb(214, 214, 214) !important;
-    border-bottom: 2px solid var(--selected-tab-underline) !important;
+    border-bottom: 4px solid rgb(214, 214, 214) !important;
+    border-bottom: 4px solid var(--selected-tab-underline) !important;
 }
 
 .tab.jsx-3201076643.tab.tab--selected:hover {
     background-color: transparent;
+}
+
+.tab-content {
+    padding: 10px;
 }
 
 .xgrid.crisp,
@@ -123,30 +138,4 @@
     stroke: white !important;
     stroke-opacity: 1 !important;
     stroke-width: 1px !important;
-}
-
-.ycbcoloraxistick text {
-    fill: white !important;
-}
-
-@media all and (min-width:0px) and (max-width: 320px) {
-    .dash-uploader {
-        height: 50px !important;
-        font-size: 11px !important;
-    }
-
-    .dash-uploader-default,
-    .dash-uploader-hovered {
-        height: 100% !important;
-        line-height: 0px !important;
-    }
-}
-
-@media all and (min-width:321px) and (max-width: 480px) {
-
-    .dash-uploader-default,
-    .dash-uploader-hovered {
-        margin-left: 20px !important;
-        width: 170px !important;
-    }
 }

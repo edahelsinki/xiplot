@@ -17,6 +17,7 @@ from xiplot.utils.layouts import layout_wrapper, cluster_dropdown
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.components import FlexRow
 
 
 class Cluster(Tab):
@@ -448,74 +449,60 @@ class Cluster(Tab):
     def create_layout():
         return html.Div(
             [
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        options=[i for i in range(2, len(cluster_colours()))],
-                        id="cluster_amount",
+                FlexRow(
+                    layout_wrapper(
+                        component=FlexRow(
+                            dcc.Dropdown(id="cluster_feature", multi=True),
+                            html.Button(
+                                "Add features by regex",
+                                id="add_by_keyword-button",
+                                className="button",
+                            ),
+                        ),
+                        css_class="stretch",
+                        title="features",
                     ),
-                    css_class="dd-double-right",
-                    title="cluster amount",
-                ),
-                layout_wrapper(
-                    component=dcc.Dropdown(id="cluster_feature", multi=True),
-                    css_class="dd-double-right",
-                    title="features",
+                    layout_wrapper(
+                        component=FlexRow(
+                            dcc.Dropdown(
+                                options=[i for i in range(2, len(cluster_colours()))],
+                                id="cluster_amount",
+                            ),
+                            html.Button(
+                                "Compute the clusters",
+                                id="cluster-button",
+                                className="button",
+                            ),
+                        ),
+                        css_class="stretch",
+                        title="cluster amount",
+                    ),
                 ),
                 layout_wrapper(
                     component=dcc.Input(id="feature_keyword-input"),
                     style={"display": "none"},
                 ),
-                html.Button(
-                    "Add features by regex",
-                    id="add_by_keyword-button",
-                    style={"padding-top": "20"},
-                    className="button",
-                ),
-                html.Div(),
-                html.Div(
-                    [
-                        html.Button(
-                            "Compute the clusters",
-                            id="cluster-button",
-                            className="button",
-                            style={
-                                "margin-left": "auto",
-                                "margin-right": "auto",
-                            },
-                        ),
-                        html.Button(
-                            "Reset the clusters",
-                            id="clusters_reset-button",
-                            className="button",
-                            style={
-                                "margin-left": "auto",
-                                "margin-right": "auto",
-                            },
-                        ),
-                    ],
-                    style={
-                        "margin-top": "1%",
-                        "margin-left": "5%",
-                        "display": "flex",
-                        "width": "20%",
-                    },
-                ),
-                html.Div(),
-                cluster_dropdown(
-                    id_name="selection_cluster_dropdown",
-                    value="c1",
-                    disabled=True,
-                    css_class="dd-double-left",
-                    title="Selection Cluster",
-                    style={"margin-left": "2%"},
-                ),
-                layout_wrapper(
-                    component=daq.ToggleSwitch(
-                        id="cluster_selection_mode",
-                        value=False,
-                        label="replace mode/edit mode",
+                html.Br(),
+                FlexRow(
+                    cluster_dropdown(
+                        id_name="selection_cluster_dropdown",
+                        value="c1",
+                        disabled=True,
+                        css_class="dash-dropdown",
+                        title="Selection Cluster",
                     ),
-                    style={"display": "inline-block"},
+                    layout_wrapper(
+                        component=daq.ToggleSwitch(
+                            id="cluster_selection_mode",
+                            value=False,
+                            label="replace mode/edit mode",
+                        )
+                    ),
+                    html.Button(
+                        "Reset the clusters",
+                        id="clusters_reset-button",
+                        className="button",
+                    ),
                 ),
             ],
             id="control_clusters_content-container",

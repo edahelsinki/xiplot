@@ -1,4 +1,5 @@
-.button {
+.button,
+button {
     background-color: transparent;
     border: 1px solid rgb(209, 213, 219);
     box-sizing: border-box;
@@ -6,30 +7,84 @@
     color: var(--font-color);
     font-size: .875rem;
     line-height: 1.25rem;
-    padding: .75rem 1rem;
     text-align: center;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.1);
     cursor: pointer;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
+    border-radius: 4px;
 }
 
-.button:hover {
+button {
+    padding: 0.2rem 0.5rem;
+}
+
+.button {
+    padding: 0.45rem 1rem;
+}
+
+.button:hover,
+button:hover {
     background-color: rgb(249, 250, 251);
     color: #1F2833;
 }
 
-.button:focus {
+.button:active,
+button:active {
+    background-color: rgb(192, 192, 192);
+    color: #1F2833;
+}
+
+.button:focus,
+button:focus {
     outline: 2px solid transparent;
     outline-offset: 2px;
 }
 
-.button:focus-visible {
+.button:focus-visible,
+button:focus-visible {
     box-shadow: none;
+}
+
+button.delete,
+.button.delete {
+    font-size: large;
+    font-weight: 900;
+    background-color: red;
+    color: white;
+}
+
+button.delete:hover,
+.button.delete:hover {
+    background-color: white;
+    color: red;
+}
+
+button.delete:active,
+.button.delete:active {
+    background-color: red;
+    color: red;
 }
 
 .light-dark-toggle {
     background-color: transparent;
     color: var(--font-color);
+}
+
+.flex-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: end;
+}
+
+.flex-row .dash-dropdown {
+    min-width: 12rem;
+    flex: 1;
+}
+
+.stretch {
+    flex: 1;
 }

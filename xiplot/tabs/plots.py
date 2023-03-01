@@ -18,6 +18,7 @@ from xiplot.plots.heatmap import Heatmap
 from xiplot.plots.barplot import Barplot
 from xiplot.plots.table import Table
 from xiplot.plots.smiles import Smiles
+from xiplot.utils.components import FlexRow
 
 
 def load_plugins_plot():
@@ -240,13 +241,15 @@ class Plots(Tab):
         return html.Div(
             [
                 layout_wrapper(
-                    component=dcc.Dropdown(
-                        options=list(Plots.plot_types.keys()), id="plot_type"
+                    component=FlexRow(
+                        dcc.Dropdown(
+                            options=list(Plots.plot_types.keys()), id="plot_type"
+                        ),
+                        html.Button("Add", id="new_plot-button", className="button"),
                     ),
                     title="Select a plot type",
-                    style={"width": "98%"},
+                    # style={"width": "98%"},
                 ),
-                html.Button("Add", id="new_plot-button", className="button"),
             ],
             id="control_plots_content-container",
         )
