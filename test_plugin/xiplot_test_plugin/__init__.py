@@ -10,6 +10,13 @@ def plugin_load():
     return read, ".test"
 
 
+def plugin_write():
+    def write(df, file):
+        print("Writing test data")
+
+    return write, ".test", "example/none"
+
+
 def create_global():
     return html.Div("TEST PLUGIN", style={"display": "none"})
 
