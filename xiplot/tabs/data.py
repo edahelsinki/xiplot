@@ -3,6 +3,7 @@ import os
 import uuid
 
 import pandas as pd
+import numpy as np
 import dash
 import dash_mantine_components as dmc
 import jsonschema
@@ -446,7 +447,7 @@ class Data(Tab):
                         aux["cluster"] = clusters
 
                     if selected_rows is not None:
-                        aux["is_selected"] = [not s for s in selected_rows]
+                        aux["is_selected"] = ~np.asarray(selected_rows, dtype=bool)
 
                     for data in plot_data:
                         index = data["index"]

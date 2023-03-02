@@ -1,5 +1,6 @@
 import json
 import tarfile
+from typing import Any, Dict
 
 import pandas as pd
 import numpy as np
@@ -51,22 +52,12 @@ def read_dataframe_with_extension(data, filename=None):
                 if not member.isfile():
                     raise Exception(f"Tar contains a non-file entry {member.name}")
 
-                if Path(member.name).stem == "data" and Path(member.name).suffix in [
-                    ".csv",
-                    ".json",
-                    ".pkl",
-                    ".ft",
-                ]:
+                if Path(member.name).stem == "data":
                     if df_file is not None:
                         raise Exception("Tar contains more than one data file")
                     df_file = tar.extractfile(member)
                     df_name = Path(stem).with_suffix(Path(member.name).suffix)
-                elif Path(member.name).stem == "aux" and Path(member.name).suffix in [
-                    ".csv",
-                    ".json",
-                    ".pkl",
-                    ".ft",
-                ]:
+                elif Path(member.name).stem == "aux":
                     if aux_file is not None:
                         raise Exception("Tar contains more than one auxiliary file")
                     aux_file = tar.extractfile(member)
@@ -99,7 +90,7 @@ def read_dataframe_with_extension(data, filename=None):
             except pd.errors.EmptyDataError:
                 aux = pd.DataFrame(dict())
 
-            if len(df) != len(aux) and len(aux.columns) > 0:
+            if not aux.empty and df.shape[0] != aux.shape[0]:
                 raise Exception(
                     f"The dataframe and auxiliary data have different number of rows."
                 )
@@ -155,17 +146,19 @@ def load_plugins_read():
     return load_plugins_read.output
 
 
-def write_dataframe_and_metadata(df, aux, meta, filepath, file):
-    if len(df) != len(aux) and len(aux.columns) > 0:
+def write_dataframe_and_metadata(
+    df: pd.DataFrame, aux: pd.DataFrame, meta: Dict[str, Any], filepath: str, file
+):
+    if not aux.empty and df.shape[0] != aux.shape[0]:
         raise Exception(
             f"The dataframe and auxiliary data have different number of rows."
         )
 
-    with tarfile.open(fileobj=file, mode="w") as tar:
+    with tarfile.open(fileobj=file, mode="w:gz") as tar:
         df_file = Path("data").with_suffix(Path(filepath).suffix).name
-        aux_file = Path("aux").with_suffix(Path(filepath).suffix).name
+        aux_file = "aux.json"
         meta_file = "meta.json"
-        tar_file = Path(filepath).with_suffix(".tar").name
+        tar_file = Path(filepath).with_suffix(".tar.gz").name
 
         df_bytes = BytesIO()
         _, df_mime = write_only_dataframe(df, filepath, df_bytes)
@@ -196,7 +189,7 @@ def write_dataframe_and_metadata(df, aux, meta, filepath, file):
 
         tar.addfile(meta_info, BytesIO(meta_bytes))
 
-        return tar_file, "application/x-tar"
+        return tar_file, "application/gzip"
 
 
 def write_only_dataframe(df, filepath, file):
@@ -222,6 +215,8 @@ def write_only_dataframe(df, filepath, file):
         except ImportError:
             pass
 
+    # TODO What about plugin supported formats?
+    # TODO or maybe we could allow exporting in different formats
     raise Exception(f"Unsupported dataframe format '{file_extension}'")
 
 
