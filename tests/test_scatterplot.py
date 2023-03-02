@@ -15,7 +15,6 @@ from xiplot.plots.scatterplot import Scatterplot
     handle_click_events,
     handle_hover_events,
     handle_cluster_drawing,
-    update_settings,
 ) = Scatterplot.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)
 
 

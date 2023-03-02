@@ -10,9 +10,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from tests.util_test import render_plot
 from xiplot.plots.barplot import Barplot
 
-tmp, update_settings = Barplot.register_callbacks(
-    dash.Dash(__name__), lambda x: x, lambda x: x
-)
+tmp = Barplot.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)[0]
 
 
 def test_teba001_render_barplot(dash_duo):
@@ -108,7 +106,7 @@ def test_teba004_set_order(dash_duo):
 
     dropdown_input = driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[5]/div[2]/div[1]/div[1]/div[1]/div[@class='Select-input']/input",
+        "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]/div[1]/div[@class='Select-input']/input",
     )
     dropdown_input.send_keys("total", Keys.RETURN)
 
@@ -116,7 +114,7 @@ def test_teba004_set_order(dash_duo):
 
     assert "total" in driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[5]/div[2]/div[1]/div[1]",
+        "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]",
     ).get_attribute("outerHTML")
     assert dash_duo.get_logs() == [], "browser console should contain no error"
 

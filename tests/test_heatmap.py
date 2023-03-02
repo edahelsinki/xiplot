@@ -9,9 +9,7 @@ from selenium.webdriver.common.by import By
 from tests.util_test import render_plot
 from xiplot.plots.heatmap import Heatmap
 
-tmp, update_settings = Heatmap.register_callbacks(
-    dash.Dash(__name__), lambda x: x, lambda x: x
-)
+tmp = Heatmap.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)[0]
 
 
 def test_tehe001_render_heatmap(dash_duo):

@@ -13,20 +13,22 @@ from itertools import product
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
+from xiplot.utils.components import DeleteButton, PdfButton, PlotData
 
-from xiplot.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
+from xiplot.utils.layouts import layout_wrapper, cluster_dropdown
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.callbacks import pdf_callback
 from xiplot.utils.embedding import add_pca_columns_to_df
-from xiplot.plots import Plot
+from xiplot.plots import APlot
 
 from collections.abc import Iterable
 
 
-class Barplot(Plot):
-    @staticmethod
-    def register_callbacks(app, df_from_store, df_to_store):
+class Barplot(APlot):
+    @classmethod
+    def register_callbacks(cls, app, df_from_store, df_to_store):
+        PdfButton.register_callback(app, {"type": "barplot"})
+
         @app.callback(
             Output({"type": "barplot", "index": MATCH}, "figure"),
             Output({"type": "barplot-notify-container", "index": MATCH}, "children"),
@@ -71,51 +73,24 @@ class Barplot(Plot):
                     autoClose=10000,
                 )
 
-        @app.callback(
-            output=dict(
-                meta=Output("metadata_store", "data"),
-            ),
-            inputs=[
-                State("metadata_store", "data"),
-                Input({"type": "barplot_x_axis", "index": ALL}, "value"),
-                Input({"type": "barplot_y_axis", "index": ALL}, "value"),
+        PlotData.register_callback(
+            cls.name(),
+            app,
+            [
+                Input({"type": "barplot_x_axis", "index": MATCH}, "value"),
+                Input({"type": "barplot_y_axis", "index": MATCH}, "value"),
                 Input(
-                    {"type": "bp_cluster_comparison_dropdown", "index": ALL}, "value"
+                    {"type": "bp_cluster_comparison_dropdown", "index": MATCH}, "value"
                 ),
-                Input({"type": "order_dropdown", "index": ALL}, "value"),
+                Input({"type": "order_dropdown", "index": MATCH}, "value"),
             ],
-            prevent_initial_call=False,
+            lambda i: dict(
+                axes=dict(x=i[0], y=i[1]),
+                groupby="Clusters",
+                classes=i[2] or [],
+                order=i[3],
+            ),
         )
-        def update_settings(meta, x_axes, y_axes, selected_clusters, order_dropdowns):
-            if meta is None:
-                return dash.no_update
-
-            for x_axis, y_axis, classes_dropdown, order_dropdown in zip(
-                *ctx.args_grouping[1 : 4 + 1]
-            ):
-                if (
-                    not x_axis["triggered"]
-                    and not y_axis["triggered"]
-                    and not classes_dropdown["triggered"]
-                    and not order_dropdown["triggered"]
-                ):
-                    continue
-
-                index = x_axis["id"]["index"]
-                x_axis = x_axis["value"]
-                y_axis = y_axis["value"]
-                classes_dropdown = classes_dropdown["value"] or []
-                order_dropdown = order_dropdown["value"]
-
-                meta["plots"][index] = dict(
-                    type=Barplot.name(),
-                    axes=dict(x=x_axis, y=y_axis),
-                    groupby="Clusters",
-                    classes=classes_dropdown,
-                    order=order_dropdown,
-                )
-
-            return dict(meta=meta)
 
         @app.callback(
             output=dict(
@@ -148,9 +123,7 @@ class Barplot(Plot):
                 barplot_y=[y_options] * len(y_all_options),
             )
 
-        pdf_callback(app, "barplot")
-
-        return [tmp, update_settings]
+        return [tmp]
 
     @staticmethod
     def render(x_axis, y_axis, selected_clusters, order, kmeans_col, df, pca_cols=[]):
@@ -291,7 +264,7 @@ class Barplot(Plot):
         return fig
 
     @staticmethod
-    def create_new_layout(index, df, columns, config=dict()):
+    def create_layout(index, df, columns, config=dict()):
         x_columns = [
             c
             for c in columns
@@ -354,67 +327,59 @@ class Barplot(Plot):
         classes = config.get("classes", [])
         order = config.get("order", "reldiff")
 
-        return html.Div(
-            [
-                delete_button("plot-delete", index),
-                html.Button(
-                    "Download as pdf", id={"type": "download_pdf_btn", "index": index}
+        return [
+            dcc.Graph(
+                id={"type": "barplot", "index": index},
+                figure=Barplot.render(
+                    x_axis,
+                    y_axis,
+                    classes,
+                    order,
+                    ["all" for _ in range(len(df))],
+                    df,
                 ),
-                dcc.Graph(
-                    id={"type": "barplot", "index": index},
-                    figure=Barplot.render(
-                        x_axis,
-                        y_axis,
-                        classes,
-                        order,
-                        ["all" for _ in range(len(df))],
-                        df,
-                    ),
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id={"type": "barplot_x_axis", "index": index},
+                    value=x_axis,
+                    clearable=False,
+                    options=x_columns,
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "barplot_x_axis", "index": index},
-                        value=x_axis,
-                        clearable=False,
-                        options=x_columns,
-                    ),
-                    css_class="dd-double-left",
-                    title="x axis",
+                css_class="dd-double-left",
+                title="x axis",
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id={"type": "barplot_y_axis", "index": index},
+                    value=y_axis,
+                    clearable=False,
+                    options=y_columns,
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "barplot_y_axis", "index": index},
-                        value=y_axis,
-                        clearable=False,
-                        options=y_columns,
-                    ),
-                    css_class="dd-double-right",
-                    title="y axis",
+                css_class="dd-double-right",
+                title="y axis",
+            ),
+            cluster_dropdown(
+                "bp_cluster_comparison_dropdown",
+                index,
+                multi=True,
+                value=classes,
+                clearable=True,
+                title="Cluster Comparison",
+                css_class="dd-single cluster-comparison",
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id={"type": "order_dropdown", "index": index},
+                    value=order,
+                    clearable=False,
+                    options=["reldiff", "total"],
                 ),
-                cluster_dropdown(
-                    "bp_cluster_comparison_dropdown",
-                    index,
-                    multi=True,
-                    value=classes,
-                    clearable=True,
-                    title="Cluster Comparison",
-                    css_class="dd-single cluster-comparison",
-                ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "order_dropdown", "index": index},
-                        value=order,
-                        clearable=False,
-                        options=["reldiff", "total"],
-                    ),
-                    css_class="dd-single",
-                    title="Comparison Order",
-                ),
-                html.Div(
-                    id={"type": "barplot-notify-container", "index": index},
-                    style={"display": "none"},
-                ),
-            ],
-            id={"type": "barplot-container", "index": index},
-            className="plots",
-        )
+                css_class="dd-single",
+                title="Comparison Order",
+            ),
+            html.Div(
+                id={"type": "barplot-notify-container", "index": index},
+                style={"display": "none"},
+            ),
+        ]

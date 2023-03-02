@@ -5,18 +5,20 @@ import dash
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
+from xiplot.utils.components import DeleteButton, PdfButton, PlotData
 
-from xiplot.utils.layouts import layout_wrapper, delete_button, cluster_dropdown
+from xiplot.utils.layouts import layout_wrapper, cluster_dropdown
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.callbacks import pdf_callback
 from xiplot.utils.embedding import add_pca_columns_to_df
-from xiplot.plots import Plot
+from xiplot.plots import APlot
 
 
-class Histogram(Plot):
-    @staticmethod
-    def register_callbacks(app, df_from_store, df_to_store):
+class Histogram(APlot):
+    @classmethod
+    def register_callbacks(cls, app, df_from_store, df_to_store):
+        PdfButton.register_callback(app, {"type": "histogram"})
+
         @app.callback(
             Output({"type": "histogram", "index": MATCH}, "figure"),
             Input({"type": "x_axis_histo", "index": MATCH}, "value"),
@@ -40,39 +42,17 @@ class Histogram(Plot):
                 x_axis, selected_clusters, kmeans_col, df_from_store(df), pca_cols
             )
 
-        @app.callback(
-            output=dict(
-                meta=Output("metadata_store", "data"),
-            ),
-            inputs=[
-                State("metadata_store", "data"),
+        PlotData.register_callback(
+            cls.name(),
+            app,
+            (
                 Input({"type": "x_axis_histo", "index": ALL}, "value"),
                 Input(
                     {"type": "hg_cluster_comparison_dropdown", "index": ALL}, "value"
                 ),
-            ],
-            prevent_initial_call=False,
+            ),
+            lambda i: dict(axes=dict(x=i[0]), groupby="Clusters", classes=i[1] or []),
         )
-        def update_settings(meta, x_axes, classes_dropdowns):
-            if meta is None:
-                return dash.no_update
-
-            for x_axis, classes_dropdown in zip(*ctx.args_grouping[1 : 2 + 1]):
-                if not x_axis["triggered"] and not classes_dropdown["triggered"]:
-                    continue
-
-                index = x_axis["id"]["index"]
-                x_axis = x_axis["value"]
-                classes_dropdown = classes_dropdown["value"] or []
-
-                meta["plots"][index] = dict(
-                    type=Histogram.name(),
-                    axes=dict(x=x_axis),
-                    groupby="Clusters",
-                    classes=classes_dropdown,
-                )
-
-            return dict(meta=meta)
 
         @app.callback(
             output=dict(
@@ -105,9 +85,7 @@ class Histogram(Plot):
                 histogram_x=[x_options] * len(x_all_options),
             )
 
-        pdf_callback(app, "histogram")
-
-        return [tmp, update_settings]
+        return [tmp]
 
     @staticmethod
     def render(x_axis, selected_clusters, kmeans_col, df, pca_cols=[]):
@@ -121,7 +99,7 @@ class Histogram(Plot):
         return fig
 
     @staticmethod
-    def create_new_layout(index, df, columns, config=dict()):
+    def create_layout(index, df, columns, config=dict()):
         num_columns = get_numeric_columns(df, columns)
 
         jsonschema.validate(
@@ -165,41 +143,31 @@ class Histogram(Plot):
         groupby = config.get("groupby", "Clusters")
         classes = config.get("classes", [])
 
-        return html.Div(
-            [
-                delete_button("plot-delete", index),
-                html.Button(
-                    "Download as pdf", id={"type": "download_pdf_btn", "index": index}
+        return [
+            dcc.Graph(
+                id={"type": "histogram", "index": index},
+                figure=make_fig_property(df, x_axis, classes, ["all"] * df.shape[0]),
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    id={"type": "x_axis_histo", "index": index},
+                    value=x_axis,
+                    clearable=False,
+                    options=num_columns,
                 ),
-                dcc.Graph(
-                    id={"type": "histogram", "index": index},
-                    figure=make_fig_property(
-                        df, x_axis, classes, ["all"] * df.shape[0]
-                    ),
-                ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "x_axis_histo", "index": index},
-                        value=x_axis,
-                        clearable=False,
-                        options=num_columns,
-                    ),
-                    css_class="dd-single",
-                    title="x axis",
-                ),
-                cluster_dropdown(
-                    "hg_cluster_comparison_dropdown",
-                    index,
-                    multi=True,
-                    clearable=True,
-                    value=classes,
-                    title="Cluster Comparison",
-                    css_class="dd-single",
-                ),
-            ],
-            id={"type": "histogram-container", "index": index},
-            className="plots",
-        )
+                css_class="dd-single",
+                title="x axis",
+            ),
+            cluster_dropdown(
+                "hg_cluster_comparison_dropdown",
+                index,
+                multi=True,
+                clearable=True,
+                value=classes,
+                title="Cluster Comparison",
+                css_class="dd-single",
+            ),
+        ]
 
 
 def make_fig_property(df, x_axis, selected_clusters, clusters):

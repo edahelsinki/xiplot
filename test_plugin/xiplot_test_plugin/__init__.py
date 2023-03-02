@@ -10,14 +10,18 @@ def plugin_load():
     return read, ".test"
 
 
-def plugin_plot():
-    return Plot
+def create_global():
+    return html.Div("TEST PLUGIN", style={"display": "none"})
+
+
+def register_callbacks(app, df_from_store, df_to_store):
+    pass
 
 
 class Plot:
     @classmethod
     def name(cls) -> str:
-        return "Test_plugin_plot"
+        return "  TEST PLUGIN"
 
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):

@@ -132,5 +132,5 @@ dmypy.json
 .vscode/
 *.tmp
 Untitled.ipynb
-data/combined.ft
+data/
 uploads/

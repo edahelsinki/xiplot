@@ -4,18 +4,20 @@ import jsonschema
 
 from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
+from xiplot.utils.components import DeleteButton, PdfButton, PlotData
 
-from xiplot.utils.layouts import layout_wrapper, delete_button
+from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.callbacks import pdf_callback
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 from xiplot.utils.embedding import add_pca_columns_to_df
-from xiplot.plots import Plot
+from xiplot.plots import APlot
 
 
-class Heatmap(Plot):
-    @staticmethod
-    def register_callbacks(app, df_from_store, df_to_store):
+class Heatmap(APlot):
+    @classmethod
+    def register_callbacks(cls, app, df_from_store, df_to_store):
+        PdfButton.register_callback(app, {"type": "heatmap"})
+
         @app.callback(
             Output({"type": "heatmap", "index": MATCH}, "figure"),
             Input({"type": "heatmap_cluster_amount", "index": MATCH}, "value"),
@@ -91,36 +93,17 @@ class Heatmap(Plot):
                 raise PreventUpdate()
             return keyword
 
-        @app.callback(
-            output=dict(
-                meta=Output("metadata_store", "data"),
-            ),
-            inputs=[
-                State("metadata_store", "data"),
-                Input({"type": "heatmap_cluster_amount", "index": ALL}, "value"),
-            ],
-            prevent_initial_call=False,
-        )
-        def update_settings(meta, n_clusters):
-            if meta is None:
-                return dash.no_update
-
-            for (n_clusters,) in zip(*ctx.args_grouping[1 : 1 + 1]):
-                if not n_clusters["triggered"]:
-                    continue
-
-                index = n_clusters["id"]["index"]
-                n_clusters = n_clusters["value"]
-
-                meta["plots"][index] = dict(
-                    type=Heatmap.name(), clusters=dict(amount=n_clusters)
+        PlotData.register_callback(
+            cls.name(),
+            app,
+            dict(
+                clusters=Input(
+                    {"type": "heatmap_cluster_amount", "index": MATCH}, "value"
                 )
+            ),
+        )
 
-            return dict(meta=meta)
-
-        pdf_callback(app, "heatmap")
-
-        return [tmp, update_settings]
+        return [tmp]
 
     @staticmethod
     def render(n_clusters, features, df, pca_cols=[]):
@@ -149,7 +132,7 @@ class Heatmap(Plot):
         return fig
 
     @staticmethod
-    def create_new_layout(index, df, columns, config=dict()):
+    def create_layout(index, df, columns, config=dict()):
         jsonschema.validate(
             instance=config,
             schema=dict(
@@ -175,48 +158,40 @@ class Heatmap(Plot):
             n_clusters = 2
 
         num_columns = get_numeric_columns(df, columns)
-        return html.Div(
-            [
-                delete_button("plot-delete", index),
-                html.Button(
-                    "Download as pdf", id={"type": "download_pdf_btn", "index": index}
+        return [
+            dcc.Graph(
+                id={"type": "heatmap", "index": index},
+                figure=Heatmap.render(n_clusters, num_columns, df),
+            ),
+            layout_wrapper(
+                component=dcc.Dropdown(
+                    options=num_columns,
+                    multi=True,
+                    id={"type": "heatmap_feature_dropdown", "index": index},
+                    clearable=False,
                 ),
-                dcc.Graph(
-                    id={"type": "heatmap", "index": index},
-                    figure=Heatmap.render(n_clusters, num_columns, df),
+                title="Features",
+                style={"width": "80%"},
+            ),
+            html.Button(
+                "Add features by regex",
+                id={"type": "heatmap_regex-button", "index": index},
+            ),
+            layout_wrapper(
+                component=dcc.Input(
+                    id={"type": "heatmap_feature-input", "index": index}
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        options=num_columns,
-                        multi=True,
-                        id={"type": "heatmap_feature_dropdown", "index": index},
-                        clearable=False,
-                    ),
-                    title="Features",
-                    style={"width": "80%"},
+                style={"display": "none"},
+            ),
+            layout_wrapper(
+                component=dcc.Slider(
+                    min=2,
+                    max=10,
+                    step=1,
+                    value=n_clusters,
+                    id={"type": "heatmap_cluster_amount", "index": index},
                 ),
-                html.Button(
-                    "Add features by regex",
-                    id={"type": "heatmap_regex-button", "index": index},
-                ),
-                layout_wrapper(
-                    component=dcc.Input(
-                        id={"type": "heatmap_feature-input", "index": index}
-                    ),
-                    style={"display": "none"},
-                ),
-                layout_wrapper(
-                    component=dcc.Slider(
-                        min=2,
-                        max=10,
-                        step=1,
-                        value=n_clusters,
-                        id={"type": "heatmap_cluster_amount", "index": index},
-                    ),
-                    title="Cluster amount",
-                    style={"width": "80%"},
-                ),
-            ],
-            id={"type": "heatmap-container", "index": index},
-            className="plots",
-        )
+                title="Cluster amount",
+                style={"width": "80%"},
+            ),
+        ]

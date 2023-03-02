@@ -8,18 +8,19 @@ import jsonschema
 from dash import html, dcc, Output, Input, State, MATCH, ALL, dash_table, ctx, no_update
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
+from xiplot.utils.components import DeleteButton, PlotData
 
-from xiplot.utils.layouts import delete_button, layout_wrapper
+from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.dataframe import get_smiles_column_name
 from xiplot.utils.table import get_sort_by, get_updated_item, get_updated_item_id
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
-from xiplot.plots import Plot
+from xiplot.plots import APlot
 
 
-class Table(Plot):
-    @staticmethod
-    def register_callbacks(app, df_from_store, df_to_store):
+class Table(APlot):
+    @classmethod
+    def register_callbacks(cls, app, df_from_store, df_to_store):
         @app.callback(
             [
                 Output({"type": "table", "index": ALL}, "data"),
@@ -305,64 +306,32 @@ class Table(Plot):
 
             return columns_all, selected_columns_all, [None] * len(n_clicks_all)
 
-        @app.callback(
-            output=dict(
-                meta=Output("metadata_store", "data"),
+        PlotData.register_callback(
+            cls.name(),
+            app,
+            dict(
+                page=Input({"type": "table", "index": ALL}, "page_current"),
+                query=Input({"type": "table", "index": ALL}, "filter_query"),
+                sort_by=Input({"type": "table", "index": ALL}, "sort_by"),
+                hidden=Input({"type": "table", "index": ALL}, "hidden_columns"),
+                columns=Input({"type": "table", "index": ALL}, "columns"),
             ),
-            inputs=[
-                State("metadata_store", "data"),
-                Input({"type": "table", "index": ALL}, "page_current"),
-                Input({"type": "table", "index": ALL}, "filter_query"),
-                Input({"type": "table", "index": ALL}, "sort_by"),
-                Input({"type": "table", "index": ALL}, "hidden_columns"),
-                Input({"type": "table", "index": ALL}, "columns"),
-            ],
-            prevent_initial_call=False,
+            lambda inputs: dict(
+                columns={
+                    column: {
+                        "hidden": column in inputs["hidden"],
+                        **{
+                            "sorting": sb["direction"]
+                            for sb in inputs["sort_by"]
+                            if column == sb["column_id"]
+                        },
+                    }
+                    for column in [c["id"] for c in inputs["columns"]]
+                },
+                query=inputs["query"] or "",
+                page=inputs["page"] or 0,
+            ),
         )
-        def update_settings(
-            meta,
-            current_pages,
-            filter_queries,
-            sort_bys,
-            hidden_column_lists,
-            column_selections,
-        ):
-            if meta is None:
-                return dash.no_update
-
-            for page_current, filter_query, sort_by, hidden_columns, columns in zip(
-                *ctx.args_grouping[1 : 5 + 1]
-            ):
-                if (
-                    not page_current["triggered"]
-                    and not filter_query["triggered"]
-                    and not sort_by["triggered"]
-                    and not hidden_columns["triggered"]
-                    and not columns["triggered"]
-                ):
-                    continue
-
-                index = page_current["id"]["index"]
-                page_current = page_current["value"] or 0
-                filter_query = filter_query["value"] or ""
-                sort_by = {c["column_id"]: c["direction"] for c in sort_by["value"]}
-                hidden_columns = hidden_columns["value"]
-                columns = [c["id"] for c in columns["value"]]
-
-                meta["plots"][index] = dict(
-                    type=Table.name(),
-                    columns={
-                        c: {
-                            "hidden": c in hidden_columns,
-                            **{"sorting": sort_by[c] for _ in ((),) if c in sort_by},
-                        }
-                        for c in columns
-                    },
-                    query=filter_query,
-                    page=page_current,
-                )
-
-            return dict(meta=meta)
 
         return [
             update_table_data,
@@ -372,11 +341,10 @@ class Table(Plot):
             update_table_columns,
             sync_with_input,
             add_matching_values,
-            update_settings,
         ]
 
-    @staticmethod
-    def create_new_layout(index, df, columns, config=dict()):
+    @classmethod
+    def create_new_layout(cls, index, df, columns, config=dict()):
         df = df.rename_axis("index_copy")
         columns = df.columns.to_list()
 
@@ -434,7 +402,7 @@ class Table(Plot):
                 df = df.astype({c: str})
         return html.Div(
             children=[
-                delete_button("plot-delete", index),
+                DeleteButton(index),
                 dash_table.DataTable(
                     id={"type": "table", "index": index},
                     columns=[{"name": c, "id": c, "hideable": True} for c in columns],
@@ -492,6 +460,7 @@ class Table(Plot):
                 html.Button(
                     "Select", id={"type": "table_columns_submit-button", "index": index}
                 ),
+                PlotData(index, cls.name()),
             ],
             id={"type": "table-container", "index": index},
             className="plots",

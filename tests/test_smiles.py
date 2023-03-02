@@ -12,7 +12,6 @@ from xiplot.plots.smiles import Smiles
 (
     render_clicks,
     render_hovered,
-    update_settings,
 ) = Smiles.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)
 
 
