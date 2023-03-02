@@ -126,9 +126,6 @@ def read_only_dataframe(data, filename):
         except Exception:
             return pd.read_json(data, typ="frame", orient="split")
 
-    if file_extension == ".pkl":
-        return pd.read_pickle(data)
-
     if file_extension == ".ft":
         try:
             return pd.read_feather(data)
@@ -203,10 +200,6 @@ def write_only_dataframe(df, filepath, file):
     if file_extension == ".json":
         df.to_json(file, orient="split", index=False)
         return file_name, "application/json"
-
-    if file_extension == ".pkl":
-        df.to_pickle(file)
-        return file_name, "application/octet-stream"
 
     if file_extension == ".ft":
         try:
