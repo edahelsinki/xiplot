@@ -1,6 +1,6 @@
 import json
 import tarfile
-from typing import Any, Callable, Dict, Iterator, Tuple
+from typing import Any, Callable, Dict, Iterator, Optional, Tuple
 
 import pandas as pd
 import numpy as np
@@ -169,21 +169,28 @@ def read_only_dataframe(data, filename):
 
 
 def write_dataframe_and_metadata(
-    df: pd.DataFrame, aux: pd.DataFrame, meta: Dict[str, Any], filepath: str, file
-):
+    df: pd.DataFrame,
+    aux: pd.DataFrame,
+    meta: Dict[str, Any],
+    filepath: str,
+    file,
+    file_extension: Optional[str] = None,
+) -> Tuple[str, str]:
     if not aux.empty and df.shape[0] != aux.shape[0]:
         raise Exception(
             f"The dataframe and auxiliary data have different number of rows."
         )
+    if file_extension is None:
+        file_extension = Path(filepath).suffix
 
     with tarfile.open(fileobj=file, mode="w:gz") as tar:
-        df_file = Path("data").with_suffix(Path(filepath).suffix).name
-        aux_file = "aux.json"
+        df_file = Path("data").with_suffix(file_extension).name
+        aux_file = Path("aux").with_suffix(file_extension).name
         meta_file = "meta.json"
         tar_file = Path(filepath).with_suffix(".tar.gz").name
 
         df_bytes = BytesIO()
-        _, df_mime = write_only_dataframe(df, filepath, df_bytes)
+        write_only_dataframe(df, filepath, df_bytes, file_extension)
         df_bytes = df_bytes.getvalue()
 
         df_info = tarfile.TarInfo(df_file)
@@ -192,7 +199,7 @@ def write_dataframe_and_metadata(
         tar.addfile(df_info, BytesIO(df_bytes))
 
         aux_bytes = BytesIO()
-        _, aux_mime = write_only_dataframe(aux, aux_file, aux_bytes)
+        write_only_dataframe(aux, aux_file, aux_bytes, file_extension)
         aux_bytes = aux_bytes.getvalue()
 
         aux_info = tarfile.TarInfo(aux_file)
@@ -214,9 +221,14 @@ def write_dataframe_and_metadata(
         return tar_file, "application/gzip"
 
 
-def write_only_dataframe(df, filepath, file):
-    file_name = Path(filepath).name
-    file_extension = Path(filepath).suffix
+def write_only_dataframe(
+    df: pd.DataFrame, filepath: str, file: BytesIO, file_extension: Optional[str] = None
+) -> Tuple[str, str]:
+    if file_extension is None:
+        file_name = Path(filepath).name
+        file_extension = Path(filepath).suffix
+    else:
+        file_name = Path(filepath).with_suffix(file_extension).name
     error = None
 
     for fn, ext, mime in write_functions():

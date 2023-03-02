@@ -15,11 +15,13 @@ from pathlib import Path
 from dash import Output, Input, State, ctx, html, dcc, ALL
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
+from xiplot.utils import generate_id
 from xiplot.utils.components import FlexRow, PlotData
 
 from xiplot.utils.dataframe import (
     read_dataframe_with_extension,
     get_data_filepaths,
+    write_functions,
     write_only_dataframe,
     write_dataframe_and_metadata,
 )
@@ -388,6 +390,7 @@ class Data(Tab):
             State("clusters_column_store", "data"),
             State("selected_rows_store", "data"),
             State(PlotData.get_id(ALL, ALL), "data"),
+            State(generate_id(WriteFormatDropdown), "value"),
             prevent_initial_call=True,
         )
         def download_file(
@@ -399,6 +402,7 @@ class Data(Tab):
             clusters,
             selected_rows,
             plot_data,
+            file_extension,
         ):
             df = df_from_store(df)
 
@@ -418,7 +422,9 @@ class Data(Tab):
 
             if ctx.triggered_id == "download-data-file-button":
                 try:
-                    filename, mime = write_only_dataframe(df, meta["filename"], file)
+                    filename, mime = write_only_dataframe(
+                        df, meta["filename"], file, file_extension
+                    )
                 except Exception as err:
                     return dash.no_update, dmc.Notification(
                         id=str(uuid.uuid4()),
@@ -455,7 +461,12 @@ class Data(Tab):
                         meta["plots"][index] = data
 
                     filename, mime = write_dataframe_and_metadata(
-                        df, pd.DataFrame(aux), meta, meta["filename"], file
+                        df,
+                        pd.DataFrame(aux),
+                        meta,
+                        meta["filename"],
+                        file,
+                        file_extension,
                     )
                 except Exception as err:
                     return dash.no_update, dmc.Notification(
@@ -529,18 +540,21 @@ class Data(Tab):
                     html.Div(
                         [
                             html.Div("Download the data"),
-                            html.Button(
-                                "Download only the data",
-                                id="download-data-file-button",
-                                n_clicks=0,
-                                className="button",
-                            ),
-                            " ",
-                            html.Button(
-                                "Download plots and data",
-                                id="download-plots-file-button",
-                                n_clicks=0,
-                                className="button",
+                            FlexRow(
+                                html.Button(
+                                    "Download only the data",
+                                    id="download-data-file-button",
+                                    n_clicks=0,
+                                    className="button",
+                                ),
+                                " ",
+                                html.Button(
+                                    "Download plots and data",
+                                    id="download-plots-file-button",
+                                    n_clicks=0,
+                                    className="button",
+                                ),
+                                WriteFormatDropdown(),
                             ),
                             dcc.Download(
                                 id="data-download",
@@ -571,6 +585,18 @@ class Data(Tab):
                     id="data-tab-download-notify-container", style={"display": "none"}
                 ),
             ]
+        )
+
+
+class WriteFormatDropdown(dcc.Dropdown):
+    def __init__(self, **kwargs):
+        options = [ext for _, ext, _ in write_functions()]
+        super().__init__(
+            options=options,
+            multi=False,
+            id=generate_id(type(self)),
+            placeholder="File format...",
+            **kwargs,
         )
 
 
