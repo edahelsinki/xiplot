@@ -90,9 +90,21 @@
     background-color: var(--bg-color) !important;
 }
 
+.is-disabled .Select-control,
+.is-disabled .Select-menu-outer {
+    background-color: grey !important;
+    background-color: var(--bg-disabled-color) !important;
+}
+
 .Select-value-label {
     color: black !important;
     color: var(--font-color) !important;
+}
+
+
+.is-disabled .Select-value-label {
+    color: black !important;
+    color: var(--font-disabled-color) !important;
 }
 
 .Select-placeholder {
