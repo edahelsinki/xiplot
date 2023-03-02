@@ -198,7 +198,9 @@ class Embedding(Tab):
     def create_layout():
         return FlexRow(
             layout_wrapper(
-                dcc.Dropdown(id="embedding_type", options=["PCA"]),
+                dcc.Dropdown(
+                    id="embedding_type", options=["PCA"], value="PCA", clearable=False
+                ),
                 css_class="dash-dropdown",
                 title="Embedding type",
             ),

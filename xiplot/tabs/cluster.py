@@ -258,7 +258,7 @@ class Cluster(Tab):
         @app.callback(
             Output("selection_cluster_dropdown", "value"),
             Output("selection_cluster_dropdown", "disabled"),
-            Input("cluster_selection_mode", "value"),
+            Input("cluster_selection_mode", "on"),
             State("selection_cluster_dropdown", "value"),
         )
         def pin_selection_cluster(selection_mode, selection_cluster):
@@ -268,12 +268,12 @@ class Cluster(Tab):
 
         @app.callback(
             Output("cluster-tab-settings-session", "children"),
-            Output("cluster_selection_mode", "value"),
+            Output("cluster_selection_mode", "on"),
             Output("selection_cluster_dropdown", "value"),
             Output("cluster-tab-settings-notify-container", "children"),
             CycleBreakerInput("metadata_store", "data"),
             State("cluster-tab-settings-session", "children"),
-            State("cluster_selection_mode", "value"),
+            State("cluster_selection_mode", "on"),
         )
         def init_from_settings(
             meta,
@@ -353,7 +353,7 @@ class Cluster(Tab):
         @app.callback(
             Output("metadata_store", "data"),
             State("metadata_store", "data"),
-            Input("cluster_selection_mode", "value"),
+            Input("cluster_selection_mode", "on"),
             Input("selection_cluster_dropdown", "value"),
         )
         def update_settings(meta, selection_mode, selection_cluster):
@@ -460,12 +460,14 @@ class Cluster(Tab):
                             ),
                         ),
                         css_class="stretch",
-                        title="features",
+                        title="Features",
                     ),
                     layout_wrapper(
                         component=FlexRow(
                             dcc.Dropdown(
                                 options=[i for i in range(2, len(cluster_colours()))],
+                                value=3,
+                                clearable=False,
                                 id="cluster_amount",
                             ),
                             html.Button(
@@ -475,7 +477,7 @@ class Cluster(Tab):
                             ),
                         ),
                         css_class="stretch",
-                        title="cluster amount",
+                        title="Number of clusters",
                     ),
                 ),
                 layout_wrapper(
@@ -484,22 +486,21 @@ class Cluster(Tab):
                 ),
                 html.Br(),
                 FlexRow(
+                    layout_wrapper(
+                        daq.BooleanSwitch(
+                            id="cluster_selection_mode", style={"padding": "0.3rem"}
+                        ),
+                        title="Cluster edit mode",
+                    ),
                     cluster_dropdown(
                         id_name="selection_cluster_dropdown",
                         value="c1",
                         disabled=True,
                         css_class="dash-dropdown",
-                        title="Selection Cluster",
-                    ),
-                    layout_wrapper(
-                        component=daq.ToggleSwitch(
-                            id="cluster_selection_mode",
-                            value=False,
-                            label="replace mode/edit mode",
-                        )
+                        title="Select cluster",
                     ),
                     html.Button(
-                        "Reset the clusters",
+                        "Remove the clusters",
                         id="clusters_reset-button",
                         className="button",
                     ),
