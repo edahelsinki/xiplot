@@ -18,6 +18,9 @@ namespaces = true
 [project.entry-points."xiplot.plugin.read"]
 callback = "xiplot_test_plugin:plugin_load"
 
+[project.entry-points."xiplot.plugin.write"]
+callback = "xiplot_test_plugin:plugin_write"
+
 [project.entry-points."xiplot.plugin.global"]
 callback = "xiplot_test_plugin:create_global"
 

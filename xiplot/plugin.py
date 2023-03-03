@@ -35,8 +35,13 @@ CSS_DELTE_BUTTON_CLASS = "delete"
 
 # Helpful typehints:
 AReadFunction = Callable[[Union[BytesIO, PathLike]], pd.DataFrame]
-AReadPlugin = Callable[[], Tuple[AReadFunction, str]]  # str==file extension
+# Read plugin return string: file extension
+AReadPlugin = Callable[[], Tuple[AReadFunction, str]]
+AWriteFunction = Callable[[pd.DataFrame, BytesIO], None]
+# Write plugin return strings: file extension, MIME type (ususally "application/octet-stream")
+AWritePlugin = Callable[[], Tuple[AWriteFunction, str, str]]
 AGlobalPlugin = Callable[[], Component]
+# Callback plugin functions: parse_to_dataframe, serialise_from_dataframe
 ACallbackPlugin = Callable[
     [Dash, Callable[[Any], pd.DataFrame], Callable[[pd.DataFrame], Any]], None
 ]
@@ -70,7 +75,7 @@ def placeholder_figure(text: str) -> Dict[str, Any]:
 
 
 def get_plugins_cached(
-    plugin_type: Literal["read", "plot", "global", "callback"]
+    plugin_type: Literal["read", "write", "plot", "global", "callback"]
 ) -> List[Any]:
     """Get a list of all plugins of the specified type (this call is cached for future reuse).
 

@@ -5,7 +5,7 @@ from pathlib import Path
 import site
 
 from xiplot.plugin import get_plugins_cached
-from xiplot.utils.dataframe import load_plugins_read
+from xiplot.utils.dataframe import read_functions, write_functions
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -15,16 +15,16 @@ def install_the_test_plugin():
         from xiplot_test_plugin import (
             Plot,
             plugin_load,
+            plugin_write,
             create_global,
-            register_callbacks,
+            register_callbacks as reg_cb,
         )
 
-        assert any(plot == Plot for plot in get_plugins_cached("plot"))
-        assert any(plot == plugin_load for plot in get_plugins_cached("read"))
-        assert any(plot == create_global for plot in get_plugins_cached("global"))
-        assert any(
-            plot == register_callbacks for plot in get_plugins_cached("callback")
-        )
+        assert any(plugin == Plot for plugin in get_plugins_cached("plot"))
+        assert any(plugin == plugin_load for plugin in get_plugins_cached("read"))
+        assert any(plugin == plugin_write for plugin in get_plugins_cached("write"))
+        assert any(plugin == create_global for plugin in get_plugins_cached("global"))
+        assert any(plugin == reg_cb for plugin in get_plugins_cached("callback"))
     except:
         subprocess.check_call(
             [
@@ -38,11 +38,22 @@ def install_the_test_plugin():
                 str(Path(__file__).parent.parent / "test_plugin"),
             ]
         )
-        site.main()  # Reload the path to make the new package available
+        # Reload the path to make the new package available
+        site.main()
+
+        from importlib import reload
+        import xiplot_test_plugin
+
+        reload(xiplot_test_plugin)
+        get_plugins_cached.cache = None
 
 
 def test_read_plugin():
-    assert any(ext == ".test" for _, ext in load_plugins_read())
+    assert any(ext == ".test" for _, ext in read_functions())
+
+
+def test_write_plugin():
+    assert any(ext == ".test" for _, ext, _ in write_functions())
 
 
 def test_plot_plugin():

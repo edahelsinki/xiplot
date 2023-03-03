@@ -12,10 +12,10 @@ class Settings(Tab):
             function toggleLightDarkMode(nClicks) {
                 if (nClicks % 2 == 1) {
                     document.documentElement.setAttribute("data-theme", "dark")
-                    return 'Light'
+                    return 'Light mode'
                 }
                 document.documentElement.setAttribute("data-theme", "light")
-                return 'Dark'
+                return 'Dark mode'
             }
             """,
             Output("light-dark-toggle", "children"),
@@ -36,11 +36,11 @@ class Settings(Tab):
         return FlexRow(
             layout_wrapper(
                 component=html.Button(
-                    "Dark",
+                    "Dark mode",
                     id="light-dark-toggle",
                     className="light-dark-toggle button",
                 ),
-                title="Light/Dark mode",
+                title="Colour scheme",
             ),
             " ",
             layout_wrapper(

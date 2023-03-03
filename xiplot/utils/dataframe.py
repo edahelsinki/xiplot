@@ -1,5 +1,6 @@
 import json
 import tarfile
+from typing import Any, Callable, Dict, Iterator, Optional, Tuple
 
 import pandas as pd
 import numpy as np
@@ -13,6 +14,54 @@ from xiplot.plugin import get_plugins_cached
 
 def get_data_filepaths():
     return sorted((fp for fp in Path("data").iterdir() if fp.is_file()), reverse=True)
+
+
+def read_functions() -> Iterator[Tuple[Callable[[BytesIO], pd.DataFrame], str]]:
+    """Generate all functions for reading to a dataframe.
+
+    Yields:
+        fn: Function that reads the data and returns a dataframe.
+        ext: File extension that the readed can handle.
+    """
+    for plugin in get_plugins_cached("read"):
+        yield plugin()
+
+    def read_json(data):
+        if isinstance(data, BytesIO):
+            data = data.getvalue().decode("utf-8")
+        elif isinstance(data, tarfile.ExFileObject):
+            data = data.read().decode("utf-8")
+
+        try:
+            return pd.read_json(data, typ="frame", orient="columns")
+        except Exception:
+            return pd.read_json(data, typ="frame", orient="split")
+
+    yield pd.read_csv, ".csv"
+    yield read_json, ".json"
+    yield pd.read_feather, ".ft"
+    yield pd.read_parquet, ".parquet"
+
+
+def write_functions() -> Iterator[
+    Tuple[Callable[[pd.DataFrame, BytesIO], None], str, str]
+]:
+    """Generate all functions for writing dataframes.
+
+    Yields:
+        fn: Function that writes the dataframe to bytes.
+        ext: File extension that matches the written data.
+        mime: MIME type of the written data.
+    """
+    for plugin in get_plugins_cached("write"):
+        yield plugin()
+
+    yield lambda df, file: df.to_csv(file, index=False), ".csv", "text/csv"
+    yield lambda df, file: df.to_json(
+        file, orient="split", index=False
+    ), ".json", "application/json"
+    yield pd.DataFrame.to_feather, ".ft", "application/octet-stream"
+    yield pd.DataFrame.to_parquet, ".parquet", "application/octet-stream"
 
 
 def read_dataframe_with_extension(data, filename=None):
@@ -51,22 +100,12 @@ def read_dataframe_with_extension(data, filename=None):
                 if not member.isfile():
                     raise Exception(f"Tar contains a non-file entry {member.name}")
 
-                if Path(member.name).stem == "data" and Path(member.name).suffix in [
-                    ".csv",
-                    ".json",
-                    ".pkl",
-                    ".ft",
-                ]:
+                if Path(member.name).stem == "data":
                     if df_file is not None:
                         raise Exception("Tar contains more than one data file")
                     df_file = tar.extractfile(member)
                     df_name = Path(stem).with_suffix(Path(member.name).suffix)
-                elif Path(member.name).stem == "aux" and Path(member.name).suffix in [
-                    ".csv",
-                    ".json",
-                    ".pkl",
-                    ".ft",
-                ]:
+                elif Path(member.name).stem == "aux":
                     if aux_file is not None:
                         raise Exception("Tar contains more than one auxiliary file")
                     aux_file = tar.extractfile(member)
@@ -99,7 +138,7 @@ def read_dataframe_with_extension(data, filename=None):
             except pd.errors.EmptyDataError:
                 aux = pd.DataFrame(dict())
 
-            if len(df) != len(aux) and len(aux.columns) > 0:
+            if not aux.empty and df.shape[0] != aux.shape[0]:
                 raise Exception(
                     f"The dataframe and auxiliary data have different number of rows."
                 )
@@ -115,60 +154,43 @@ def read_dataframe_with_extension(data, filename=None):
 
 def read_only_dataframe(data, filename):
     file_extension = Path(filename).suffix
+    error = None
 
-    for plugin_read_function, plugin_file_extension in load_plugins_read():
+    for fn, ext in read_functions():
+        if file_extension == ext:
+            try:
+                return fn(data)
+            except Exception as e:
+                error = e
 
-        if file_extension == plugin_file_extension:
-            return plugin_read_function(data)
-
-    if file_extension == ".csv":
-        return pd.read_csv(data)
-
-    if file_extension == ".json":
-        if isinstance(data, BytesIO):
-            data = data.getvalue().decode("utf-8")
-        elif isinstance(data, tarfile.ExFileObject):
-            data = data.read().decode("utf-8")
-
-        try:
-            return pd.read_json(data, typ="frame", orient="columns")
-        except Exception:
-            return pd.read_json(data, typ="frame", orient="split")
-
-    if file_extension == ".pkl":
-        return pd.read_pickle(data)
-
-    if file_extension == ".ft":
-        try:
-            return pd.read_feather(data)
-        except ImportError:
-            pass
-
+    if error is not None:
+        raise error
     raise Exception(f"Unsupported dataframe format '{file_extension}'")
 
 
-def load_plugins_read():
-    try:
-        return load_plugins_read.output
-    except AttributeError:
-        load_plugins_read.output = [plugin() for plugin in get_plugins_cached("read")]
-    return load_plugins_read.output
-
-
-def write_dataframe_and_metadata(df, aux, meta, filepath, file):
-    if len(df) != len(aux) and len(aux.columns) > 0:
+def write_dataframe_and_metadata(
+    df: pd.DataFrame,
+    aux: pd.DataFrame,
+    meta: Dict[str, Any],
+    filepath: str,
+    file,
+    file_extension: Optional[str] = None,
+) -> Tuple[str, str]:
+    if not aux.empty and df.shape[0] != aux.shape[0]:
         raise Exception(
             f"The dataframe and auxiliary data have different number of rows."
         )
+    if file_extension is None:
+        file_extension = Path(filepath).suffix
 
-    with tarfile.open(fileobj=file, mode="w") as tar:
-        df_file = Path("data").with_suffix(Path(filepath).suffix).name
-        aux_file = Path("aux").with_suffix(Path(filepath).suffix).name
+    with tarfile.open(fileobj=file, mode="w:gz") as tar:
+        df_file = Path("data").with_suffix(file_extension).name
+        aux_file = Path("aux").with_suffix(file_extension).name
         meta_file = "meta.json"
-        tar_file = Path(filepath).with_suffix(".tar").name
+        tar_file = Path(filepath).with_suffix(".tar.gz").name
 
         df_bytes = BytesIO()
-        _, df_mime = write_only_dataframe(df, filepath, df_bytes)
+        write_only_dataframe(df, filepath, df_bytes, file_extension)
         df_bytes = df_bytes.getvalue()
 
         df_info = tarfile.TarInfo(df_file)
@@ -177,7 +199,7 @@ def write_dataframe_and_metadata(df, aux, meta, filepath, file):
         tar.addfile(df_info, BytesIO(df_bytes))
 
         aux_bytes = BytesIO()
-        _, aux_mime = write_only_dataframe(aux, aux_file, aux_bytes)
+        write_only_dataframe(aux, aux_file, aux_bytes, file_extension)
         aux_bytes = aux_bytes.getvalue()
 
         aux_info = tarfile.TarInfo(aux_file)
@@ -196,32 +218,29 @@ def write_dataframe_and_metadata(df, aux, meta, filepath, file):
 
         tar.addfile(meta_info, BytesIO(meta_bytes))
 
-        return tar_file, "application/x-tar"
+        return tar_file, "application/gzip"
 
 
-def write_only_dataframe(df, filepath, file):
-    file_name = Path(filepath).name
-    file_extension = Path(filepath).suffix
+def write_only_dataframe(
+    df: pd.DataFrame, filepath: str, file: BytesIO, file_extension: Optional[str] = None
+) -> Tuple[str, str]:
+    if file_extension is None:
+        file_name = Path(filepath).name
+        file_extension = Path(filepath).suffix
+    else:
+        file_name = Path(filepath).with_suffix(file_extension).name
+    error = None
 
-    if file_extension == ".csv":
-        df.to_csv(file, index=False)
-        return file_name, "text/csv"
+    for fn, ext, mime in write_functions():
+        if file_extension == ext:
+            try:
+                fn(df, file)
+                return file_name, mime
+            except Exception as e:
+                error = e
 
-    if file_extension == ".json":
-        df.to_json(file, orient="split", index=False)
-        return file_name, "application/json"
-
-    if file_extension == ".pkl":
-        df.to_pickle(file)
-        return file_name, "application/octet-stream"
-
-    if file_extension == ".ft":
-        try:
-            df.to_feather(file)
-            return file_name, "application/octet-stream"
-        except ImportError:
-            pass
-
+    if error is not None:
+        raise error
     raise Exception(f"Unsupported dataframe format '{file_extension}'")
 
 

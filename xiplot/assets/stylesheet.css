@@ -1,11 +1,13 @@
 :root {
     --font-color: black;
+    --font-disabled-color: #888;
     --placeholder-color: #aaa;
     --body-bg-color: white;
     --control-bg-color: #dffcde;
     --graph-bg-color: #e5ecf6;
     --smiles-img-bg-color: white;
     --bg-color: white;
+    --bg-disabled-color: #dfecde;
     --graph-stroke: white;
     --tab-underline: #adb5bd;
     --selected-tab-underline: #198754;
@@ -14,12 +16,14 @@
 
 [data-theme="dark"] {
     --font-color: white;
+    --font-disabled-color: #a0a0aa;
     --placeholder-color: #a0aaba;
     --body-bg-color: #121212;
     --control-bg-color: #212121;
     --graph-bg-color: #1F2833;
     --smiles-img-bg-color: #e5ecf6;
     --bg-color: #212121;
+    --bg-disabled-color: #161616;
     --graph-stroke: #3f3f3f;
     --tab-underline: #45A29E;
     --selected-tab-underline: #D6D6D6;
