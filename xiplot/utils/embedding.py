@@ -1,9 +1,8 @@
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
-
-
 def get_pca_columns(df, features):
+    from sklearn.decomposition import PCA
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.impute import SimpleImputer
+
     x = df[features]
     x = StandardScaler().fit_transform(x)
 

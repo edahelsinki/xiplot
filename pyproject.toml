@@ -1,6 +1,13 @@
 [project]
 name = "xiplot"
-version = "0.1.0"
+version = "0.2.0"
+authors = [
+    { name="Akihiro Tanaka", email="akihiro.fin@gmail.com" },
+    { name="Juniper Tyree" },
+    { name="Anton Björklund" },
+    { name="Jarmo Mäkelä" },
+]
+description = "Interactive data visualization tool"
 license = { file = "LICENSE-MIT" }
 readme = "README.md"
 requires-python = ">=3.7"
@@ -15,11 +22,11 @@ classifiers = [
 dependencies = [
     "dash ~= 2.6.1",
     "dash-daq ~= 0.5.0",
-    "dash-extensions ~= 0.1.4",
+    "dash-extensions == 0.1.4",
     "dash-mantine-components ~= 0.10.2",
     "feather-format ~= 0.4.1",
     "dash-uploader ~= 0.6.0",
-    "flask ~= 2.1.2",
+    "flask <= 2.1.2",
     "jsonschema ~= 4.6.0",
     "pandas ~= 1.4.2",
     "plotly ~= 5.9.0",
@@ -35,8 +42,8 @@ dev = ["pytest", "black", "dash[testing]", "webdriver-manager", "selenium"]
 homepage = "https://github.com/edahelsinki/xiplot"
 repository = "https://github.com/edahelsinki/xiplot.git"
 
-#[project.scripts]
-#xiplot = "xiplot"
+[project.scripts]
+xiplot = "xiplot:cli"
 
 [build-system]
 requires = ["setuptools>=42", "wheel"]
@@ -45,6 +52,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["xiplot*"]
-exclude = []
+exclude = ["tests", "test_plugin"]
 namespaces = true
 

@@ -13,7 +13,13 @@ from xiplot.plugin import get_plugins_cached
 
 
 def get_data_filepaths():
-    return sorted((fp for fp in Path("data").iterdir() if fp.is_file()), reverse=True)
+    try:
+        return sorted(
+            (fp for fp in Path("data").iterdir() if fp.is_file()), reverse=True
+        )
+
+    except FileNotFoundError:
+        return []
 
 
 def read_functions() -> Iterator[Tuple[Callable[[BytesIO], pd.DataFrame], str]]:
