@@ -263,29 +263,4 @@ def get_numeric_columns(df, columns):
 
         columns: numeric columns
     """
-    columns = [
-        c
-        for c in columns
-        if df[c].dtype in (int, float, np.int32, np.int64, np.float32, np.float64)
-    ]
-    return columns
-
-
-def get_smiles_column_name(df):
-    """
-    Return name of smiles column, if it exists
-
-    Parameters:
-
-        df: pandas.DataFrame
-
-    Returns:
-
-        smiles_col: name of smiles column(str) / returns None, if it's not found
-    """
-    smiles_col = None
-    for s in ["SMILES", "smiles", "Smiles"]:
-        if s in df.columns:
-            smiles_col = s
-
-    return smiles_col
+    return df[columns].select_dtypes("number").columns.to_list()
