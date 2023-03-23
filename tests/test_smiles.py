@@ -24,10 +24,7 @@ def driver(dash_duo):
 
 
 def test_tesm001_render_smiles(dash_duo, driver):
-    plot = driver.find_element(
-        By.XPATH,
-        "//div[@class='plots']",
-    )
+    plot = driver.find_element(By.XPATH, "//div[@class='plots']")
     assert Smiles.get_id(None, "display")["type"] in plot.get_attribute("innerHTML")
     assert dash_duo.get_logs() == [], "browser console should contain no error"
 

@@ -12,6 +12,7 @@
     --tab-underline: #adb5bd;
     --selected-tab-underline: #198754;
     --base-column-size: 30%;
+    --panel-padding: 10px;
 }
 
 [data-theme="dark"] {
@@ -84,7 +85,9 @@ body {
     align-content: center;
     flex-wrap: wrap;
     gap: 10px;
+    gap: var(--panel-padding);
     margin-top: 10px;
+    margin-top: var(--panel-padding);
 }
 
 .plots {
@@ -98,11 +101,12 @@ body {
         0px 1px 10px 0px hsla(0, 0%, 0%, 0.12),
         0px 2px 4px -1px hsla(0, 0%, 0%, 0.2);
     padding: 10px;
+    padding: var(--panel-padding);
 }
 
 .smiles-img {
-    width: 90%;
-    height: 80%;
+    width: 100%;
+    max-width: 80rem;
     display: block;
     margin-left: auto;
     margin-right: auto;
