@@ -4,6 +4,7 @@ import pandas as pd
 from dash import MATCH, Input, Output, State, dcc, html
 
 from xiplot.plots import APlot
+from xiplot.plugin import STORE_CLICKED_ID, STORE_DATAFRAME_ID, STORE_HOVERED_ID
 from xiplot.utils.components import FlexRow, InputText, PlotData
 from xiplot.utils.layouts import layout_wrapper
 
@@ -50,12 +51,13 @@ class Smiles(APlot):
 
         @app.callback(
             Output(cls.get_id(MATCH, "string"), "value"),
-            Input("lastly_clicked_point_store", "data"),
-            Input("lastly_hovered_point_store", "data"),
+            Input(STORE_CLICKED_ID, "data"),
+            Input(STORE_HOVERED_ID, "data"),
             State(cls.get_id(MATCH, "mode"), "value"),
             State(cls.get_id(MATCH, "col"), "value"),
             State(cls.get_id(MATCH, "string"), "value"),
-            State("data_frame_store", "data"),
+            State(STORE_DATAFRAME_ID, "data"),
+            prevent_initial_call=True,
         )
         def update_smiles(rowc, rowh, mode, col, old, df):
             if col is None or col == "":
