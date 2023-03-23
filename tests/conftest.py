@@ -14,8 +14,7 @@ def pytest_configure(config):
     # sudo apt-get install google-chrome-stable
 
     webdriver = ChromeDriverManager().install()
-
-    os.environ["PATH"] += os.pathsep + str(Path(webdriver).parent)
+    os.environ["PATH"] = str(Path(webdriver).parent) + os.pathsep + os.environ["PATH"]
 
     config.option.webdriver = "Chrome"
     config.option.headless = True

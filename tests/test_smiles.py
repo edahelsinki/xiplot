@@ -1,48 +1,39 @@
 import time
-import pandas as pd
-import dash
 
-from xiplot.setup import setup_xiplot_dash_app
-from selenium.webdriver.common.keys import Keys
+import dash
+import pandas as pd
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+import pytest
 
 from tests.util_test import render_plot
 from xiplot.plots.smiles import Smiles
+from xiplot.setup import setup_xiplot_dash_app
 
-(
-    render_clicks,
-    render_hovered,
-) = Smiles.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)
+update_smiles = Smiles.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)
 
 
-def test_tesm001_render_smiles(dash_duo):
+@pytest.fixture
+def driver(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_xiplot_dash_app())
     time.sleep(1)
     dash_duo.wait_for_page()
-
     render_plot(dash_duo, driver, "Smiles")
+    return driver
 
+
+def test_tesm001_render_smiles(dash_duo, driver):
     plot = driver.find_element(
         By.XPATH,
         "//div[@class='plots']",
     )
-
-    assert "smiles-display" in plot.get_attribute("innerHTML")
+    assert Smiles.get_id(None, "display")["type"] in plot.get_attribute("innerHTML")
     assert dash_duo.get_logs() == [], "browser console should contain no error"
 
-    driver.close()
 
-
-def test_tesm002_input_smiles_string(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app())
-    time.sleep(1)
-    dash_duo.wait_for_page()
-
-    render_plot(dash_duo, driver, "Smiles")
-
-    smiles_input = driver.find_element(By.XPATH, "//div[@class='dcc-input']/input")
+def test_tesm002_input_smiles_string(driver):
+    smiles_input = driver.find_element(By.XPATH, "//div[@class='dash-input']/div/input")
     smiles_input.clear()
     smiles_input.send_keys("O", Keys.RETURN)
 
@@ -55,17 +46,12 @@ def test_tesm002_input_smiles_string(dash_duo):
 def test_render_clicks():
     d = {"col1": [1, 2], "col2": [3, 4], "smiles": ["O", "N"]}
     df = pd.DataFrame(data=d)
-    output = render_clicks(1, ["click"], [""], df)
-    smiles_string = output["smiles"][0]
-
+    smiles_string = update_smiles(1, None, "Click", "smiles", "", df)
     assert smiles_string == "N"
 
 
 def test_render_hovered():
     d = {"col1": [1, 2], "col2": [3, 4], "smiles": ["O", "N"]}
     df = pd.DataFrame(data=d)
-    output = render_hovered(1, ["hover"], [""], df)
-
-    smiles_string = output["smiles"][0]
-
+    smiles_string = update_smiles(None, 1, "Hover", "smiles", "", df)
     assert smiles_string == "N"
