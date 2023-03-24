@@ -12,7 +12,6 @@ from xiplot.utils.components import DeleteButton, PlotData
 
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.dataframe import get_smiles_column_name
 from xiplot.utils.table import get_sort_by, get_updated_item, get_updated_item_id
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 from xiplot.plots import APlot
@@ -151,15 +150,6 @@ class Table(APlot):
                     row = indices[cell["row"]]
                     column = cell["column_id"]
                     break
-
-            smiles_col = get_smiles_column_name(df)
-
-            # Try branch for testing
-            try:
-                if row is None or column != smiles_col:
-                    raise PreventUpdate()
-            except:
-                pass
 
             return dict(cell_store=row, active_cell=[None] * len(active_cells))
 

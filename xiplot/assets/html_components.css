@@ -76,11 +76,13 @@ button.delete:active,
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 10px;
     align-items: end;
+    gap: 10px;
+    gap: var(--panel-padding);
 }
 
-.flex-row .dash-dropdown {
+.flex-row .dash-dropdown,
+.flex-row .dash-input {
     min-width: 12rem;
     flex: 1;
 }

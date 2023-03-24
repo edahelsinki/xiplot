@@ -28,6 +28,34 @@ class FlexRow(html.Div):
         super().__init__(children=list(children), className=className, **kwargs)
 
 
+class InputText(html.Div):
+    def __init__(
+        self,
+        *args,
+        className: Optional[str] = None,
+        type: str = "text",
+        div_kws: Dict[str, Any] = {},
+        **kwargs
+    ):
+        """Create a `dcc.Input` wrapped in a `html.Div` with `className`s to make it match `dcc.Dropdown`.
+
+        Args:
+            *args: Arguments forwarded to `dcc.Input`.
+            className: Additional classnames for the `html.Div`. Defaults to None.
+            type: Type of `dcc.Input`. Defaults to "text".
+            div_kws: Additional arguments to the `html.Div`. Defaults to {}.
+            **kwargs: Keyword arguments forwarded to `dcc.Input`.
+        """
+        inp = dcc.Input(
+            *args, type=type, className="Select-input Select-control", **kwargs
+        )
+        if className is not None:
+            className = "Select " + className
+        else:
+            className = "Select"
+        super().__init__(children=inp, className=className, **div_kws)
+
+
 class DeleteButton(html.Button):
     def __init__(self, index: Any, children: str = "x", **kwargs: Any):
         """Create a delete button.
