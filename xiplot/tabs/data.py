@@ -389,6 +389,7 @@ class Data(Tab):
             State("metadata_store", "data"),
             State("clusters_column_store", "data"),
             State("selected_rows_store", "data"),
+            State("pca_column_store", "data"),
             State(PlotData.get_id(ALL, ALL), "data"),
             State(generate_id(WriteFormatDropdown), "value"),
             prevent_initial_call=True,
@@ -401,6 +402,7 @@ class Data(Tab):
             meta,
             clusters,
             selected_rows,
+            pca_cols,
             plot_data,
             file_extension,
         ):
@@ -454,6 +456,9 @@ class Data(Tab):
 
                     if selected_rows is not None:
                         aux["is_selected"] = ~np.asarray(selected_rows, dtype=bool)
+
+                    if pca_cols is not None:
+                        aux["pca_cols"] = pca_cols
 
                     for data in plot_data:
                         index = data["index"]
