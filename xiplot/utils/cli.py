@@ -20,12 +20,10 @@ def cli():
         "-s",
         "--serversideoutput",
         action="store_true",
-        help="Use ServersideOutput component to keep the data on the server",
+        help="Use ServersideOutput component from Dash Extensions package to keep the data on the server and reduce the burden of data transfer",
     )
     args = parser.parse_args()
     path = args.PATH
-
-    # TODO: How to add this path to utils.dataframe.get_data_filepaths
 
     if not os.path.isdir(path):
         print(f'Directory "{path}" was not found')
@@ -38,8 +36,7 @@ def cli():
     if args.port:
         kwargs["port"] = args.port
 
-    # TODO: Is there a better solution for this?
     unsafe_local_server = True if args.serversideoutput else False
 
-    app = setup_xiplot_dash_app(unsafe_local_server=unsafe_local_server)
+    app = setup_xiplot_dash_app(unsafe_local_server=unsafe_local_server, dir_path=path)
     app.run(**kwargs)

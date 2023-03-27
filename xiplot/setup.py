@@ -12,7 +12,7 @@ from xiplot.app import XiPlot
 from xiplot.utils.store import ServerSideStoreBackend
 
 
-def setup_xiplot_dash_app(unsafe_local_server=False, **kwargs):
+def setup_xiplot_dash_app(unsafe_local_server=False, dir_path="", **kwargs):
     dash_transforms = [
         MultiplexerTransform(),
         CycleBreakerTransform(),
@@ -49,7 +49,12 @@ def setup_xiplot_dash_app(unsafe_local_server=False, **kwargs):
         **kwargs,
     )
 
-    app = XiPlot(app=dash, df_from_store=df_from_store, df_to_store=df_to_store)
+    app = XiPlot(
+        app=dash,
+        df_from_store=df_from_store,
+        df_to_store=df_to_store,
+        dir_path=dir_path,
+    )
 
     return dash
 

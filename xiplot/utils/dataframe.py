@@ -12,10 +12,10 @@ from pathlib import Path
 from xiplot.plugin import get_plugins_cached
 
 
-def get_data_filepaths():
+def get_data_filepaths(dir_path=""):
     try:
         return sorted(
-            (fp for fp in Path("data").iterdir() if fp.is_file()), reverse=True
+            (fp for fp in Path(dir_path).iterdir() if fp.is_file()), reverse=True
         )
 
     except FileNotFoundError:

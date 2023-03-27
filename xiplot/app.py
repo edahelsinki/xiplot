@@ -16,7 +16,7 @@ from xiplot.utils.components import PdfButton
 
 
 class XiPlot:
-    def __init__(self, app, df_from_store, df_to_store) -> None:
+    def __init__(self, app, df_from_store, df_to_store, dir_path="") -> None:
         self.app = app
         self.app.title = "χiplot"
 
@@ -38,7 +38,11 @@ class XiPlot:
                             dcc.Tabs(
                                 [
                                     dcc.Tab(
-                                        [t.create_layout()],
+                                        [
+                                            t.create_layout(dir_path)
+                                            if t == Data
+                                            else t.create_layout()
+                                        ],
                                         label=t.name(),
                                         value=f"control-{t.name().lower()}-tab",
                                     )
@@ -75,7 +79,11 @@ class XiPlot:
         )
 
         for tab in TABS:
-            tab.register_callbacks(app, df_from_store, df_to_store)
+            tab.register_callbacks(
+                app, df_from_store, df_to_store, dir_path
+            ) if tab == Data else tab.register_callbacks(
+                app, df_from_store, df_to_store
+            )
 
         for cb in get_plugins_cached("callback"):
             cb(app, df_from_store, df_to_store)
