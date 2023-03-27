@@ -17,10 +17,10 @@ def cli():
     parser.add_argument("-p", "--port", help="Port used to serve the application")
     parser.add_argument("--host", help="Host IP used to serve the application")
     parser.add_argument(
-        "-s",
-        "--serversideoutput",
+        "-c",
+        "--cache",
         action="store_true",
-        help="Use ServersideOutput component from Dash Extensions package to keep the data on the server and reduce the burden of data transfer",
+        help="Cache datasets on the server in order to reduce the amount of data transferred. Might not be suitable for servers with multiple users",
     )
     args = parser.parse_args()
     path = args.PATH
@@ -36,7 +36,7 @@ def cli():
     if args.port:
         kwargs["port"] = args.port
 
-    unsafe_local_server = True if args.serversideoutput else False
+    unsafe_local_server = True if args.cache else False
 
     app = setup_xiplot_dash_app(unsafe_local_server=unsafe_local_server, dir_path=path)
     app.run(**kwargs)
