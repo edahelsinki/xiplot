@@ -22,7 +22,7 @@ from xiplot.plots.table import Table
 
 def test_teta001_render_table(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -41,7 +41,7 @@ def test_teta001_render_table(dash_duo):
 
 def test_teta002_select_columns(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -82,7 +82,7 @@ def test_teta002_select_columns(dash_duo):
 
 def test_teta003_toggle_columns(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
