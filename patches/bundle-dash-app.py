@@ -125,7 +125,7 @@ with open("pyproject.toml", "r") as file:
 
     name = pyproject["project"]["name"]
     version = pyproject["project"]["version"]
-    dependencies = list(pyproject["dependencies"].keys())
+    dependencies = list(d.split()[0] for d in pyproject["project"]["dependencies"])
 
 with open(dist / "repodata.json", "r") as file:
     repodata = json.load(file)

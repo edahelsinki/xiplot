@@ -27,9 +27,7 @@ xiplot/.gitignore:
 	git submodule init xiplot
 	git submodule update xiplot
 
-build_xiplot: xiplot/dist/xiplot-0.1.0-py3-none-any.whl
-
-xiplot/dist/xiplot-0.1.0-py3-none-any.whl: xiplot/.gitignore
+build_xiplot: xiplot/.gitignore
 	pip install build && \
 	cd xiplot && \
 	python3 -m build
@@ -42,7 +40,7 @@ deploy: pyodide xiplot
 	cp -r pyodide/dist/* dist/
 	rm -rf dist/*-tests.tar
 	rm -f dist/tsconfig.tsbuildinfo
-	cp xiplot/dist/xiplot-0.1.0-py3-none-any.whl dist/
+	cp xiplot/dist/xiplot-*.*.*-py3-none-any.whl dist/
 	cp -r xiplot/data dist/
 	cp -r xiplot/xiplot/assets dist/
 	ls dist/data > dist/assets/data.ls
