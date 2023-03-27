@@ -32,7 +32,7 @@ from xiplot.utils.cluster import cluster_colours
 
 class Data(Tab):
     @staticmethod
-    def register_callbacks(app, df_from_store, df_to_store):
+    def register_callbacks(app, df_from_store, df_to_store, dir_path=""):
         try:
             import dash_uploader as du
 
@@ -93,7 +93,7 @@ class Data(Tab):
                     df_to_store(df),
                     df_to_store(aux),
                     meta,
-                    generate_dataframe_options(upload_path),
+                    generate_dataframe_options(upload_path, dir_path),
                     str(Path("uploads") / upload_path.name),
                     [uploader],
                     None,
@@ -156,7 +156,7 @@ class Data(Tab):
                     df_to_store(df),
                     df_to_store(aux),
                     meta,
-                    generate_dataframe_options(upload_name),
+                    generate_dataframe_options(upload_name, dir_path),
                     str(Path("uploads") / upload_name.name),
                     None,
                     None,
@@ -207,7 +207,7 @@ class Data(Tab):
             notification = None
 
             if trigger == "submit-button":
-                if str(list(filepath.parents)[-2]) == "uploads":
+                if str(list(filepath.parents)[0]) == "uploads":
                     df_store = uploaded_data
                     aux = df_from_store(uploaded_aux)
                     meta = uploaded_meta
@@ -229,7 +229,7 @@ class Data(Tab):
                         autoClose=5000,
                     )
                 else:
-                    filepath = Path("data") / filepath.name
+                    filepath = Path(dir_path) / filepath.name
 
                     try:
                         df, aux, meta = read_dataframe_with_extension(
@@ -496,7 +496,7 @@ class Data(Tab):
             )
 
     @staticmethod
-    def create_layout():
+    def create_layout(dir_path=""):
         try:
             import dash_uploader as du
 
@@ -522,7 +522,7 @@ class Data(Tab):
                             dcc.Dropdown(
                                 [
                                     {"label": fp.name, "value": str(fp)}
-                                    for fp in get_data_filepaths()
+                                    for fp in get_data_filepaths(dir_path=dir_path)
                                 ],
                                 id="data_files",
                             ),
@@ -600,10 +600,13 @@ class WriteFormatDropdown(dcc.Dropdown):
         )
 
 
-def generate_dataframe_options(upload_path):
+def generate_dataframe_options(upload_path, dir_path):
     return [
         {
             "label": html.Div([upload_path.name, " ", html.I("(upload)")]),
             "value": str(Path("uploads") / upload_path.name),
         }
-    ] + [{"label": fp.name, "value": str(fp)} for fp in get_data_filepaths()]
+    ] + [
+        {"label": fp.name, "value": str(fp)}
+        for fp in get_data_filepaths(dir_path=dir_path)
+    ]

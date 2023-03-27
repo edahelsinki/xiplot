@@ -1,5 +1,3 @@
-from xiplot.setup import setup_xiplot_dash_app
+from xiplot.utils.cli import cli
 
-app = setup_xiplot_dash_app(unsafe_local_server=True)
-
-app.run(debug=True)
+cli()

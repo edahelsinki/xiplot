@@ -14,7 +14,7 @@ tmp = Heatmap.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)[
 
 def test_tehe001_render_heatmap(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 

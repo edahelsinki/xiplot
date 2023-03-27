@@ -15,7 +15,7 @@ tmp = Histogram.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x
 
 def test_tehi001_render_histogram(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -31,7 +31,7 @@ def test_tehi001_render_histogram(dash_duo):
 
 def test_tehi002_set_axis(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -57,7 +57,7 @@ def test_tehi002_set_axis(dash_duo):
 
 def test_tehi003_clear_clusters(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app())
+    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
