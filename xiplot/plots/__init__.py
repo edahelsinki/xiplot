@@ -5,7 +5,13 @@ import pandas as pd
 from dash import Dash, html, dcc
 
 from xiplot.utils import generate_id
-from xiplot.utils.components import DeleteButton, FlexRow, PdfButton, PlotData
+from xiplot.utils.components import (
+    DeleteButton,
+    FlexRow,
+    HelpButton,
+    PdfButton,
+    PlotData,
+)
 
 
 class APlot(ABC):
@@ -80,7 +86,9 @@ class APlot(ABC):
         top_bar = [DeleteButton(index), html.Div(className="stretch")]
         if any(isinstance(e, dcc.Graph) for e in children):
             top_bar.append(PdfButton(index))
-        children.insert(0, FlexRow(*top_bar, title=cls.help()))
+        if cls.help():
+            top_bar.append(HelpButton(cls.help()))
+        children.insert(0, FlexRow(*top_bar))
         children.append(PlotData(index, cls.name()))
         return html.Div(children, id=cls.get_id(index, "panel"), className="plots")
 
