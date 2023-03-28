@@ -79,6 +79,7 @@
 
 .ytick text,
 .xtick text,
+.g-gtitle text,
 .g-xtitle text,
 .g-ytitle text {
     fill: var(--font-color) !important;

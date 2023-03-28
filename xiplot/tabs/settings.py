@@ -42,8 +42,24 @@ class Settings(Tab):
             prevent_initial_call=False,
         )
 
+        app.clientside_callback(
+            """
+            function changePlotHeight(value) {
+                document.documentElement.setAttribute("plot-height", value)
+                return ' '
+            }
+            """,
+            Output("settings-tab-dummy", "children"),
+            Input("settings-plot-height", "value"),
+            prevent_initial_call=False,
+        )
+
     @staticmethod
     def create_layout():
+        plot_heights = [
+            350,
+            450,
+        ]
         return FlexRow(
             layout_wrapper(
                 component=html.Button(
@@ -59,12 +75,27 @@ class Settings(Tab):
                     ["1", "2", "3", "4", "5"],
                     "3",
                     clearable=False,
-                    persistence="True",
+                    persistence="true",
                     id="settings-column-size",
                 ),
                 title="Maximum number of columns",
             ),
+            html.Span(" "),
+            layout_wrapper(
+                component=dcc.Slider(
+                    min=350,
+                    max=650,
+                    step=100,
+                    marks={i: f"{i}" for i in range(350, 651, 100)},
+                    value=450,
+                    id="settings-plot-height",
+                    persistence="true",
+                ),
+                style={"width": "12rem"},
+                title="Plot height",
+            ),
             id="control-settings-container",
+            style={"alignItems": "start"},
         )
 
     @staticmethod
