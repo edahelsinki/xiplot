@@ -40,4 +40,4 @@ The `main` branch of the `xiplot` repository is licensed under the MIT License (
 
 ## Contribution
 
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be licensed as described above, without any additional terms or conditions.
+Any contribution you submit for inclusion in the workshall be licensed as described above, without any additional terms or conditions.
