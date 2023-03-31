@@ -27,7 +27,7 @@ class Heatmap(APlot):
             Input("plotly-template", "data"),
             prevent_initial_call=False,
         )
-        def tmp(n_clusters, features, df, pca_cols, template):
+        def tmp(n_clusters, features, df, pca_cols, template=None):
             # Try branch for testing
             try:
                 if ctx.triggered_id == "data_frame_store":

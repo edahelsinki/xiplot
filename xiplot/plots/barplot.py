@@ -43,7 +43,14 @@ class Barplot(APlot):
             prevent_initial_call=False,
         )
         def tmp(
-            x_axis, y_axis, selected_clusters, order, kmeans_col, df, pca_cols, template
+            x_axis,
+            y_axis,
+            selected_clusters,
+            order,
+            kmeans_col,
+            df,
+            pca_cols,
+            template=None,
         ):
             try:
                 if ctx.triggered_id == "data_frame_store":

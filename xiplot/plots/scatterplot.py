@@ -48,7 +48,7 @@ class Scatterplot(APlot):
             kmeans_col,
             df,
             pca_cols,
-            template,
+            template=None,
         ):
             # Try branch for testing
             try:
