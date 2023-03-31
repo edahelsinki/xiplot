@@ -140,28 +140,10 @@ class Heatmap(APlot):
     def create_layout(index, df, columns, config=dict()):
         jsonschema.validate(
             instance=config,
-            schema=dict(
-                type="object",
-                properties=dict(
-                    clusters=dict(
-                        type="object",
-                        properties=dict(
-                            amount=dict(
-                                type="integer",
-                                minimum=2,
-                                maximum=10,
-                            ),
-                        ),
-                    ),
-                ),
-            ),
+            schema=dict(type="object", properties=dict(clusters=dict(type="integer"))),
         )
 
-        try:
-            n_clusters = config["clusters"]["amount"]
-        except Exception:
-            n_clusters = 2
-
+        n_clusters = config.get("clusters", 2)
         num_columns = get_numeric_columns(df, columns)
         return [
             dcc.Graph(id={"type": "heatmap", "index": index}),
