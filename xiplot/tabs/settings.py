@@ -3,11 +3,22 @@ from xiplot.utils.components import FlexRow
 from xiplot.utils.layouts import layout_wrapper
 
 from dash import html, Input, Output, dcc, State, Dash
+import plotly.io as pio
+import plotly.graph_objects as go
 
 
 class Settings(Tab):
     @staticmethod
     def register_callbacks(app: Dash, df_from_store, df_to_store):
+
+        pio.templates["xiplot_light"] = go.layout.Template(
+            layout={"paper_bgcolor": "rgba(255,255,255,0)"}
+        )
+        pio.templates["xiplot_dark"] = go.layout.Template(
+            layout={"paper_bgcolor": "rgba(0,0,0,0)"}
+        )
+        pio.templates.default = "plotly_white+xiplot_light"
+
         app.clientside_callback(
             """
             function toggleLightDarkMode(clicks, data) {
@@ -16,15 +27,16 @@ class Settings(Tab):
                 }
                 if (data) {
                     document.documentElement.setAttribute("data-theme", "dark")
-                    return ['Light mode', data]
+                    return ['Light mode', data, "plotly_dark+xiplot_dark"]
                 } else {
                     document.documentElement.setAttribute("data-theme", "light")
-                    return ['Dark mode', data]
+                    return ['Dark mode', data, "plotly_white+xiplot_light"]
                 }
             }
             """,
             Output("light-dark-toggle", "children"),
             Output("light-dark-toggle-store", "data"),
+            Output("plotly-template", "data"),
             Input("light-dark-toggle", "n_clicks"),
             State("light-dark-toggle-store", "data"),
             prevent_initial_call=False,
@@ -100,5 +112,9 @@ class Settings(Tab):
 
     @staticmethod
     def create_layout_globals():
-        # Store the dark/light state across page reloads
-        return dcc.Store(id="light-dark-toggle-store", data=False, storage_type="local")
+        globals = [
+            # Store the dark/light state across page reloads
+            dcc.Store(id="light-dark-toggle-store", data=False, storage_type="local"),
+            dcc.Store(id="plotly-template", data=None),
+        ]
+        return html.Div(globals)
