@@ -24,8 +24,10 @@ class Heatmap(APlot):
             Input({"type": "heatmap_feature_dropdown", "index": MATCH}, "value"),
             Input("data_frame_store", "data"),
             Input("pca_column_store", "data"),
+            Input("plotly-template", "data"),
+            prevent_initial_call=False,
         )
-        def tmp(n_clusters, features, df, pca_cols):
+        def tmp(n_clusters, features, df, pca_cols, template):
             # Try branch for testing
             try:
                 if ctx.triggered_id == "data_frame_store":
@@ -35,7 +37,9 @@ class Heatmap(APlot):
             except:
                 pass
 
-            return Heatmap.render(n_clusters, features, df_from_store(df), pca_cols)
+            return Heatmap.render(
+                n_clusters, features, df_from_store(df), pca_cols, template
+            )
 
         @app.callback(
             Output({"type": "heatmap_feature_dropdown", "index": MATCH}, "options"),
@@ -106,7 +110,7 @@ class Heatmap(APlot):
         return [tmp]
 
     @staticmethod
-    def render(n_clusters, features, df, pca_cols=[]):
+    def render(n_clusters, features, df, pca_cols=[], template=None):
         from sklearn.cluster import KMeans
 
         km = KMeans(n_clusters=n_clusters, random_state=42)
@@ -128,6 +132,7 @@ class Heatmap(APlot):
             y=[str(n + 1) for n in range(n_clusters)],
             color_continuous_scale="RdBu",
             origin="lower",
+            template=template,
         )
         return fig
 
@@ -159,10 +164,7 @@ class Heatmap(APlot):
 
         num_columns = get_numeric_columns(df, columns)
         return [
-            dcc.Graph(
-                id={"type": "heatmap", "index": index},
-                figure=Heatmap.render(n_clusters, num_columns, df),
-            ),
+            dcc.Graph(id={"type": "heatmap", "index": index}),
             layout_wrapper(
                 component=dcc.Dropdown(
                     options=num_columns,

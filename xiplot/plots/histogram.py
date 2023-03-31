@@ -26,9 +26,10 @@ class Histogram(APlot):
             Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
             Input("pca_column_store", "data"),
+            Input("plotly-template", "data"),
             prevent_initial_call=False,
         )
-        def tmp(x_axis, selected_clusters, kmeans_col, df, pca_cols):
+        def tmp(x_axis, selected_clusters, kmeans_col, df, pca_cols, template):
             # Try branch for testing
             try:
                 if ctx.triggered_id == "data_frame_store":
@@ -39,7 +40,12 @@ class Histogram(APlot):
                 pass
 
             return Histogram.render(
-                x_axis, selected_clusters, kmeans_col, df_from_store(df), pca_cols
+                x_axis,
+                selected_clusters,
+                kmeans_col,
+                df_from_store(df),
+                pca_cols,
+                template,
             )
 
         PlotData.register_callback(
@@ -88,13 +94,13 @@ class Histogram(APlot):
         return [tmp]
 
     @staticmethod
-    def render(x_axis, selected_clusters, kmeans_col, df, pca_cols=[]):
+    def render(x_axis, selected_clusters, kmeans_col, df, pca_cols=[], template=None):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
 
         df = add_pca_columns_to_df(df, pca_cols)
 
-        fig = make_fig_property(df, x_axis, selected_clusters, kmeans_col)
+        fig = make_fig_property(df, x_axis, selected_clusters, kmeans_col, template)
 
         return fig
 
@@ -144,10 +150,7 @@ class Histogram(APlot):
         classes = config.get("classes", [])
 
         return [
-            dcc.Graph(
-                id={"type": "histogram", "index": index},
-                figure=make_fig_property(df, x_axis, classes, ["all"] * df.shape[0]),
-            ),
+            dcc.Graph(id={"type": "histogram", "index": index}),
             layout_wrapper(
                 component=dcc.Dropdown(
                     id={"type": "x_axis_histo", "index": index},
@@ -170,7 +173,7 @@ class Histogram(APlot):
         ]
 
 
-def make_fig_property(df, x_axis, selected_clusters, clusters):
+def make_fig_property(df, x_axis, selected_clusters, clusters, template):
     if type(selected_clusters) == str:
         selected_clusters = [selected_clusters]
 
@@ -206,6 +209,7 @@ def make_fig_property(df, x_axis, selected_clusters, clusters):
         color_discrete_map=cluster_colours(),
         opacity=0.5,
         histnorm="probability density",
+        template=template,
     )
 
     fig_property.update_layout(

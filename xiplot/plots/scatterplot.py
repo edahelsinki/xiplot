@@ -35,6 +35,7 @@ class Scatterplot(APlot):
             Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
             Input("pca_column_store", "data"),
+            Input("plotly-template", "data"),
             prevent_initial_call=False,
         )
         def tmp(
@@ -47,6 +48,7 @@ class Scatterplot(APlot):
             kmeans_col,
             df,
             pca_cols,
+            template,
         ):
             # Try branch for testing
             try:
@@ -68,6 +70,7 @@ class Scatterplot(APlot):
                 selected_rows,
                 kmeans_col,
                 pca_cols,
+                template,
             )
 
             if fig is None:
@@ -272,6 +275,7 @@ class Scatterplot(APlot):
         selected_rows=None,
         kmeans_col=[],
         pca_cols=[],
+        template=None,
     ):
         if x_axis in ["Xiplot_PCA_1", "Xiplot_PCA_2"] and not pca_cols:
             return None
@@ -324,6 +328,7 @@ class Scatterplot(APlot):
             custom_data=["__Auxiliary__"],
             hover_data={"__Color__": False, "__Sizes__": False},
             render_mode="webgl",
+            template=template,
         )
         fig.update_layout(showlegend=False, uirevision=json.dumps([x_axis, y_axis]))
         fig.update(layout_coloraxis_showscale=False)
@@ -387,16 +392,7 @@ class Scatterplot(APlot):
         df["__Auxiliary__"] = [{"index": i} for i in range(len(df))]
 
         return [
-            dcc.Graph(
-                id={"type": "scatterplot", "index": index},
-                figure=px.scatter(
-                    df,
-                    x_axis,
-                    y_axis,
-                    custom_data=["__Auxiliary__"],
-                    render_mode="webgl",
-                ),
-            ),
+            dcc.Graph(id={"type": "scatterplot", "index": index}),
             layout_wrapper(
                 component=dcc.Dropdown(
                     id={"type": "scatter_x_axis", "index": index},

@@ -39,9 +39,12 @@ class Barplot(APlot):
             Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
             Input("pca_column_store", "data"),
+            Input("plotly-template", "data"),
             prevent_initial_call=False,
         )
-        def tmp(x_axis, y_axis, selected_clusters, order, kmeans_col, df, pca_cols):
+        def tmp(
+            x_axis, y_axis, selected_clusters, order, kmeans_col, df, pca_cols, template
+        ):
             try:
                 if ctx.triggered_id == "data_frame_store":
                     raise PreventUpdate()
@@ -60,6 +63,7 @@ class Barplot(APlot):
                         kmeans_col,
                         df_from_store(df),
                         pca_cols,
+                        template,
                     ),
                     dash.no_update,
                 )
@@ -126,7 +130,16 @@ class Barplot(APlot):
         return [tmp]
 
     @staticmethod
-    def render(x_axis, y_axis, selected_clusters, order, kmeans_col, df, pca_cols=[]):
+    def render(
+        x_axis,
+        y_axis,
+        selected_clusters,
+        order,
+        kmeans_col,
+        df,
+        pca_cols=[],
+        template=None,
+    ):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
         if not "frequency" in df.columns:
@@ -251,6 +264,7 @@ class Barplot(APlot):
                 x_axis: False,
             },
             color_discrete_map=cluster_colours(),
+            template=template,
         )
 
         fig.update_layout(
@@ -328,17 +342,7 @@ class Barplot(APlot):
         order = config.get("order", "reldiff")
 
         return [
-            dcc.Graph(
-                id={"type": "barplot", "index": index},
-                figure=Barplot.render(
-                    x_axis,
-                    y_axis,
-                    classes,
-                    order,
-                    ["all" for _ in range(len(df))],
-                    df,
-                ),
-            ),
+            dcc.Graph(id={"type": "barplot", "index": index}),
             layout_wrapper(
                 component=dcc.Dropdown(
                     id={"type": "barplot_x_axis", "index": index},
