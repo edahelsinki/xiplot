@@ -164,6 +164,10 @@ class Plots(Tab):
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col
 
+                if pca_cols and len(pca_cols) == df.shape[0]:
+                    df["Xiplot_PCA_1"] = [i[0] for i in pca_cols]
+                    df["Xiplot_PCA_2"] = [i[1] for i in pca_cols]
+
                 columns = df.columns.to_list()
 
                 notifications = []

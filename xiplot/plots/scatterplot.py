@@ -335,6 +335,19 @@ class Scatterplot(APlot):
     def create_layout(index, df, columns, config=dict()):
         num_columns = get_numeric_columns(df, columns)
 
+        try:
+            if config["axes"]["x"] in ("Xiplot_PCA_1", "Xiplot_PCA_2") or config[
+                "axes"
+            ]["y"] in (
+                "Xiplot_PCA_1",
+                "Xiplot_PCA_2",
+            ):
+                num_columns.append("Xiplot_PCA_1")
+                num_columns.append("Xiplot_PCA_2")
+
+        except Exception:
+            pass
+
         jsonschema.validate(
             instance=config,
             schema=dict(
