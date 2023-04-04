@@ -12,7 +12,11 @@ from xiplot.utils.layouts import layout_wrapper
 class Smiles(APlot):
     @classmethod
     def name(cls):
-        return "SMILES (render molecules)"
+        return "SMILES (molecules)"
+
+    @classmethod
+    def help(cls):
+        return "Render a molecule from a SMILES string\n\nOne column of the dataset must contain a molecule represented as a SMILES string (Simplified molecular-input line-entry system)."
 
     @classmethod
     def register_callbacks(cls, app, df_from_store, df_to_store):
