@@ -32,7 +32,9 @@ ID_METADATA = STORE_METADATA_ID = "metadata_store"
 ID_HOVERED = STORE_HOVERED_ID = "lastly_hovered_point_store"
 ID_CLICKED = STORE_CLICKED_ID = "lastly_clicked_point_store"
 ID_SELECTED = STORE_SELECTED_ID = "selected_rows_store"
+# `dcc.Store` that is `True` if the dark mode is active
 ID_DARK_MODE = "light-dark-toggle-store"
+# `dcc.Store` that contains the current plotly template (used for the dark mode)
 ID_PLOTLY_TEMPLATE = "plotly-template"
 
 # Useful CSS classes
