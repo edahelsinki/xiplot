@@ -1,25 +1,52 @@
 :root {
     --font-color: black;
+    --font-disabled-color: #888;
     --placeholder-color: #aaa;
     --body-bg-color: white;
     --control-bg-color: #dffcde;
-    --graph-bg-color: rbg(229, 236, 246);
+    --graph-bg-color: #e5ecf6;
+    --smiles-img-bg-color: white;
     --bg-color: white;
+    --bg-disabled-color: #dfecde;
     --graph-stroke: white;
+    --tab-underline: #adb5bd;
+    --selected-tab-underline: #198754;
+    --base-column-size: 30%;
+    --panel-padding: 10px;
 }
 
 [data-theme="dark"] {
     --font-color: white;
+    --font-disabled-color: #a0a0aa;
     --placeholder-color: #a0aaba;
     --body-bg-color: #121212;
     --control-bg-color: #212121;
     --graph-bg-color: #1F2833;
+    --smiles-img-bg-color: #e5ecf6;
     --bg-color: #212121;
-    --graph-stroke: rgb(63, 63, 63)
+    --bg-disabled-color: #161616;
+    --graph-stroke: #3f3f3f;
+    --tab-underline: #45A29E;
+    --selected-tab-underline: #D6D6D6;
+}
+
+[data-cols="1"] .plots {
+    --base-column-size: 80%;
+}
+
+[data-cols="2"] .plots {
+    --base-column-size: 40%;
+}
+
+[data-cols="4"] .plots {
+    --base-column-size: 22%;
+}
+
+[data-cols="5"] .plots {
+    --base-column-size: 18%;
 }
 
 body {
-    min-width: 1200px;
     width: auto !important;
     color: black;
     color: var(--font-color);
@@ -41,18 +68,47 @@ body {
 
 .logo {
     text-align: center;
-    margin: 20;
+    margin: 0;
     color: black;
     color: var(--font-color)
 }
 
+.logo>h1 {
+    margin: 0.2rem;
+}
+
+#plots {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    align-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    gap: var(--panel-padding);
+    margin-top: 10px;
+    margin-top: var(--panel-padding);
+}
+
 .plots {
     display: block;
-    width: 32%;
-    float: left;
-    height: 650px;
+    min-width: 20rem;
+    flex: 1 1 var(--base-column-size);
     background-color: #dffcde !important;
     background-color: var(--control-bg-color) !important;
-    margin: 10px 10px 10px 10px;
-    border-radius: 4px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 5px 0px hsla(0, 0%, 0%, 0.14),
+        0px 1px 10px 0px hsla(0, 0%, 0%, 0.12),
+        0px 2px 4px -1px hsla(0, 0%, 0%, 0.2);
+    padding: 10px;
+    padding: var(--panel-padding);
+}
+
+.smiles-img {
+    width: 100%;
+    max-width: 80rem;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    background-color: var(--smiles-img-bg-color);
 }

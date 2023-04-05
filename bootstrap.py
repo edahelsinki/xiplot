@@ -21,6 +21,7 @@ def bootstrap_dash_app(url_base_pathname):
 
     app = setup_xiplot_dash_app(
         unsafe_local_server=True,
+        dir_path="data",
         url_base_pathname=url_base_pathname,
         compress=False,
         eager_loading=True,
