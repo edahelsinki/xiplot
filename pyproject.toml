@@ -24,18 +24,17 @@ dependencies = [
     "dash-daq ~= 0.5.0",
     "dash-extensions == 0.1.4",
     "dash-mantine-components ~= 0.10.2",
+    "dash-uploader ~= 0.6.0; platform_system!='Wasm'",
     "flask <= 2.1.2",
     "jsonschema ~= 4.6.0",
+    "kaleido ~= 0.2.1; platform_system!='Wasm'",
     "pandas ~= 1.4.2",
     "plotly ~= 5.9.0",
+    "pyarrow ~= 11.0.0; platform_system!='Wasm'",
+    "scikit-learn >= 1.1.1; platform_system!='Wasm'",
 ]
 
 [project.optional-dependencies]
-# Lazy loading of sklearn in the WASM version requires sklearn not to be a required dependency
-sklearn = ["scikit-learn >= 1.1.1"]
-uploader = ["dash-uploader ~= 0.6.0"]
-arrow = ["pyarrow ~= 11.0.0"]
-pdf = ["kaleido ~= 0.2.1"]
 dev = ["pytest", "black", "dash[testing]", "webdriver-manager", "selenium"]
 
 [project.urls]
