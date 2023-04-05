@@ -125,7 +125,11 @@ with open("pyproject.toml", "r") as file:
 
     name = pyproject["project"]["name"]
     version = pyproject["project"]["version"]
-    dependencies = list(d.split()[0] for d in pyproject["project"]["dependencies"])
+    dependencies = list(
+        d.split()[0]
+        for d in pyproject["project"]["dependencies"]
+        if "platform_system!='Wasm'" not in d
+    )
 
 with open(dist / "repodata.json", "r") as file:
     repodata = json.load(file)
