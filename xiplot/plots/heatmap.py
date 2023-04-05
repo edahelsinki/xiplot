@@ -62,7 +62,6 @@ class Heatmap(APlot):
                 and "Xiplot_PCA_1" not in options
                 and "Xiplot_PCA_2" not in options
             ):
-
                 options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
                 return options, dash.no_update, dash.no_update
 

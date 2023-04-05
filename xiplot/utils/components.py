@@ -35,7 +35,7 @@ class InputText(html.Div):
         className: Optional[str] = None,
         type: str = "text",
         div_kws: Dict[str, Any] = {},
-        **kwargs
+        **kwargs,
     ):
         """Create a `dcc.Input` wrapped in a `html.Div` with `className`s to make it match `dcc.Dropdown`.
 
@@ -69,65 +69,86 @@ class DeleteButton(html.Button):
             children=children,
             id=generate_id(DeleteButton, index),
             className="delete",
-            **kwargs
+            **kwargs,
         )
 
 
-class PdfButton(html.Button):
-    def __init__(self, index: Any, children: str = "Download as pdf", **kwargs: Any):
-        """Create a button for donwloading plots as pdf.
+try:
+    import kaleido
 
-        Args:
-            index: Which plot should be downloaded.
-            children: The text of the button. Defaults to "Download as pdf".
-            **kwargs: additional arguments forwarded to `html.Button`.
-        """
-        super().__init__(children=children, id=generate_id(type(self), index), **kwargs)
+    class PdfButton(html.Button):
+        def __init__(
+            self, index: Any, children: str = "Download as pdf", **kwargs: Any
+        ):
+            """Create a button for donwloading plots as pdf.
 
-    @classmethod
-    def create_global(cls) -> Any:
-        """Create the `dcc.Download` component needed for the pdf button (add it to your layout)."""
-        return dcc.Download(id=generate_id(cls, None, "download"))
-
-    @classmethod
-    def register_callback(cls, app: Dash, graph_id: Dict[str, Any]):
-        """Register callbacks.
-        NOTE: Currently this method has to be called separately for every type of graph.
-        This is because Dash cannot match based on properties (i.e., select only the `State`s with a "figure" property).
-
-        Args:
-            app: Xiplot app.
-            graph_id: Id of the graph.
-        """
-        graph_id["index"] = ALL
-
-        @app.callback(
-            Output(generate_id(cls, None, "download"), "data"),
-            Input(generate_id(cls, ALL), "n_clicks"),
-            State(graph_id, "figure"),
-            prevent_initial_call=True,
-        )
-        def download_as_pdf(n_clicks, fig):
-            if ctx.triggered[0]["value"] is None:
-                return no_update
-
-            figs = ctx.args_grouping[1]
-
-            figure = None
-            for f in figs:
-                if f["id"]["index"] == ctx.triggered_id["index"]:
-                    figure = f["value"]
-            if not figure:
-                return no_update
-            fig_img = po.io.to_image(figure, format="pdf")
-            file = BytesIO(fig_img)
-            encoded = base64.b64encode(file.getvalue()).decode("ascii")
-            return dict(
-                base64=True,
-                content=encoded,
-                filename="xiplot.pdf",
-                type="application/pdf",
+            Args:
+                index: Which plot should be downloaded.
+                children: The text of the button. Defaults to "Download as pdf".
+                **kwargs: additional arguments forwarded to `html.Button`.
+            """
+            super().__init__(
+                children=children, id=generate_id(type(self), index), **kwargs
             )
+
+        @classmethod
+        def create_global(cls) -> Any:
+            """Create the `dcc.Download` component needed for the pdf button (add it to your layout)."""
+            return dcc.Download(id=generate_id(cls, None, "download"))
+
+        @classmethod
+        def register_callback(cls, app: Dash, graph_id: Dict[str, Any]):
+            """Register callbacks.
+            NOTE: Currently this method has to be called separately for every type of graph.
+            This is because Dash cannot match based on properties (i.e., select only the `State`s with a "figure" property).
+
+            Args:
+                app: Xiplot app.
+                graph_id: Id of the graph.
+            """
+            graph_id["index"] = ALL
+
+            @app.callback(
+                Output(generate_id(cls, None, "download"), "data"),
+                Input(generate_id(cls, ALL), "n_clicks"),
+                State(graph_id, "figure"),
+                prevent_initial_call=True,
+            )
+            def download_as_pdf(n_clicks, fig):
+                if ctx.triggered[0]["value"] is None:
+                    return no_update
+
+                figs = ctx.args_grouping[1]
+
+                figure = None
+                for f in figs:
+                    if f["id"]["index"] == ctx.triggered_id["index"]:
+                        figure = f["value"]
+                if not figure:
+                    return no_update
+                fig_img = po.io.to_image(figure, format="pdf")
+                file = BytesIO(fig_img)
+                encoded = base64.b64encode(file.getvalue()).decode("ascii")
+                return dict(
+                    base64=True,
+                    content=encoded,
+                    filename="xiplot.pdf",
+                    type="application/pdf",
+                )
+
+except ImportError:
+
+    class PdfButton(html.Div):
+        def __init__(self, index: Any, **kwargs: Any):
+            super().__init__(id=generate_id(type(self), index), **kwargs)
+
+        @classmethod
+        def create_global(cls) -> Any:
+            pass
+
+        @classmethod
+        def register_callback(cls, app: Dash, graph_id: Dict[str, Any]):
+            pass
 
 
 class PlotData(dcc.Store):
@@ -149,7 +170,7 @@ class PlotData(dcc.Store):
         super().__init__(
             id=self.get_id(index, plot_name),
             data=dict(index=index, type=plot_name),
-            **kwargs
+            **kwargs,
         )
 
     @classmethod

@@ -1,5 +1,4 @@
 def get_sort_by(sort_by, selected_rows, trigger):
-
     if len(sort_by) == 0 and False not in selected_rows:
         sort_by = []
 

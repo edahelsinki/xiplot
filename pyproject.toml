@@ -3,7 +3,7 @@ name = "xiplot"
 version = "0.2.0"
 authors = [
     { name="Akihiro Tanaka", email="akihiro.fin@gmail.com" },
-    { name="Juniper Tyree" },
+    { name="Juniper Tyree", email="juniper.tyree@helsinki.fi" },
     { name="Anton Björklund" },
     { name="Jarmo Mäkelä" },
 ]
@@ -24,18 +24,18 @@ dependencies = [
     "dash-daq ~= 0.5.0",
     "dash-extensions == 0.1.4",
     "dash-mantine-components ~= 0.10.2",
-    "feather-format ~= 0.4.1",
-    "dash-uploader ~= 0.6.0",
     "flask <= 2.1.2",
     "jsonschema ~= 4.6.0",
     "pandas ~= 1.4.2",
     "plotly ~= 5.9.0",
-    "kaleido ~= 0.2.1",
 ]
 
 [project.optional-dependencies]
 # Lazy loading of sklearn in the WASM version requires sklearn not to be a required dependency
 sklearn = ["scikit-learn >= 1.1.1"]
+uploader = ["dash-uploader ~= 0.6.0"]
+arrow = ["pyarrow ~= 11.0.0"]
+pdf = ["kaleido ~= 0.2.1"]
 dev = ["pytest", "black", "dash[testing]", "webdriver-manager", "selenium"]
 
 [project.urls]
@@ -54,4 +54,3 @@ where = ["."]
 include = ["xiplot*"]
 exclude = ["tests", "test_plugin"]
 namespaces = true
-
