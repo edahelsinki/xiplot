@@ -5,7 +5,13 @@ import pandas as pd
 from dash import Dash, html, dcc
 
 from xiplot.utils import generate_id
-from xiplot.utils.components import DeleteButton, FlexRow, PdfButton, PlotData
+from xiplot.utils.components import (
+    DeleteButton,
+    FlexRow,
+    HelpButton,
+    PdfButton,
+    PlotData,
+)
 
 
 class APlot(ABC):
@@ -18,6 +24,12 @@ class APlot(ABC):
     def name(cls) -> str:
         """The name that is shown in the UI when selecting plots."""
         return cls.__name__
+
+    @classmethod
+    def help(cls) -> Optional[str]:
+        """Tooltip that describes the plot and how to use it."""
+        # Recommended format: "Short description.\n\nLong description."
+        return None
 
     @classmethod
     def get_id(cls, index: Any, subtype: Optional[str] = None) -> Dict[str, Any]:
@@ -71,10 +83,12 @@ class APlot(ABC):
             A html element presenting the plot.
         """
         children = cls.create_layout(index, df, columns, config)
-        buttons = DeleteButton(index)
+        top_bar = [DeleteButton(index), html.Div(className="stretch")]
         if any(isinstance(e, dcc.Graph) for e in children):
-            buttons = FlexRow(buttons, html.Div(className="stretch"), PdfButton(index))
-        children.insert(0, buttons)
+            top_bar.append(PdfButton(index))
+        if cls.help():
+            top_bar.append(HelpButton(cls.help()))
+        children.insert(0, FlexRow(*top_bar))
         children.append(PlotData(index, cls.name()))
         return html.Div(children, id=cls.get_id(index, "panel"), className="plots")
 

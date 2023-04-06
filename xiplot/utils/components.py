@@ -197,3 +197,17 @@ class PlotData(dcc.Store):
             for key, value in inputs.items():
                 meta[key] = value
             return meta
+
+
+class HelpButton(dcc.ConfirmDialogProvider):
+    def __init__(self, text: str, btn_kws: Dict[str, Any] = {}, **kwargs):
+        """Create a button that shows a text on hover, and the same text in a dialog when clicked.
+
+        Args:
+            text: The (help) text to be shown.
+            btn_kws: Keyword arguments for the button.
+            **kwargs: Keyword arguments for the wrapper.
+        """
+        super().__init__(
+            html.Button("?", title=text, **btn_kws), message=text, **kwargs
+        )
