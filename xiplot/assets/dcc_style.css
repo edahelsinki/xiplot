@@ -77,7 +77,8 @@
 
 .Select-control,
 .Select-menu-outer,
-.Select-input:focus {
+.Select-input,
+.Select-input input {
     background-color: white !important;
     background-color: var(--bg-color) !important;
     color: black;
