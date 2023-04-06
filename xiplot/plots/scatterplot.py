@@ -159,7 +159,7 @@ class Scatterplot(APlot):
                 Input({"type": "scatterplot", "index": ALL}, "selectedData"),
                 State("clusters_column_store", "data"),
                 State("selection_cluster_dropdown", "value"),
-                State("cluster_selection_mode", "on"),
+                State("cluster_selection_mode", "value"),
             ],
         )
         def handle_cluster_drawing(

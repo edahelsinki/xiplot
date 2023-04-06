@@ -2,10 +2,10 @@
 name = "xiplot"
 version = "0.2.0"
 authors = [
-    { name="Akihiro Tanaka", email="akihiro.fin@gmail.com" },
-    { name="Juniper Tyree", email="juniper.tyree@helsinki.fi" },
-    { name="Anton Björklund" },
-    { name="Jarmo Mäkelä" },
+    { name = "Akihiro Tanaka", email = "akihiro.fin@gmail.com" },
+    { name = "Juniper Tyree", email = "juniper.tyree@helsinki.fi" },
+    { name = "Anton Björklund" },
+    { name = "Jarmo Mäkelä" },
 ]
 description = "Interactive data visualization tool"
 license = { file = "LICENSE-MIT" }
@@ -21,7 +21,6 @@ classifiers = [
 ]
 dependencies = [
     "dash ~= 2.6.1",
-    "dash-daq ~= 0.5.0",
     "dash-extensions == 0.1.4",
     "dash-mantine-components ~= 0.10.2",
     "dash-uploader ~= 0.6.0; platform_system!='Emscripten'",
