@@ -45,7 +45,8 @@
     width: auto;
     border-width: 1px;
     border-style: dashed;
-    border-radius: 5px;
+    border-radius: 8px;
+    border-radius: var(--large-radius);
     margin: 10px;
     text-align: center;
     min-height: 1;
@@ -64,6 +65,11 @@
     margin-top: auto;
 }
 
+.dash-uploader-default {
+    border-radius: 8px !important;
+    border-radius: var(--large-radius) !important;
+}
+
 .dash-uploader>* {
     margin: 1rem;
     width: auto !important;
@@ -74,6 +80,8 @@
 .Select-input:focus {
     background-color: white !important;
     background-color: var(--bg-color) !important;
+    color: black;
+    color: var(--font-color);
 }
 
 .is-disabled .Select-control,
@@ -129,17 +137,15 @@
     padding: 10px;
 }
 
-.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner table th {
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner table,
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th,
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner input:not([type="radio"]):not([type="checkbox"]) {
     color: black;
     color: var(--font-color);
     background-color: white;
     background-color: var(--bg-color);
 }
 
-.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner input:not([type="radio"]):not([type="checkbox"]) {
-    color: black;
-    color: var(--font-color);
-}
 
 [data-theme="dark"] .dash-spreadsheet {
     border: 1px solid gray;
@@ -158,4 +164,14 @@
 .dash-table-container .previous-next-container button.first-page,
 .dash-table-container .previous-next-container button.last-page {
     border: 1px solid rgb(209, 213, 219);
+}
+
+.rc-slider-mark-text {
+    color: darkgray;
+    color: var(--font-disabled-color)
+}
+
+.rc-slider-mark-text-active {
+    color: black;
+    color: var(--font-color)
 }
