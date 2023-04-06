@@ -168,6 +168,7 @@ class Data(Tab):
             Output("metadata_store", "data"),
             Output("clusters_column_store", "data"),
             Output("selected_rows_store", "data"),
+            Output("pca_column_store", "data"),
             Output("clusters_column_store_reset", "children"),
             Output("data-tab-notify-container", "children"),
             Input("submit-button", "n_clicks"),
@@ -187,6 +188,7 @@ class Data(Tab):
 
             if not filepath:
                 return (
+                    dash.no_update,
                     dash.no_update,
                     dash.no_update,
                     dash.no_update,
@@ -237,6 +239,7 @@ class Data(Tab):
                         )
                     except Exception as err:
                         return (
+                            dash.no_update,
                             dash.no_update,
                             dash.no_update,
                             dash.no_update,
@@ -312,6 +315,7 @@ class Data(Tab):
                     dash.no_update,
                     dash.no_update,
                     dash.no_update,
+                    dash.no_update,
                     dmc.Notification(
                         id=str(uuid.uuid4()),
                         color="yellow",
@@ -327,6 +331,7 @@ class Data(Tab):
             if "is_selected" in aux:
                 if aux.dtypes["is_selected"] != bool:
                     return (
+                        dash.no_update,
                         dash.no_update,
                         dash.no_update,
                         dash.no_update,
@@ -358,6 +363,7 @@ class Data(Tab):
                         dash.no_update,
                         dash.no_update,
                         dash.no_update,
+                        dash.no_update,
                         dmc.Notification(
                             id=str(uuid.uuid4()),
                             color="yellow",
@@ -370,11 +376,24 @@ class Data(Tab):
             else:
                 clusters = ["all"] * df.shape[0]
 
+            if "pca_cols" in aux:
+                pca_cols = [
+                    (
+                        float(i.strip("][").split(", ")[0]),
+                        (float(i.strip("][").split(", ")[1])),
+                    )
+                    for i in list(aux["pca_cols"].values)
+                ]
+
+            else:
+                pca_cols = None
+
             return (
                 df_store,
                 meta,
                 clusters,
                 selected_rows,
+                pca_cols,
                 str(uuid.uuid4()),
                 notification,
             )
@@ -389,6 +408,7 @@ class Data(Tab):
             State("metadata_store", "data"),
             State("clusters_column_store", "data"),
             State("selected_rows_store", "data"),
+            State("pca_column_store", "data"),
             State(PlotData.get_id(ALL, ALL), "data"),
             State(generate_id(WriteFormatDropdown), "value"),
             prevent_initial_call=True,
@@ -401,6 +421,7 @@ class Data(Tab):
             meta,
             clusters,
             selected_rows,
+            pca_cols,
             plot_data,
             file_extension,
         ):
@@ -454,6 +475,9 @@ class Data(Tab):
 
                     if selected_rows is not None:
                         aux["is_selected"] = ~np.asarray(selected_rows, dtype=bool)
+
+                    if pca_cols is not None:
+                        aux["pca_cols"] = pca_cols
 
                     for data in plot_data:
                         index = data["index"]
