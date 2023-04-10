@@ -10,7 +10,6 @@ import plotly.graph_objects as go
 class Settings(Tab):
     @staticmethod
     def register_callbacks(app: Dash, df_from_store, df_to_store):
-
         pio.templates["xiplot_light"] = go.layout.Template(
             layout={"paper_bgcolor": "rgba(255,255,255,0)"}
         )

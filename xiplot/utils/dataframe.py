@@ -22,6 +22,35 @@ def get_data_filepaths(dir_path=""):
         return []
 
 
+def supports_feather_format() -> bool:
+    try:
+        import pyarrow
+
+        return True
+    except ImportError:
+        pass
+
+    return False
+
+
+def supports_parquet_format() -> bool:
+    try:
+        import pyarrow
+
+        return True
+    except ImportError:
+        pass
+
+    try:
+        import fastparquet
+
+        return True
+    except ImportError:
+        pass
+
+    return False
+
+
 def read_functions() -> Iterator[Tuple[Callable[[BytesIO], pd.DataFrame], str]]:
     """Generate all functions for reading to a dataframe.
 
@@ -45,13 +74,15 @@ def read_functions() -> Iterator[Tuple[Callable[[BytesIO], pd.DataFrame], str]]:
 
     yield pd.read_csv, ".csv"
     yield read_json, ".json"
-    yield pd.read_feather, ".ft"
-    yield pd.read_parquet, ".parquet"
+    if supports_feather_format():
+        yield pd.read_feather, ".ft"
+    if supports_parquet_format():
+        yield pd.read_parquet, ".parquet"
 
 
-def write_functions() -> Iterator[
-    Tuple[Callable[[pd.DataFrame, BytesIO], None], str, str]
-]:
+def write_functions() -> (
+    Iterator[Tuple[Callable[[pd.DataFrame, BytesIO], None], str, str]]
+):
     """Generate all functions for writing dataframes.
 
     Yields:
@@ -66,8 +97,10 @@ def write_functions() -> Iterator[
     yield lambda df, file: df.to_json(
         file, orient="split", index=False
     ), ".json", "application/json"
-    yield pd.DataFrame.to_feather, ".ft", "application/octet-stream"
-    yield pd.DataFrame.to_parquet, ".parquet", "application/octet-stream"
+    if supports_feather_format():
+        yield pd.DataFrame.to_feather, ".ft", "application/octet-stream"
+    if supports_parquet_format():
+        yield pd.DataFrame.to_parquet, ".parquet", "application/octet-stream"
 
 
 def read_dataframe_with_extension(data, filename=None):

@@ -56,6 +56,7 @@ ACallbackPlugin = Callable[
     [Dash, Callable[[Any], pd.DataFrame], Callable[[pd.DataFrame], Any]], None
 ]
 
+
 # Helper functions:
 def placeholder_figure(text: str) -> Dict[str, Any]:
     """Display a placeholder text instead of a graph.
