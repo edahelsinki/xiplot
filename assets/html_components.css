@@ -13,7 +13,8 @@ button {
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
-    border-radius: 4px;
+    border-radius: 5px;
+    border-radius: var(--small-radius);
 }
 
 button {

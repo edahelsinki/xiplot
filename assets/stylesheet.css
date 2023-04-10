@@ -4,15 +4,16 @@
     --placeholder-color: #aaa;
     --body-bg-color: white;
     --control-bg-color: #dffcde;
-    --graph-bg-color: #e5ecf6;
     --smiles-img-bg-color: white;
     --bg-color: white;
     --bg-disabled-color: #dfecde;
-    --graph-stroke: white;
     --tab-underline: #adb5bd;
     --selected-tab-underline: #198754;
     --base-column-size: 30%;
     --panel-padding: 10px;
+    --plot-height: 450px;
+    --large-radius: 8px;
+    --small-radius: 5px;
 }
 
 [data-theme="dark"] {
@@ -21,28 +22,42 @@
     --placeholder-color: #a0aaba;
     --body-bg-color: #121212;
     --control-bg-color: #212121;
-    --graph-bg-color: #1F2833;
     --smiles-img-bg-color: #e5ecf6;
     --bg-color: #212121;
     --bg-disabled-color: #161616;
-    --graph-stroke: #3f3f3f;
     --tab-underline: #45A29E;
     --selected-tab-underline: #D6D6D6;
 }
 
-[data-cols="1"] .plots {
+[plot-height="350"] {
+    --plot-height: 350px;
+}
+
+[plot-height="450"] {
+    --plot-height: 450px;
+}
+
+[plot-height="550"] {
+    --plot-height: 550px;
+}
+
+[plot-height="650"] {
+    --plot-height: 650px;
+}
+
+[data-cols="1"] {
     --base-column-size: 80%;
 }
 
-[data-cols="2"] .plots {
+[data-cols="2"] {
     --base-column-size: 40%;
 }
 
-[data-cols="4"] .plots {
+[data-cols="4"] {
     --base-column-size: 22%;
 }
 
-[data-cols="5"] .plots {
+[data-cols="5"] {
     --base-column-size: 18%;
 }
 
@@ -60,7 +75,8 @@ body {
     background-color: #dffcde;
     background-color: var(--control-bg-color);
     height: auto;
-    border-radius: 8px;
+    border-radius: 5px;
+    border-radius: var(--small-radius);
     box-shadow: 0px 4px 5px 0px hsla(0, 0%, 0%, 0.14),
         0px 1px 10px 0px hsla(0, 0%, 0%, 0.12),
         0px 2px 4px -1px hsla(0, 0%, 0%, 0.2);
@@ -97,6 +113,7 @@ body {
     background-color: #dffcde !important;
     background-color: var(--control-bg-color) !important;
     border-radius: 8px;
+    border-radius: var(--large-radius);
     box-shadow: 0px 4px 5px 0px hsla(0, 0%, 0%, 0.14),
         0px 1px 10px 0px hsla(0, 0%, 0%, 0.12),
         0px 2px 4px -1px hsla(0, 0%, 0%, 0.2);
@@ -106,9 +123,15 @@ body {
 
 .smiles-img {
     width: 100%;
-    max-width: 80rem;
+    max-height: var(--plot-height);
     display: block;
     margin-left: auto;
     margin-right: auto;
     background-color: var(--smiles-img-bg-color);
+    border-radius: 8px;
+    border-radius: var(--large-radius);
+}
+
+.plot-container.plotly>div {
+    height: var(--plot-height) !important;
 }
