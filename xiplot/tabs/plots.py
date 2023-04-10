@@ -125,11 +125,7 @@ class Plots(Tab):
                                             r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$": dict(
                                                 type="object",
                                                 properties=dict(
-                                                    type=dict(
-                                                        enum=list(
-                                                            Plots.plot_types.keys()
-                                                        )
-                                                    ),
+                                                    type=dict(type="string")
                                                 ),
                                                 required=["type"],
                                             ),
@@ -175,6 +171,19 @@ class Plots(Tab):
                 for index, config in plots.items():
                     plot_type = config["type"]
                     config = {k: v for k, v in config.items() if k != "type"}
+
+                    if not plot_type in Plots.plot_types:
+                        notifications.append(
+                            dmc.Notification(
+                                id=str(uuid.uuid4()),
+                                color="yellow",
+                                title="Warning",
+                                message=f"Unknown plot type: {plot_type}",
+                                action="show",
+                                autoClose=10000,
+                            )
+                        )
+                        continue
 
                     try:
                         layout = Plots.plot_types[plot_type].create_new_layout(
