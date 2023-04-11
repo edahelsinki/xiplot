@@ -6,7 +6,7 @@ install_pyodide: pyodide/.gitignore
 
 pyodide/.gitignore:
 	git submodule init pyodide
-	git submodule update pyodide
+	git submodule update --depth=1 pyodide
 
 build_pyodide: pyodide/dist/repodata.json
 
@@ -25,7 +25,7 @@ install_xiplot: xiplot/.gitignore
 
 xiplot/.gitignore:
 	git submodule init xiplot
-	git submodule update xiplot
+	git submodule update --depth=1 xiplot
 
 build_xiplot: xiplot/.gitignore
 	pip install build && \
