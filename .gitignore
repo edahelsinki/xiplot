@@ -2,3 +2,7 @@
 /dist
 /node_modules
 /.vscode
+/build
+__pycache__
+*.egg-info
+/data
