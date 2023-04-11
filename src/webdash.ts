@@ -80,6 +80,9 @@ class WebDash {
   }
 
   private async bootstrap() {
+    await this.worker_manager.executeWithAnyResponse("import micropip; micropip.install(\"setuptools\")", {});
+    await this.worker_manager.executeWithAnyResponse("micropip.add_mock_package(\"jsbeautifier\", \"1.14.3\")", {});
+    await this.worker_manager.executeWithAnyResponse("micropip.install(\"xiplot-0.2.0-py3-none-any.whl\")", {});
     await this.initialiseDashApp();
 
     await this.injectDashHeaders(document.head);
@@ -257,4 +260,3 @@ class WebDash {
 }
 
 window.web_dash = new WebDash();
- 

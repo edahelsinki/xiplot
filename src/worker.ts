@@ -89,7 +89,7 @@ onmessage = async (event: MessageEvent) => {
     if (pyodide.isPyProxy(result)) {
       result = responseObjectFromPython(result);
     }
-    
+
     postResponseMessage(uuid, result);
   } catch (error) {
     postErrorMessage(uuid, error.message);
@@ -101,7 +101,8 @@ onmessage = async (event: MessageEvent) => {
  */
 const maybe_pyodide: Promise<PyodideInterface> = loadPyodide({
   homedir: "/",
-  indexURL: "",
+  // indexURL: "", // To use local pyodide files
+  indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.0/full/", // To use CDN pyodide files
   fullStdLib: false,
   stdout: postConsoleMessage,
   stderr: postConsoleError,
