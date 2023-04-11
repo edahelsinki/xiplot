@@ -45,7 +45,7 @@ deploy: pyodide xiplot
 	cp -r xiplot/xiplot/assets dist/
 	ls dist/data > dist/assets/data.ls
 	cd xiplot && \
-	pip install -r requirements.txt && \
+	pip install . && \
 	pip install toml && \
 	cp ../patches/bundle-dash-app.py . && \
 	python3 bundle-dash-app.py && \
