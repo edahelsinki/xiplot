@@ -1,12 +1,13 @@
-dash==2.6.1
+dash==2.6.2
 dash-extensions==0.1.4
 dash-mantine-components==0.10.2
-dash-uploader==0.6.0
-feather-format==0.4.1
-flask==2.1.2
-jsonschema==4.6.0
-pandas==1.4.2
+dash-uploader~=0.6.0
+feather-format~=0.4.1
+flask<=2.1.2
+jsonschema~=4.6.0
+pandas>=1.4.0,<2.0.0
 plotly==5.9.0
-scikit-learn==1.1.1
-kaleido==0.2.1
+scikit-learn>=1.1.1
+kaleido~=0.2.1
+pyarrow~=11.0.0
 packaging<22 # Needed for dash-uploader==0.6.0
