@@ -1,11 +1,27 @@
-import hashlib
-import json
+from pathlib import Path
 import re
-import toml
 
 import dash
 
-from pathlib import Path
+cwd = Path.cwd()
+if (cwd / "pyproject.toml").exists():
+    root = cwd
+    dist = cwd.parent / "dist"
+elif (cwd / "xiplot" / "pyproject.toml").exists():
+    import sys
+
+    sys.path.insert(0, "xiplot")
+    dist = cwd / "dist"
+    root = cwd / "xiplot"
+elif (cwd.parent / "xiplot" / "pyproject.toml").exists():
+    import sys
+
+    sys.path.insert(0, "../xiplot")
+    dist = cwd.parent / "dist"
+    root = cwd.parent / "xiplot"
+else:
+    raise FileNotFoundError("Could not identify the current directory")
+
 
 from xiplot.setup import setup_xiplot_dash_app
 
@@ -69,7 +85,6 @@ with app.server.app_context():
 SRC_PATTERN = re.compile(r"src=\"([^\"]+)\"")
 MAP_PATTERN = re.compile(r"^\/\/# sourceMappingURL=(.+)$", re.MULTILINE)
 
-dist = Path.cwd().parent / "dist"
 
 for script in app._generate_scripts_html().split("</script>"):
     src = SRC_PATTERN.search(script)
@@ -118,34 +133,61 @@ for script in app._generate_scripts_html().split("</script>"):
     print(src_map)
 
 
-""" Register the xiplot dash app module in the pyodide registry """
+if (dist / "repodata.json").exists():
+    """Register the xiplot dash app module in the pyodide registry"""
 
-with open("pyproject.toml", "r") as file:
-    pyproject = toml.load(file)
+    import toml
+    import hashlib
+    import json
 
-    name = pyproject["project"]["name"]
-    version = pyproject["project"]["version"]
-    dependencies = list(
-        d.split()[0]
-        for d in pyproject["project"]["dependencies"]
-        if "platform_system!='Emscripten'" not in d
-    )
+    with open(root / "pyproject.toml", "r") as file:
+        pyproject = toml.load(file)
 
-with open(dist / "repodata.json", "r") as file:
-    repodata = json.load(file)
+        name = pyproject["project"]["name"]
+        version = pyproject["project"]["version"]
+        dependencies = list(
+            d.split()[0]
+            for d in pyproject["project"]["dependencies"]
+            if "platform_system!='Emscripten'" not in d
+        )
 
-with open(dist / f"{name}-{version}-py3-none-any.whl", "rb") as file:
-    sha256 = hashlib.sha256(file.read()).hexdigest()
+    with open(dist / "repodata.json", "r") as file:
+        repodata = json.load(file)
 
-repodata["packages"][name] = {
-    "name": name,
-    "version": version,
-    "file_name": f"{name}-{version}-py3-none-any.whl",
-    "install_dir": "site",
-    "sha256": sha256,
-    "depends": dependencies,
-    "imports": [name],
-}
+    with open(dist / f"{name}-{version}-py3-none-any.whl", "rb") as file:
+        sha256 = hashlib.sha256(file.read()).hexdigest()
 
-with open(dist / "repodata.json", "w") as file:
-    json.dump(repodata, file)
+    repodata["packages"][name] = {
+        "name": name,
+        "version": version,
+        "file_name": f"{name}-{version}-py3-none-any.whl",
+        "install_dir": "site",
+        "sha256": sha256,
+        "depends": dependencies,
+        "imports": [name],
+    }
+
+    with open(dist / "repodata.json", "w") as file:
+        json.dump(repodata, file)
+
+
+if (dist / "install.py").exists():
+    """Insert the correct version numbers into install.py"""
+    with open(dist / "install.py", "+rt") as file:
+        content = file.read()
+        try:
+            import jsbeautifier
+
+            reg = 'JSBEAUTIFIER_VERSION = "(.+)"'
+            rep = f'JSBEAUTIFIER_VERSION = "{jsbeautifier.__version__}"'
+            content = re.sub(reg, rep, content)
+        except:
+            pass
+        whl = sorted(dist.glob("xiplot-*-py3-none-any.whl"))
+        assert len(whl) > 0, f"Could not find the xiplot wheel in {str(dist)}"
+        reg = 'XIPLOT_WHEEL = "(.+)"'
+        rep = f'XIPLOT_WHEEL = "{whl[-1].name}"'
+        content = re.sub(reg, rep, content)
+        file.seek(0)
+        file.write(content)
+        file.truncate()

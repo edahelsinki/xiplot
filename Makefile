@@ -30,6 +30,7 @@ xiplot/.gitignore:
 build_xiplot: xiplot/.gitignore
 	pip install build && \
 	cd xiplot && \
+	rm -rf dist && \
 	python3 -m build
 
 xiplot: install_xiplot build_xiplot
@@ -83,7 +84,9 @@ xiplot2: install_xiplot
 	cd xiplot && \
 	git apply --whitespace=nowarn /tmp/xiplot.patch && \
 	pip install build && \
+	rm -rf dist && \
 	python3 -m build && \
+	pip install . && \
 	git apply --whitespace=nowarn --reverse /tmp/xiplot.patch
 
 deploy2: xiplot2
@@ -91,14 +94,9 @@ deploy2: xiplot2
 	mkdir dist
 	cp -r xiplot/data dist/
 	cp -r xiplot/xiplot/assets dist/
-	cp patches/bootstrap.py dist/
+	cp patches/bootstrap.py patches/install.py dist/
 	cp xiplot/dist/xiplot-*.*.*-py3-none-any.whl dist/
 	ls dist/data > dist/assets/data.ls
-	echo '{"packages": {}}' > dist/repodata.json
-	cd xiplot && \
-	pip install toml . && \
-	cp ../patches/bundle-dash-app.py . && \
-	python3 bundle-dash-app.py && \
-	rm -f bundle-dash-app.py ../dist/repodata.json
+	python3 patches/bundle-dash-app.py
 	npm install
 	npm run build

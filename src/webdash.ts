@@ -80,9 +80,7 @@ class WebDash {
   }
 
   private async bootstrap() {
-    await this.worker_manager.executeWithAnyResponse("import micropip; micropip.install(\"setuptools\")", {});
-    await this.worker_manager.executeWithAnyResponse("micropip.add_mock_package(\"jsbeautifier\", \"1.14.3\")", {});
-    await this.worker_manager.executeWithAnyResponse("micropip.install(\"xiplot-0.2.0-py3-none-any.whl\")", {});
+    await this.installDependencies();
     await this.initialiseDashApp();
 
     await this.injectDashHeaders(document.head);
@@ -92,6 +90,16 @@ class WebDash {
 
     await this.injectDashScripts(footer);
     await this.injectDashRenderer(footer);
+  }
+
+  private async installDependencies() {
+    log("Installing Python dependencies");
+
+    const install_python: string = await this.web_flask
+      .nativeFetch("install.py")
+      .then((response) => response.text());
+
+    await this.worker_manager.executeWithAnyResponse(install_python, {});
   }
 
   private async initialiseDashApp() {
