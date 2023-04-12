@@ -32,7 +32,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-importScripts("pyodide.js");
+importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js");
 
 /**
  * Handler receiving message events from the WorkerManager.
@@ -101,8 +101,6 @@ onmessage = async (event: MessageEvent) => {
  */
 const maybe_pyodide: Promise<PyodideInterface> = loadPyodide({
   homedir: "/",
-  // indexURL: "", // To use local pyodide files
-  indexURL: "https://cdn.jsdelivr.net/pyodide/v0.23.0/full/", // To use CDN pyodide files
   fullStdLib: false,
   stdout: postConsoleMessage,
   stderr: postConsoleError,
