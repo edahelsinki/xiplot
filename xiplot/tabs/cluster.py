@@ -3,7 +3,6 @@ import uuid
 import sys
 
 import dash
-import dash_daq as daq
 import dash_mantine_components as dmc
 import plotly.express as px
 import jsonschema
@@ -258,7 +257,7 @@ class Cluster(Tab):
         @app.callback(
             Output("selection_cluster_dropdown", "value"),
             Output("selection_cluster_dropdown", "disabled"),
-            Input("cluster_selection_mode", "on"),
+            Input("cluster_selection_mode", "value"),
             State("selection_cluster_dropdown", "value"),
         )
         def pin_selection_cluster(selection_mode, selection_cluster):
@@ -268,20 +267,15 @@ class Cluster(Tab):
 
         @app.callback(
             Output("cluster-tab-settings-session", "children"),
-            Output("cluster_selection_mode", "on"),
+            Output("cluster_selection_mode", "value"),
             Output("selection_cluster_dropdown", "value"),
             Output("cluster-tab-settings-notify-container", "children"),
             CycleBreakerInput("metadata_store", "data"),
             State("cluster-tab-settings-session", "children"),
-            State("cluster_selection_mode", "on"),
         )
-        def init_from_settings(
-            meta,
-            last_meta_session,
-            selection_mode,
-        ):
+        def init_from_settings(meta, last_meta_session):
             if meta is None:
-                return dash.no_update, selection_mode, dash.no_update, dash.no_update
+                return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
             if meta["session"] == last_meta_session:
                 return dash.no_update, dash.no_update, dash.no_update, dash.no_update
@@ -326,7 +320,7 @@ class Cluster(Tab):
             except jsonschema.exceptions.ValidationError as err:
                 return (
                     meta["session"],
-                    selection_mode,
+                    dash.no_update,
                     dash.no_update,
                     dmc.Notification(
                         id=str(uuid.uuid4()),
@@ -341,19 +335,19 @@ class Cluster(Tab):
             try:
                 mode = meta["settings"]["cluster-tab"]["selection"]["mode"]
             except Exception:
-                return meta["session"], selection_mode, dash.no_update, dash.no_update
+                return meta["session"], dash.no_update, dash.no_update, dash.no_update
 
             if mode == "draw":
                 brush = meta["settings"]["cluster-tab"]["selection"]["brush"]
 
-                return meta["session"], True, brush, dash.no_update
+                return meta["session"], ["edit"], brush, dash.no_update
             else:  # mode == "fg-bg"
-                return meta["session"], False, dash.no_update, dash.no_update
+                return meta["session"], None, dash.no_update, dash.no_update
 
         @app.callback(
             Output("metadata_store", "data"),
             State("metadata_store", "data"),
-            Input("cluster_selection_mode", "on"),
+            Input("cluster_selection_mode", "value"),
             Input("selection_cluster_dropdown", "value"),
         )
         def update_settings(meta, selection_mode, selection_cluster):
@@ -471,7 +465,7 @@ class Cluster(Tab):
                                 id="cluster_amount",
                             ),
                             html.Button(
-                                "Compute the clusters",
+                                "Compute clusters",
                                 id="cluster-button",
                                 className="button",
                             ),
@@ -486,11 +480,11 @@ class Cluster(Tab):
                 ),
                 html.Br(),
                 FlexRow(
-                    layout_wrapper(
-                        daq.BooleanSwitch(
-                            id="cluster_selection_mode", style={"padding": "0.3rem"}
-                        ),
-                        title="Cluster edit mode",
+                    dcc.Checklist(
+                        [dict(label="Cluster edit mode", value="edit")],
+                        id="cluster_selection_mode",
+                        labelClassName="button",
+                        inline=True,
                     ),
                     cluster_dropdown(
                         id_name="selection_cluster_dropdown",
@@ -500,7 +494,7 @@ class Cluster(Tab):
                         title="Select cluster",
                     ),
                     html.Button(
-                        "Remove the clusters",
+                        "Remove clusters",
                         id="clusters_reset-button",
                         className="button",
                     ),
