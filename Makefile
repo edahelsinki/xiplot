@@ -1,4 +1,4 @@
-.PHONY: pyodide install_pyodide build_pyodide xiplot install_xiplot build_xiplot deploy run all clean nuke xiplot2 deploy2
+.PHONY: pyodide install_pyodide build_pyodide xiplot install_xiplot build_xiplot deploy run all clean nuke deploy2
 
 all: run
 
@@ -28,9 +28,9 @@ xiplot/.gitignore:
 	git submodule update --depth=1 xiplot
 
 build_xiplot: xiplot/.gitignore
-	pip install build && \
 	cd xiplot && \
 	rm -rf dist && \
+	pip install build toml . && \
 	python3 -m build
 
 xiplot: install_xiplot build_xiplot
@@ -46,8 +46,6 @@ deploy: pyodide xiplot
 	cp -r xiplot/xiplot/assets dist/
 	ls dist/data > dist/assets/data.ls
 	cd xiplot && \
-	pip install . && \
-	pip install toml && \
 	cp ../patches/bundle-dash-app.py . && \
 	python3 bundle-dash-app.py && \
 	rm -f bundle-dash-app.py
@@ -78,18 +76,7 @@ nuke: clean
 	git submodule deinit -f xiplot
 	git submodule deinit -f pyodide
 
-xiplot2: install_xiplot
-	# Apply pull request 29 (remove the dependency on dash-daq, and allow a pandas version that has a pyodide wheel)
-	curl https://patch-diff.githubusercontent.com/raw/edahelsinki/xiplot/pull/29.patch -o /tmp/xiplot.patch
-	cd xiplot && \
-	git apply --whitespace=nowarn /tmp/xiplot.patch && \
-	pip install build && \
-	rm -rf dist && \
-	python3 -m build && \
-	pip install . && \
-	git apply --whitespace=nowarn --reverse /tmp/xiplot.patch
-
-deploy2: xiplot2
+deploy2: xiplot
 	rm -rf dist
 	mkdir dist
 	cp -r xiplot/data dist/
