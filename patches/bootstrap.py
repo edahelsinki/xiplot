@@ -27,6 +27,11 @@ def bootstrap_dash_app(url_base_pathname):
         eager_loading=True,
     )
 
+    # Asynchronously install sklearn (it will be unavailable the first couple of seconds after xiplot has loaded)
+    app._inline_scripts.append(
+        "setTimeout(async () => await window.web_dash.worker_manager.executeWithAnyResponse(\"micropip.install('scikit-learn')\", {}), 5)"
+    )
+
     # Dummy request to ensure the server is setup when we request the index
     with app.server.app_context():
         with app.server.test_client() as client:
