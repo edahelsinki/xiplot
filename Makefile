@@ -25,7 +25,7 @@ install_xiplot: xiplot/.gitignore
 
 xiplot/.gitignore:
 	git submodule init xiplot
-	git submodule update --depth=1 xiplot
+	git submodule update --depth=1 --remote xiplot
 
 build_xiplot: xiplot/.gitignore
 	cd xiplot && \
