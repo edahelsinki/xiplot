@@ -171,10 +171,12 @@ if (dist / "repodata.json").exists():
         json.dump(repodata, file)
 
 
-if (dist / "install.py").exists():
-    """Insert the correct version numbers into install.py"""
-    with open(dist / "install.py", "+rt") as file:
+if (dist / "bootstrap.py").exists():
+    """Insert the correct version numbers into bootstrap.py"""
+    with open(dist / "bootstrap.py", "+rt") as file:
+        # Read bootstrap.py
         content = file.read()
+        # jsbeautifier version
         try:
             import jsbeautifier
 
@@ -183,11 +185,17 @@ if (dist / "install.py").exists():
             content = re.sub(reg, rep, content)
         except:
             pass
-        whl = sorted(dist.glob("xiplot-*-py3-none-any.whl"))
+        # dash version
+        reg = 'DASH_VERSION = "(.+)"'
+        rep = f'DASH_VERSION = "{dash.__version__}"'
+        content = re.sub(reg, rep, content)
+        # xiplot version
+        whl: list[Path] = sorted(dist.glob("xiplot-*-py3-none-any.whl"))
         assert len(whl) > 0, f"Could not find the xiplot wheel in {str(dist)}"
         reg = 'XIPLOT_WHEEL = "(.+)"'
         rep = f'XIPLOT_WHEEL = "{whl[-1].name}"'
         content = re.sub(reg, rep, content)
+        # Write bootstrap.py
         file.seek(0)
         file.write(content)
         file.truncate()

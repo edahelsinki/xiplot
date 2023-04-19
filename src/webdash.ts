@@ -32,8 +32,6 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { dedent } from "ts-dedent";
-
 import { WebFlask } from "./webflask";
 import { WorkerManager } from "./manager";
 
@@ -80,7 +78,6 @@ class WebDash {
   }
 
   private async bootstrap() {
-    await this.installDependencies();
     await this.initialiseDashApp();
 
     await this.injectDashHeaders(document.head);
@@ -90,16 +87,6 @@ class WebDash {
 
     await this.injectDashScripts(footer);
     await this.injectDashRenderer(footer);
-  }
-
-  private async installDependencies() {
-    log("Installing Python dependencies");
-
-    const install_python: string = await this.web_flask
-      .nativeFetch("install.py")
-      .then((response) => response.text());
-
-    await this.worker_manager.executeWithAnyResponse(install_python, {});
   }
 
   private async initialiseDashApp() {
@@ -113,19 +100,10 @@ class WebDash {
       "/"
     );
 
-    await this.worker_manager.executeWithAnyResponse(
-      dedent`
-        ${bootstrap_python}
-
-        # Initialise and bootstrap the dash app
-        app = bootstrap_dash_app("${url_base_pathname}")
-
-        @app.server.errorhandler(ImportError)
-        def import_error(err):
-          return err.name, 424
-      `,
-      {}
-    );
+    // Run the bootstrap script
+    await this.worker_manager.executeWithAnyResponse(bootstrap_python, {});
+    // Initialise and bootstrap the dash app
+    await this.worker_manager.executeWithAnyResponse(`app = bootstrap_dash_app("${url_base_pathname}")`, {});
   }
 
   private async injectDashHeaders(head: HTMLElement) {
@@ -167,7 +145,7 @@ class WebDash {
 
     const react_entry_point =
       await this.worker_manager.executeWithStringResponse(
-        "dash.dash._app_entry",
+        "import dash; dash.dash._app_entry",
         {}
       );
 
