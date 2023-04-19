@@ -1,26 +1,20 @@
 from pathlib import Path
 import re
+import sys
 
 import dash
 
 cwd = Path.cwd()
 if (cwd / "pyproject.toml").exists():
-    root = cwd
     dist = cwd.parent / "dist"
 elif (cwd / "xiplot" / "pyproject.toml").exists():
-    import sys
-
     sys.path.insert(0, "xiplot")
     dist = cwd / "dist"
-    root = cwd / "xiplot"
 elif (cwd.parent / "xiplot" / "pyproject.toml").exists():
-    import sys
-
     sys.path.insert(0, "../xiplot")
     dist = cwd.parent / "dist"
-    root = cwd.parent / "xiplot"
 else:
-    raise FileNotFoundError("Could not identify the current directory")
+    raise FileNotFoundError("Could not identify the xiplot root directory")
 
 
 from xiplot.setup import setup_xiplot_dash_app
@@ -85,7 +79,6 @@ with app.server.app_context():
 SRC_PATTERN = re.compile(r"src=\"([^\"]+)\"")
 MAP_PATTERN = re.compile(r"^\/\/# sourceMappingURL=(.+)$", re.MULTILINE)
 
-
 for script in app._generate_scripts_html().split("</script>"):
     src = SRC_PATTERN.search(script)
     if src is None:
@@ -133,69 +126,30 @@ for script in app._generate_scripts_html().split("</script>"):
     print(src_map)
 
 
-if (dist / "repodata.json").exists():
-    """Register the xiplot dash app module in the pyodide registry"""
+"""Insert the correct version numbers into bootstrap.py"""
 
-    import toml
-    import hashlib
-    import json
+with open(dist / "bootstrap.py", "+rt") as file:
+    content = file.read()
 
-    with open(root / "pyproject.toml", "r") as file:
-        pyproject = toml.load(file)
+    try:
+        import jsbeautifier
 
-        name = pyproject["project"]["name"]
-        version = pyproject["project"]["version"]
-        dependencies = list(
-            d.split()[0]
-            for d in pyproject["project"]["dependencies"]
-            if "platform_system!='Emscripten'" not in d
-        )
-
-    with open(dist / "repodata.json", "r") as file:
-        repodata = json.load(file)
-
-    with open(dist / f"{name}-{version}-py3-none-any.whl", "rb") as file:
-        sha256 = hashlib.sha256(file.read()).hexdigest()
-
-    repodata["packages"][name] = {
-        "name": name,
-        "version": version,
-        "file_name": f"{name}-{version}-py3-none-any.whl",
-        "install_dir": "site",
-        "sha256": sha256,
-        "depends": dependencies,
-        "imports": [name],
-    }
-
-    with open(dist / "repodata.json", "w") as file:
-        json.dump(repodata, file)
-
-
-if (dist / "bootstrap.py").exists():
-    """Insert the correct version numbers into bootstrap.py"""
-    with open(dist / "bootstrap.py", "+rt") as file:
-        # Read bootstrap.py
-        content = file.read()
-        # jsbeautifier version
-        try:
-            import jsbeautifier
-
-            reg = 'JSBEAUTIFIER_VERSION = "(.+)"'
-            rep = f'JSBEAUTIFIER_VERSION = "{jsbeautifier.__version__}"'
-            content = re.sub(reg, rep, content)
-        except:
-            pass
-        # dash version
-        reg = 'DASH_VERSION = "(.+)"'
-        rep = f'DASH_VERSION = "{dash.__version__}"'
+        reg = 'JSBEAUTIFIER_VERSION = "(.+)"'
+        rep = f'JSBEAUTIFIER_VERSION = "{jsbeautifier.__version__}"'
         content = re.sub(reg, rep, content)
-        # xiplot version
-        whl: list[Path] = sorted(dist.glob("xiplot-*-py3-none-any.whl"))
-        assert len(whl) > 0, f"Could not find the xiplot wheel in {str(dist)}"
-        reg = 'XIPLOT_WHEEL = "(.+)"'
-        rep = f'XIPLOT_WHEEL = "{whl[-1].name}"'
-        content = re.sub(reg, rep, content)
-        # Write bootstrap.py
-        file.seek(0)
-        file.write(content)
-        file.truncate()
+    except:
+        pass
+
+    reg = 'DASH_VERSION = "(.+)"'
+    rep = f'DASH_VERSION = "{dash.__version__}"'
+    content = re.sub(reg, rep, content)
+
+    whl: list[Path] = sorted(dist.glob("xiplot-*-py3-none-any.whl"))
+    assert len(whl) > 0, f"Could not find the xiplot wheel in {str(dist)}"
+    reg = 'XIPLOT_WHEEL = "(.+)"'
+    rep = f'XIPLOT_WHEEL = "{whl[-1].name}"'
+    content = re.sub(reg, rep, content)
+
+    file.seek(0)
+    file.write(content)
+    file.truncate()
