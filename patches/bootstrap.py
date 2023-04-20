@@ -47,10 +47,6 @@ async def setup_bootstrap():
             "setTimeout(async () => await window.web_dash.worker_manager.executeWithAnyResponse(\"micropip.install('scikit-learn')\", {}), 5)"
         )
 
-        @app.server.errorhandler(ImportError)
-        def import_error(err):
-            return err.name, 424
-
         # Dummy request to ensure the server is setup when we request the index
         with app.server.app_context():
             with app.server.test_client() as client:

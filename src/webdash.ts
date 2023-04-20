@@ -79,6 +79,7 @@ class WebDash {
 
   private async bootstrap() {
     await this.initialiseDashApp();
+    await this.web_flask.setupPythonLazyLoading();
 
     await this.injectDashHeaders(document.head);
     await this.injectDashReactEntryPoint(document.body);

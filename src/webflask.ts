@@ -45,6 +45,7 @@ import { log } from "./webdash";
 */
 export class WebFlask {
   private worker: WorkerManager;
+  private python_lazy_loading: boolean;
   private original_fetch: (
     input: URL | RequestInfo,
     init?: RequestInit | undefined
@@ -52,6 +53,7 @@ export class WebFlask {
 
   public constructor(workerManager) {
     this.worker = workerManager;
+    this.python_lazy_loading = false;
 
     this.original_fetch = window.fetch;
     window.fetch = this.fetch.bind(this);
@@ -166,6 +168,49 @@ export class WebFlask {
   }
 
   /**
+   * Create the python functions and callbacks needed to
+   * lazily install Python pacakges.
+   */
+  public async setupPythonLazyLoading(): Promise<any> {
+    if (!this.python_lazy_loading) {
+      await this.worker.executeWithAnyResponse(
+        dedent`
+          import re
+
+          @app.server.errorhandler(ImportError)
+          def import_error(err):
+            if err.name:
+              return err.name, 424
+            else:
+              raise err
+
+          module_not_found_regex = re.compile("[(No module named)(The module)] '(.+)'")
+
+          @app.server.errorhandler(ModuleNotFoundError)
+          def module_error(err):
+            try:
+              return module_not_found_regex.search(str(err)).group(1), 424
+            except:
+              raise err
+
+          async def dash_lazy_request(*args, **kwargs):
+            with app.server.app_context():
+              with app.server.test_client() as client:
+                response = client.open(*args, **kwargs)
+                if response.status_code == 424:
+                  mod = response.get_data(as_text=True)
+                  print(f"Lazily loading '{mod}', please wait.")
+                  await micropip.install(mod)
+                  print(f"Loaded '{mod}', resending request.")
+                  response = client.open(*args, **kwargs)
+            return response`,
+        {}
+      );
+      this.python_lazy_loading = true;
+    }
+  }
+
+  /**
   * Generates the stringified Python code to be run in Pyodide
   * to perform a request on the Flask server backend.
   *
@@ -195,18 +240,25 @@ export class WebFlask {
       method = init.method;
     }
 
-    return dedent`
-      with app.server.app_context():
-        with app.server.test_client() as client:
-          response = client.open('${info}',
-            data=${data},
-            content_type=${content_type},
-            method="${method}",
-          )
-      if response.status_code == 424:
-        __import__(response.get_data(as_text=True))
-      response
+    if (this.python_lazy_loading) {
+      return dedent`
+        dash_lazy_request('${info}',
+          data=${data},
+          content_type=${content_type},
+          method="${method}",
+        )
     `;
+    } else {
+      return dedent`
+        with app.server.app_context():
+          with app.server.test_client() as client:
+            response = client.open('${info}',
+              data=${data},
+              content_type=${content_type},
+              method="${method}",
+            )
+        response
+    `;
+    }
   }
 }
- 
