@@ -199,14 +199,16 @@ export class WebFlask {
             with app.server.app_context():
               with app.server.test_client() as client:
                 response = client.open(*args, **kwargs)
-                if response.status_code == 424:
+                prev_mod = None
+                while response.status_code == 424:
                   mod = response.get_data(as_text=True)
+                  if mod == prev_mod:
+                    raise ImportError(f"Could not import '{mod}'", name=mod)
                   print(f"Lazily loading '{mod}', please wait.")
                   await micropip.install(mod)
                   print(f"Loaded '{mod}', resending request.")
                   response = client.open(*args, **kwargs)
-                  if response.status_code == 424:
-                    raise ImportError(f"Could not import '{mod}'", name=mod)
+                  prev_mod = mod
             return response`,
         {}
       );
