@@ -188,6 +188,8 @@ export class WebFlask {
 
           @app.server.errorhandler(ModuleNotFoundError)
           def module_error(err):
+            if err.name:
+              return err.name, 424
             try:
               return module_not_found_regex.search(str(err)).group(1), 424
             except:
@@ -203,6 +205,8 @@ export class WebFlask {
                   await micropip.install(mod)
                   print(f"Loaded '{mod}', resending request.")
                   response = client.open(*args, **kwargs)
+                  if response.status_code == 424:
+                    raise ImportError(f"Could not import '{mod}'", name=mod)
             return response`,
         {}
       );
