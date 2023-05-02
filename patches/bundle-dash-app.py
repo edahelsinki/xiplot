@@ -144,7 +144,7 @@ with open(dist / "bootstrap.py", "+rt") as file:
     rep = f'DASH_VERSION = "{dash.__version__}"'
     content = re.sub(reg, rep, content)
 
-    whl: list[Path] = sorted(dist.glob("xiplot-*-py3-none-any.whl"))
+    whl = sorted(dist.glob("xiplot-*-py3-none-any.whl"))
     assert len(whl) > 0, f"Could not find the xiplot wheel in {str(dist)}"
     reg = 'XIPLOT_WHEEL = "(.+)"'
     rep = f'XIPLOT_WHEEL = "{whl[-1].name}"'
