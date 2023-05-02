@@ -44,7 +44,10 @@ async def setup_bootstrap():
 
         # Asynchronously install sklearn (it will be unavailable the first couple of seconds after xiplot has loaded)
         app._inline_scripts.append(
-            "setTimeout(async () => await window.web_dash.worker_manager.executeWithAnyResponse(\"micropip.install('scikit-learn')\", {}), 5)"
+            "setTimeout("
+            + "async () => await window.web_dash.worker_manager.executeWithAnyResponse(\"micropip.install('scikit-learn')\", {},)"
+            + '.then(() => window.web_dash.worker_manager.executeWithAnyResponse("import sklearn", {}))'
+            + ", 5)"
         )
 
         # Dummy request to ensure the server is setup when we request the index
