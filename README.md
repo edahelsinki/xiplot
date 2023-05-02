@@ -40,7 +40,7 @@ The [`wasm`](https://github.com/edahelsinki/xiplot/tree/wasm) branch of the repo
   * `webdash.ts` implements the entry point and bootstrapping process for WebDash. In particular, it is responsible for transitioning the web page to the dashboard once the dash app has been loaded.
   * `webflask.ts` is responsible for intercepting `fetch` requests to the `flask` server and redirecting them to the virtual one instead. In this capacity, it generates the Python code to execute the requests, and translates requests and responses between JS and Python.
   * `manager.ts` manages the communication between the `webdash.ts` and `webflask.ts` on the frontend, and the `pyodide` backend running inside a web worker.
-  * `worker.ts` implements the web worker which executes Python code inside `pyodide` to simulate the virtual `flask` server inside the client's browser. To update to a newer version of `pyodide`, change URL at the top of the file.
+  * `worker.ts` implements the web worker which executes Python code inside `pyodide` to simulate the virtual `flask` server inside the client's browser. To update to a newer version of `pyodide`, change the `importScripts("URL")` URL at the top of the file.
 * The `Makefile` orchestrates building the WASM WebDash version of `xiplot`. Important `make` commands include:
   * `make nuke` removes **all** build artifacts, including `pyodide`'s, allowing for a clean rebuild
   * `make clean` removes `xiplot`'s build artifacts as well as the final `dist` output folder
