@@ -4,20 +4,20 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["**.py", "requirements.txt"]
+    paths: ["**.py", "requirements.txt", "requirements-dev.txt"]
   pull_request:
     branches: [main]
-    paths: ["**.py", "requirements*.txt"]
+    paths: ["**.py", "requirements*.txt", "requirements-dev.txt"]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"] #, "3.11"] # Python 3.11 has trouble installing packages on GitHub
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set up chome
         run: |
@@ -27,7 +27,7 @@ jobs:
           sudo apt-get install libnss3-dev google-chrome-stable
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+      uses: actions/setup-python@v3
         with:
           python-version: ${{ matrix.python-version }}
 
