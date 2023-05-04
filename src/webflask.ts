@@ -168,8 +168,11 @@ export class WebFlask {
   }
 
   /**
-   * Create the python functions and callbacks needed to
-   * lazily install Python pacakges.
+   * This function configures the Dash app and WebFlask to capture
+   * ImportError:s and try to install and lazy load missing packages.
+   * The intercepted requests will be resent when the new packages are available.
+   *
+   * This function must be called after the `app: Dash` object has been created in Python.
    */
   public async setupPythonLazyLoading(): Promise<any> {
     if (!this.python_lazy_loading) {
@@ -220,12 +223,15 @@ export class WebFlask {
   * Generates the stringified Python code to be run in Pyodide
   * to perform a request on the Flask server backend.
   *
+  * If lazy loading (installing) of Python packages is desired,
+  * call `await this.setupPythonLazyLoading()` first.
+  *
   * Note: assumes request payload is either `null` or `json`.
   *
   * @param info `URL` or `string` or `Request` object
   * @param init optionally `RequestInit`
   *
-  * @returs stringified Python code
+  * @returns stringified Python code
   */
   private generateRequestPythonCode(
     info: URL | RequestInfo,

@@ -79,7 +79,6 @@ class WebDash {
 
   private async bootstrap() {
     await this.initialiseDashApp();
-    await this.web_flask.setupPythonLazyLoading();
 
     await this.injectDashHeaders(document.head);
     await this.injectDashReactEntryPoint(document.body);
@@ -105,6 +104,8 @@ class WebDash {
     await this.worker_manager.executeWithAnyResponse(bootstrap_python, {});
     // Initialise and bootstrap the dash app
     await this.worker_manager.executeWithAnyResponse(`app = bootstrap_dash_app("${url_base_pathname}")`, {});
+    // Configure the dash app to capture ImportError:s and lazy load missing packages
+    await this.web_flask.setupPythonLazyLoading();
   }
 
   private async injectDashHeaders(head: HTMLElement) {
