@@ -24,12 +24,11 @@ dependencies = [
     "dash-extensions == 0.1.4",
     "dash-mantine-components == 0.10.2",
     "dash-uploader ~= 0.6.0; platform_system!='Emscripten'",
-    "flask <= 2.1.2",
     "jsonschema ~= 4.6.0",
     "kaleido ~= 0.2.1; platform_system!='Emscripten'",
     "pandas >= 1.4.0, < 2.0.0",
-    "plotly == 5.9.0",
-    "pyarrow ~= 11.0.0; platform_system!='Emscripten'",
+    "plotly >= 5.9.0",
+    "pyarrow >= 11.0.0; platform_system!='Emscripten'",
     "scikit-learn >= 1.1.1; platform_system!='Emscripten'",
 ]
 
