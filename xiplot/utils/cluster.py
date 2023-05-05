@@ -10,7 +10,7 @@ def cluster_colours():
 
 def KMeans(n_clusters: int = 8, **kwargs) -> object:
     """A wrapper around `sklearn.cluster.KMeans` that changes `n_init="warn"` to `n_init="auto"`.
-    This is needed to avoid a warning for sklearn versions `>=1.2,<1.4`.
+    This is needed to avoid a warning for scikit-learn versions `>=1.2,<1.4`.
     Older and newer versions are not affected (unless `n_init="warn"` is manually specified).
 
     NOTE: This function lazily loads scikit-learn (so the first call might be slow)
