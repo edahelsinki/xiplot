@@ -15,7 +15,7 @@ from xiplot.tabs import Tab
 from xiplot.utils.layouts import layout_wrapper, cluster_dropdown
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.cluster import cluster_colours, KMeans
 from xiplot.utils.components import FlexRow
 
 
@@ -413,7 +413,6 @@ class Cluster(Tab):
         ):
             return kmeans_col
 
-        from sklearn.cluster import KMeans
         from sklearn.preprocessing import StandardScaler
 
         scaler = StandardScaler()

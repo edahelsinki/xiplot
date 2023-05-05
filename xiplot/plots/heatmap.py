@@ -6,6 +6,7 @@ from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
 from xiplot.utils.components import DeleteButton, PdfButton, PlotData
 
+from xiplot.utils.cluster import KMeans
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
@@ -110,8 +111,6 @@ class Heatmap(APlot):
 
     @staticmethod
     def render(n_clusters, features, df, pca_cols=[], template=None):
-        from sklearn.cluster import KMeans
-
         km = KMeans(n_clusters=n_clusters, random_state=42)
         df = add_pca_columns_to_df(df, pca_cols)
         dff = df.dropna()
