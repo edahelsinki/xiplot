@@ -168,7 +168,7 @@ class Cluster(Tab):
             message = "The k-means clustering process has started."
 
             if "sklearn" not in sys.modules:
-                message += " [sklearn has to first be loaded lazily]"
+                message += " [Loading scikit-learn]"
 
             return process_id, dmc.Notification(
                 id=process_id,
