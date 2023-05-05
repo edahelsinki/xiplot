@@ -11,10 +11,18 @@ class Settings(Tab):
     @staticmethod
     def register_callbacks(app: Dash, df_from_store, df_to_store):
         pio.templates["xiplot_light"] = go.layout.Template(
-            layout={"paper_bgcolor": "rgba(255,255,255,0)"}
+            layout={
+                "paper_bgcolor": "rgba(255,255,255,0)",
+                "margin": dict(l=10, r=10, t=10, b=10, autoexpand=True),
+                "uirevision": True,
+            }
         )
         pio.templates["xiplot_dark"] = go.layout.Template(
-            layout={"paper_bgcolor": "rgba(0,0,0,0)"}
+            layout={
+                "paper_bgcolor": "rgba(0,0,0,0)",
+                "margin": dict(l=10, r=10, t=10, b=10, autoexpand=True),
+                "uirevision": True,
+            }
         )
         pio.templates.default = "plotly_white+xiplot_light"
 
