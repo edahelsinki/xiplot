@@ -214,7 +214,6 @@ def make_fig_property(df, x_axis, selected_clusters, clusters, template=None):
 
     fig_property.update_layout(
         hovermode="x unified",
-        margin=dict(l=10, r=10, t=10, b=10),
         showlegend=False,
         barmode="overlay",
         yaxis=dict(

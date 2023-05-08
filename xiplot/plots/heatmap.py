@@ -6,6 +6,8 @@ from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
 from dash.exceptions import PreventUpdate
 from xiplot.utils.components import DeleteButton, PdfButton, PlotData
 
+from xiplot.utils.cluster import KMeans
+from xiplot.utils.components import FlexRow
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
@@ -110,8 +112,6 @@ class Heatmap(APlot):
 
     @staticmethod
     def render(n_clusters, features, df, pca_cols=[], template=None):
-        from sklearn.cluster import KMeans
-
         km = KMeans(n_clusters=n_clusters, random_state=42)
         df = add_pca_columns_to_df(df, pca_cols)
         dff = df.dropna()
@@ -131,6 +131,7 @@ class Heatmap(APlot):
             y=[str(n + 1) for n in range(n_clusters)],
             color_continuous_scale="RdBu",
             origin="lower",
+            aspect="auto",
             template=template,
         )
         return fig
@@ -142,39 +143,42 @@ class Heatmap(APlot):
             schema=dict(type="object", properties=dict(clusters=dict(type="integer"))),
         )
 
-        n_clusters = config.get("clusters", 2)
+        n_clusters = config.get("clusters", 5)
         num_columns = get_numeric_columns(df, columns)
         return [
             dcc.Graph(id={"type": "heatmap", "index": index}),
-            layout_wrapper(
-                component=dcc.Dropdown(
-                    options=num_columns,
-                    multi=True,
-                    id={"type": "heatmap_feature_dropdown", "index": index},
-                    clearable=False,
+            FlexRow(
+                layout_wrapper(
+                    component=dcc.Dropdown(
+                        options=num_columns,
+                        multi=True,
+                        id={"type": "heatmap_feature_dropdown", "index": index},
+                        clearable=False,
+                    ),
+                    title="Features",
+                    css_class="dash-dropdown",
                 ),
-                title="Features",
-                style={"width": "80%"},
-            ),
-            html.Button(
-                "Add features by regex",
-                id={"type": "heatmap_regex-button", "index": index},
-            ),
-            layout_wrapper(
-                component=dcc.Input(
-                    id={"type": "heatmap_feature-input", "index": index}
+                html.Button(
+                    "Add features by regex",
+                    id={"type": "heatmap_regex-button", "index": index},
+                    className="button",
                 ),
-                style={"display": "none"},
-            ),
-            layout_wrapper(
-                component=dcc.Slider(
-                    min=2,
-                    max=10,
-                    step=1,
-                    value=n_clusters,
-                    id={"type": "heatmap_cluster_amount", "index": index},
+                layout_wrapper(
+                    component=dcc.Input(
+                        id={"type": "heatmap_feature-input", "index": index}
+                    ),
+                    style={"display": "none"},
                 ),
-                title="Cluster amount",
-                style={"width": "80%"},
-            ),
+                layout_wrapper(
+                    component=dcc.Slider(
+                        min=2,
+                        max=10,
+                        step=1,
+                        value=n_clusters,
+                        id={"type": "heatmap_cluster_amount", "index": index},
+                    ),
+                    title="Number of clusters",
+                    css_class="dash-dropdown",
+                ),
+            )
         ]

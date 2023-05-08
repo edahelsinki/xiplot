@@ -276,7 +276,6 @@ class Barplot(APlot):
 
         fig.update_layout(
             hovermode="x unified",
-            margin=dict(l=10, r=10, t=10, b=10),
             showlegend=False,
             xaxis=dict(fixedrange=True, categoryorder="array", categoryarray=top_bars),
             yaxis=dict(fixedrange=True),
