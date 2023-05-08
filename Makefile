@@ -21,7 +21,6 @@ deploy: xiplot
 	mkdir dist
 	cp -r xiplot/data dist/
 	cp -r xiplot/xiplot/assets dist/
-	cp patches/bootstrap.py dist/
 	cp xiplot/dist/xiplot-*.*.*-py3-none-any.whl dist/
 	ls dist/data > dist/assets/data.ls
 	python3 patches/bundle-dash-app.py
