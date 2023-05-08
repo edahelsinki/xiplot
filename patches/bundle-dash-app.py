@@ -1,6 +1,7 @@
 from pathlib import Path
 import re
 import sys
+from importlib.metadata import version
 
 import dash
 
@@ -128,28 +129,37 @@ for script in app._generate_scripts_html().split("</script>"):
 
 """Insert the correct version numbers into bootstrap.py"""
 
-with open(dist / "bootstrap.py", "+rt") as file:
+with open(dist.parent / "patches" / "bootstrap.py", "rt") as file:
     content = file.read()
 
+# Packages that cannot be installed via micropip
+mocked_packages = ""
+for package in ["jsbeautifier"]:
     try:
-        import jsbeautifier
-
-        reg = 'JSBEAUTIFIER_VERSION = "(.+)"'
-        rep = f'JSBEAUTIFIER_VERSION = "{jsbeautifier.__version__}"'
-        content = re.sub(reg, rep, content)
+        mocked_packages += f'"{package}": "{version(package)}",'
     except:
-        pass
+        print("Could not find version for", package)
+reg = 'MOCKED_PACKAGES = (".+")'
+rep = f"MOCKED_PACKAGES = {{{mocked_packages}}}"
+content = re.sub(reg, rep, content)
 
-    reg = 'DASH_VERSION = "(.+)"'
-    rep = f'DASH_VERSION = "{dash.__version__}"'
-    content = re.sub(reg, rep, content)
+# Packages that require a specific version, either due to bundled javascript
+# files (dash, dash_*) or micropip:s rudimentary dependency resolving (flask)
+required_packages = ""
+for package in ["flask", "dash", "dash_extensions", "dash_mantine_components"]:
+    try:
+        required_packages += f'"{package}=={version(package)}",'
+    except:
+        print("Could not find version for", package)
+reg = 'REQUIRED_PACKAGES = (".+")'
+rep = f"REQUIRED_PACKAGES = [{required_packages}]"
+content = re.sub(reg, rep, content)
 
-    whl = sorted(dist.glob("xiplot-*-py3-none-any.whl"))
-    assert len(whl) > 0, f"Could not find the xiplot wheel in {str(dist)}"
-    reg = 'XIPLOT_WHEEL = "(.+)"'
-    rep = f'XIPLOT_WHEEL = "{whl[-1].name}"'
-    content = re.sub(reg, rep, content)
+whl = sorted(dist.glob("xiplot-*-py3-none-any.whl"))
+assert len(whl) > 0, f"Could not find the xiplot wheel in {str(dist)}"
+reg = 'XIPLOT_WHEEL = "(.+)"'
+rep = f'XIPLOT_WHEEL = "{whl[-1].name}"'
+content = re.sub(reg, rep, content)
 
-    file.seek(0)
+with open(dist / "bootstrap.py", "wt") as file:
     file.write(content)
-    file.truncate()

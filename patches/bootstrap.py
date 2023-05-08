@@ -6,8 +6,8 @@ import pyodide_js
 import micropip
 
 
-JSBEAUTIFIER_VERSION = "THIS_VALUE_SHOULD_HAVE_BEEN_FILLED_WHEN_BUNDLING_XIPLOT"
-DASH_VERSION = "THIS_VALUE_SHOULD_HAVE_BEEN_FILLED_WHEN_BUNDLING_XIPLOT"
+MOCKED_PACKAGES = "THIS_VALUE_SHOULD_HAVE_BEEN_FILLED_WHEN_BUNDLING_XIPLOT"
+REQUIRED_PACKAGES = "THIS_VALUE_SHOULD_HAVE_BEEN_FILLED_WHEN_BUNDLING_XIPLOT"
 XIPLOT_WHEEL = "THIS_VALUE_SHOULD_HAVE_BEEN_FILLED_WHEN_BUNDLING_XIPLOT"
 
 
@@ -16,8 +16,9 @@ bootstrap_dash_app = lambda _: NotImplementedError("Call `setup_bootstrap` first
 
 async def install_xiplot():
     """Install xiplot and dependencies"""
-    micropip.add_mock_package("jsbeautifier", JSBEAUTIFIER_VERSION)
-    await micropip.install(["setuptools", f"dash=={DASH_VERSION}", XIPLOT_WHEEL])
+    for name, version in MOCKED_PACKAGES.items():
+        micropip.add_mock_package(name, version)
+    await micropip.install(["setuptools", *REQUIRED_PACKAGES, XIPLOT_WHEEL])
 
 
 async def setup_bootstrap():
