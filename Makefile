@@ -11,7 +11,9 @@ xiplot/.gitignore:
 build_xiplot: xiplot/.gitignore
 	cd xiplot && \
 	rm -rf dist && \
-	pip install build toml . && \
+	pip install build toml && \
+	pip install -r requirements.txt && \
+	pip install . && \
 	python3 -m build
 
 xiplot: install_xiplot build_xiplot
