@@ -1,11 +1,22 @@
-import hashlib
-import json
+from pathlib import Path
 import re
-import toml
+import sys
+from importlib.metadata import version
 
 import dash
 
-from pathlib import Path
+cwd = Path.cwd()
+if (cwd / "pyproject.toml").exists():
+    dist = cwd.parent / "dist"
+elif (cwd / "xiplot" / "pyproject.toml").exists():
+    sys.path.insert(0, "xiplot")
+    dist = cwd / "dist"
+elif (cwd.parent / "xiplot" / "pyproject.toml").exists():
+    sys.path.insert(0, "../xiplot")
+    dist = cwd.parent / "dist"
+else:
+    raise FileNotFoundError("Could not identify the xiplot root directory")
+
 
 from xiplot.setup import setup_xiplot_dash_app
 
@@ -69,8 +80,6 @@ with app.server.app_context():
 SRC_PATTERN = re.compile(r"src=\"([^\"]+)\"")
 MAP_PATTERN = re.compile(r"^\/\/# sourceMappingURL=(.+)$", re.MULTILINE)
 
-dist = Path.cwd().parent / "dist"
-
 for script in app._generate_scripts_html().split("</script>"):
     src = SRC_PATTERN.search(script)
     if src is None:
@@ -118,34 +127,39 @@ for script in app._generate_scripts_html().split("</script>"):
     print(src_map)
 
 
-""" Register the xiplot dash app module in the pyodide registry """
+"""Insert the correct version numbers into bootstrap.py"""
 
-with open("pyproject.toml", "r") as file:
-    pyproject = toml.load(file)
+with open(dist.parent / "patches" / "bootstrap.py", "rt") as file:
+    content = file.read()
 
-    name = pyproject["project"]["name"]
-    version = pyproject["project"]["version"]
-    dependencies = list(
-        d.split()[0]
-        for d in pyproject["project"]["dependencies"]
-        if "platform_system!='Emscripten'" not in d
-    )
+# Packages that cannot be installed via micropip
+mocked_packages = ""
+for package in ["jsbeautifier"]:
+    try:
+        mocked_packages += f'"{package}": "{version(package)}",'
+    except:
+        print("Could not find version for", package)
+reg = 'MOCKED_PACKAGES = (".+")'
+rep = f"MOCKED_PACKAGES = {{{mocked_packages}}}"
+content = re.sub(reg, rep, content)
 
-with open(dist / "repodata.json", "r") as file:
-    repodata = json.load(file)
+# Packages that require a specific version, either due to bundled javascript
+# files (dash, dash_*) or micropip:s rudimentary dependency resolving (flask)
+required_packages = ""
+for package in ["flask", "dash", "dash_extensions", "dash_mantine_components"]:
+    try:
+        required_packages += f'"{package}=={version(package)}",'
+    except:
+        print("Could not find version for", package)
+reg = 'REQUIRED_PACKAGES = (".+")'
+rep = f"REQUIRED_PACKAGES = [{required_packages}]"
+content = re.sub(reg, rep, content)
 
-with open(dist / f"{name}-{version}-py3-none-any.whl", "rb") as file:
-    sha256 = hashlib.sha256(file.read()).hexdigest()
+whl = sorted(dist.glob("xiplot-*-py3-none-any.whl"))
+assert len(whl) > 0, f"Could not find the xiplot wheel in {str(dist)}"
+reg = 'XIPLOT_WHEEL = "(.+)"'
+rep = f'XIPLOT_WHEEL = "{whl[-1].name}"'
+content = re.sub(reg, rep, content)
 
-repodata["packages"][name] = {
-    "name": name,
-    "version": version,
-    "file_name": f"{name}-{version}-py3-none-any.whl",
-    "install_dir": "site",
-    "sha256": sha256,
-    "depends": dependencies,
-    "imports": [name],
-}
-
-with open(dist / "repodata.json", "w") as file:
-    json.dump(repodata, file)
+with open(dist / "bootstrap.py", "wt") as file:
+    file.write(content)

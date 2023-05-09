@@ -15,22 +15,10 @@ jobs:
         with:
           submodules: true
 
-      - name: Check the pyodide version
-        run: |
-          echo "PYODIDE_SHA_SHORT=$(git submodule status pyodide | cut -c 2-8)" >> $GITHUB_ENV
-
-      - uses: actions/cache@v3
-        with:
-          path: ./pyodide
-          key: pyodide-${{ env.PYODIDE_SHA_SHORT }}-${{ hashFiles('patches/pyodide.patch') }}
-          restore-keys: |
-            pyodide-${{ env.PYODIDE_SHA_SHORT }}-${{ hashFiles('patches/pyodide.patch') }}
-            pyodide-${{ env.PYODIDE_SHA_SHORT }}
-
-      - name: Build the Documentation
+      - name: Build the WASM version
         run: make -B deploy
-      
-      - name: Deploy the Documentation
+
+      - name: Deploy the WASM version
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}

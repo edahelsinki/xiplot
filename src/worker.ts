@@ -32,7 +32,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-importScripts("pyodide.js");
+importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js");
 
 /**
  * Handler receiving message events from the WorkerManager.
@@ -55,8 +55,7 @@ onmessage = async (event: MessageEvent) => {
     // Load imported packages into the Pyodide interpreter
     await pyodide.loadPackagesFromImports(
       python_code,
-      postConsoleMessage,
-      postConsoleError
+      { messageCallback: postConsoleMessage, errorCallback: postConsoleError }
     );
 
     let result;
@@ -79,17 +78,16 @@ onmessage = async (event: MessageEvent) => {
 
         await pyodide.loadPackage(
           package,
-          postConsoleMessage,
-          postConsoleError
+          { messageCallback: postConsoleMessage, errorCallback: postConsoleError }
         );
       }
     }
 
     // Check if the result is a PyProxy, if so convert it into a response object
-    if (pyodide.isPyProxy(result)) {
+    if (result instanceof pyodide.ffi.PyProxy) {
       result = responseObjectFromPython(result);
     }
-    
+
     postResponseMessage(uuid, result);
   } catch (error) {
     postErrorMessage(uuid, error.message);
@@ -101,7 +99,6 @@ onmessage = async (event: MessageEvent) => {
  */
 const maybe_pyodide: Promise<PyodideInterface> = loadPyodide({
   homedir: "/",
-  indexURL: "",
   fullStdLib: false,
   stdout: postConsoleMessage,
   stderr: postConsoleError,
@@ -223,17 +220,25 @@ declare function loadPyodide(options?: {
 declare type PyodideInterface = {
   loadPackagesFromImports: (
     code: string,
-    stdout?: (msg: string) => void,
-    stderr?: (err: string) => void
+    options: {
+      messageCallback?: (message: string) => void;
+      errorCallback?: (message: string) => void;
+      checkIntegrity?: boolean;
+    },
+    errorCallbackDeprecated?: (message: string) => void
   ) => Promise<void>;
   loadPackage: (
     name: string,
-    stdout?: (msg: string) => void,
-    stderr?: (err: string) => void
+    options: {
+      messageCallback?: (message: string) => void;
+      errorCallback?: (message: string) => void;
+      checkIntegrity?: boolean;
+    },
+    errorCallbackDeprecated?: (message: string) => void
   ) => Promise<void>;
-  isPyProxy: (jsobj: any) => jsobj is PyProxy;
   runPython: (code: string) => any;
   runPythonAsync: (code: string) => Promise<any>;
+  ffi: { PyProxy: any };
 };
 
 declare type PyProxy = PyProxyClass & {

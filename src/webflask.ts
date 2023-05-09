@@ -45,6 +45,7 @@ import { log } from "./webdash";
 */
 export class WebFlask {
   private worker: WorkerManager;
+  private python_lazy_loading: boolean;
   private original_fetch: (
     input: URL | RequestInfo,
     init?: RequestInit | undefined
@@ -52,6 +53,7 @@ export class WebFlask {
 
   public constructor(workerManager) {
     this.worker = workerManager;
+    this.python_lazy_loading = false;
 
     this.original_fetch = window.fetch;
     window.fetch = this.fetch.bind(this);
@@ -166,15 +168,70 @@ export class WebFlask {
   }
 
   /**
+   * This function configures the Dash app and WebFlask to capture
+   * ImportError:s and try to install and lazy load missing packages.
+   * The intercepted requests will be resent when the new packages are available.
+   *
+   * This function must be called after the `app: Dash` object has been created in Python.
+   */
+  public async setupPythonLazyLoading(): Promise<any> {
+    if (!this.python_lazy_loading) {
+      await this.worker.executeWithAnyResponse(
+        dedent`
+          import re
+
+          @app.server.errorhandler(ImportError)
+          def import_error(err):
+            if err.name:
+              return err.name, 424
+            else:
+              raise err
+
+          module_not_found_regex = re.compile("[(No module named)(The module)] '(.+)'")
+
+          @app.server.errorhandler(ModuleNotFoundError)
+          def module_error(err):
+            if err.name:
+              return err.name, 424
+            try:
+              return module_not_found_regex.search(str(err)).group(1), 424
+            except:
+              raise err
+
+          async def dash_lazy_request(*args, **kwargs):
+            with app.server.app_context():
+              with app.server.test_client() as client:
+                response = client.open(*args, **kwargs)
+                prev_mod = None
+                while response.status_code == 424:
+                  mod = response.get_data(as_text=True)
+                  if mod == prev_mod:
+                    raise ImportError(f"Could not import '{mod}'", name=mod)
+                  print(f"Lazily loading '{mod}', please wait.")
+                  await micropip.install(mod)
+                  print(f"Loaded '{mod}', resending request.")
+                  response = client.open(*args, **kwargs)
+                  prev_mod = mod
+            return response`,
+        {}
+      );
+      this.python_lazy_loading = true;
+    }
+  }
+
+  /**
   * Generates the stringified Python code to be run in Pyodide
   * to perform a request on the Flask server backend.
+  *
+  * If lazy loading (installing) of Python packages is desired,
+  * call `await this.setupPythonLazyLoading()` first.
   *
   * Note: assumes request payload is either `null` or `json`.
   *
   * @param info `URL` or `string` or `Request` object
   * @param init optionally `RequestInit`
   *
-  * @returs stringified Python code
+  * @returns stringified Python code
   */
   private generateRequestPythonCode(
     info: URL | RequestInfo,
@@ -195,18 +252,25 @@ export class WebFlask {
       method = init.method;
     }
 
-    return dedent`
-      with app.server.app_context():
-        with app.server.test_client() as client:
-          response = client.open('${info}',
-            data=${data},
-            content_type=${content_type},
-            method="${method}",
-          )
-      if response.status_code == 424:
-        __import__(response.get_data(as_text=True))
-      response
+    if (this.python_lazy_loading) {
+      return dedent`
+        dash_lazy_request('${info}',
+          data=${data},
+          content_type=${content_type},
+          method="${method}",
+        )
     `;
+    } else {
+      return dedent`
+        with app.server.app_context():
+          with app.server.test_client() as client:
+            response = client.open('${info}',
+              data=${data},
+              content_type=${content_type},
+              method="${method}",
+            )
+        response
+    `;
+    }
   }
 }
- 
