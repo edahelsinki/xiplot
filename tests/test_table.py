@@ -1,13 +1,13 @@
 import time
-import pandas as pd
-import dash
 
-from xiplot.setup import setup_xiplot_dash_app
-from selenium.webdriver.common.keys import Keys
+import dash
+import pandas as pd
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 from tests.util_test import render_plot
 from xiplot.plots.table import Table
+from xiplot.setup import setup_xiplot_dash_app
 
 (
     update_table_data,
@@ -56,7 +56,10 @@ def test_teta002_select_columns(dash_duo):
     time.sleep(1)
     column_dropdown_input = driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[2]/div[2]/div[1]/div[1]/div[1]/div[2]/input",
+        (
+            "//div[@class='plots']/div[2]/div[2]"
+            "/div[1]/div[1]/div[1]/div[2]/input"
+        ),
     )
     column_dropdown_input.send_keys("PCA 2", Keys.RETURN)
     time.sleep(1)
@@ -116,11 +119,18 @@ def test_teta003_toggle_columns(dash_duo):
 def test_create_table():
     d = {"col1": [1, 2], "col2": [3, 4]}
     df = pd.DataFrame(data=d)
-    output = update_table_data(["all", "all"], [True, True], df, [df], [[]], [])
+    output = update_table_data(
+        ["all", "all"], [True, True], df, [df], [[]], []
+    )
     table_df = output[0][0][0]
     sort_by = output[1][0]
 
-    assert table_df == {"col1": 1, "col2": 3, "Selection": True, "Clusters": "all"}, {
+    assert table_df == {
+        "col1": 1,
+        "col2": 3,
+        "Selection": True,
+        "Clusters": "all",
+    }, {
         "col1": 2,
         "col2": 4,
         "Selection": True,

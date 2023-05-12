@@ -1,10 +1,10 @@
+import plotly.graph_objects as go
+import plotly.io as pio
+from dash import Dash, Input, Output, State, dcc, html
+
 from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
 from xiplot.utils.layouts import layout_wrapper
-
-from dash import html, Input, Output, dcc, State, Dash
-import plotly.io as pio
-import plotly.graph_objects as go
 
 
 class Settings(Tab):
@@ -28,18 +28,18 @@ class Settings(Tab):
 
         app.clientside_callback(
             """
-            function toggleLightDarkMode(clicks, data) {
-                if (clicks != undefined) {
-                    data = !data
-                }
-                if (data) {
-                    document.documentElement.setAttribute("data-theme", "dark")
-                    return ['Light mode', data, "plotly_dark+xiplot_dark"]
-                } else {
-                    document.documentElement.setAttribute("data-theme", "light")
-                    return ['Dark mode', data, "plotly_white+xiplot_light"]
-                }
-            }
+function toggleLightDarkMode(clicks, data) {
+    if (clicks != undefined) {
+        data = !data
+    }
+    if (data) {
+        document.documentElement.setAttribute("data-theme", "dark")
+        return ['Light mode', data, "plotly_dark+xiplot_dark"]
+    } else {
+        document.documentElement.setAttribute("data-theme", "light")
+        return ['Dark mode', data, "plotly_white+xiplot_light"]
+    }
+}
             """,
             Output("light-dark-toggle", "children"),
             Output("light-dark-toggle-store", "data"),
@@ -75,10 +75,6 @@ class Settings(Tab):
 
     @staticmethod
     def create_layout():
-        plot_heights = [
-            350,
-            450,
-        ]
         return FlexRow(
             layout_wrapper(
                 component=html.Button(
@@ -121,7 +117,9 @@ class Settings(Tab):
     def create_layout_globals():
         globals = [
             # Store the dark/light state across page reloads
-            dcc.Store(id="light-dark-toggle-store", data=False, storage_type="local"),
+            dcc.Store(
+                id="light-dark-toggle-store", data=False, storage_type="local"
+            ),
             dcc.Store(id="plotly-template", data=None),
         ]
         return html.Div(globals)

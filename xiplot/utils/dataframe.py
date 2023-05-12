@@ -1,13 +1,11 @@
 import json
 import tarfile
+from collections import OrderedDict
+from io import BytesIO
+from pathlib import Path
 from typing import Any, Callable, Dict, Iterator, Optional, Tuple
 
 import pandas as pd
-import numpy as np
-
-from collections import OrderedDict
-from io import BytesIO, StringIO
-from pathlib import Path
 
 from xiplot.plugin import get_plugins_cached
 
@@ -15,7 +13,8 @@ from xiplot.plugin import get_plugins_cached
 def get_data_filepaths(dir_path=""):
     try:
         return sorted(
-            (fp for fp in Path(dir_path).iterdir() if fp.is_file()), reverse=True
+            (fp for fp in Path(dir_path).iterdir() if fp.is_file()),
+            reverse=True,
         )
 
     except FileNotFoundError:
@@ -24,7 +23,7 @@ def get_data_filepaths(dir_path=""):
 
 def supports_feather_format() -> bool:
     try:
-        import pyarrow
+        import pyarrow  # noqa: F401
 
         return True
     except ImportError:
@@ -35,14 +34,14 @@ def supports_feather_format() -> bool:
 
 def supports_parquet_format() -> bool:
     try:
-        import pyarrow
+        import pyarrow  # noqa: F401
 
         return True
     except ImportError:
         pass
 
     try:
-        import fastparquet
+        import fastparquet  # noqa: F401
 
         return True
     except ImportError:
@@ -51,14 +50,16 @@ def supports_parquet_format() -> bool:
     return False
 
 
-def read_functions() -> Iterator[Tuple[Callable[[BytesIO], pd.DataFrame], str]]:
+def read_functions() -> (
+    Iterator[Tuple[Callable[[BytesIO], pd.DataFrame], str]]
+):
     """Generate all functions for reading to a dataframe.
 
     Yields:
         fn: Function that reads the data and returns a dataframe.
         ext: File extension that the readed can handle.
     """
-    for plugin in get_plugins_cached("read"):
+    for _, _, plugin in get_plugins_cached("read"):
         yield plugin()
 
     def read_json(data):
@@ -90,7 +91,7 @@ def write_functions() -> (
         ext: File extension that matches the written data.
         mime: MIME type of the written data.
     """
-    for plugin in get_plugins_cached("write"):
+    for _, _, plugin in get_plugins_cached("write"):
         yield plugin()
 
     yield lambda df, file: df.to_csv(file, index=False), ".csv", "text/csv"
@@ -137,7 +138,9 @@ def read_dataframe_with_extension(data, filename=None):
 
             for member in tar.getmembers():
                 if not member.isfile():
-                    raise Exception(f"Tar contains a non-file entry {member.name}")
+                    raise Exception(
+                        f"Tar contains a non-file entry {member.name}"
+                    )
 
                 if Path(member.name).stem == "data":
                     if df_file is not None:
@@ -146,7 +149,9 @@ def read_dataframe_with_extension(data, filename=None):
                     df_name = Path(stem).with_suffix(Path(member.name).suffix)
                 elif Path(member.name).stem == "aux":
                     if aux_file is not None:
-                        raise Exception("Tar contains more than one auxiliary file")
+                        raise Exception(
+                            "Tar contains more than one auxiliary file"
+                        )
                     aux_file = tar.extractfile(member)
                     aux_name = member.name
                 elif member.name == "meta.json":
@@ -154,19 +159,26 @@ def read_dataframe_with_extension(data, filename=None):
                         raise Exception("Tar contains more than metadata file")
                     meta_file = tar.extractfile(member)
                 else:
-                    raise Exception(f"Tar contains extraneous file '{member.name}'")
+                    raise Exception(
+                        f"Tar contains extraneous file '{member.name}'"
+                    )
 
             if df_file is None:
-                raise Exception(f"Tar contains no data file called 'data.*'")
+                raise Exception("Tar contains no data file called 'data.*'")
 
             if aux_file is None:
-                raise Exception(f"Tar contains no auxiliary file called 'aux.*'")
+                raise Exception(
+                    "Tar contains no auxiliary file called 'aux.*'"
+                )
 
             if meta_file is None:
-                raise Exception(f"Tar contains no metadata file called 'meta.json'")
+                raise Exception(
+                    "Tar contains no metadata file called 'meta.json'"
+                )
 
             metadata = (
-                json.load(meta_file, object_pairs_hook=OrderedDict) or OrderedDict()
+                json.load(meta_file, object_pairs_hook=OrderedDict)
+                or OrderedDict()
             )
             metadata["filename"] = str(df_name)
 
@@ -179,7 +191,8 @@ def read_dataframe_with_extension(data, filename=None):
 
             if not aux.empty and df.shape[0] != aux.shape[0]:
                 raise Exception(
-                    f"The dataframe and auxiliary data have different number of rows."
+                    "The dataframe and auxiliary data have different number"
+                    " of rows."
                 )
 
             return df, aux, metadata
@@ -217,7 +230,7 @@ def write_dataframe_and_metadata(
 ) -> Tuple[str, str]:
     if not aux.empty and df.shape[0] != aux.shape[0]:
         raise Exception(
-            f"The dataframe and auxiliary data have different number of rows."
+            "The dataframe and auxiliary data have different number of rows."
         )
     if file_extension is None:
         file_extension = Path(filepath).suffix
@@ -261,7 +274,10 @@ def write_dataframe_and_metadata(
 
 
 def write_only_dataframe(
-    df: pd.DataFrame, filepath: str, file: BytesIO, file_extension: Optional[str] = None
+    df: pd.DataFrame,
+    filepath: str,
+    file: BytesIO,
+    file_extension: Optional[str] = None,
 ) -> Tuple[str, str]:
     if file_extension is None:
         file_name = Path(filepath).name

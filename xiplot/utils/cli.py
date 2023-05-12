@@ -1,7 +1,8 @@
 def cli():
-    from xiplot.setup import setup_xiplot_dash_app
     import argparse
     import os
+
+    from xiplot.setup import setup_xiplot_dash_app
 
     parser = argparse.ArgumentParser(
         prog="xiplot",
@@ -13,14 +14,25 @@ def cli():
         default="data",
         help="The path to a directory containing data files",
     )
-    parser.add_argument("-d", "--debug", action="store_true", help="Enable debug mode")
-    parser.add_argument("-p", "--port", help="Port used to serve the application")
+    parser.add_argument(
+        "-d", "--debug", action="store_true", help="Enable debug mode"
+    )
+    parser.add_argument(
+        "-p", "--port", help="Port used to serve the application"
+    )
     parser.add_argument("--host", help="Host IP used to serve the application")
     parser.add_argument(
         "-c",
         "--cache",
         action="store_true",
-        help="Cache datasets on the server in order to reduce the amount of data transferred. Might not be suitable for servers with multiple users",
+        help=(
+            "Cache datasets on the server in order to reduce the amount of"
+            " data transferred. Might not be suitable for servers with"
+            " multiple users"
+        ),
+    )
+    parser.add_argument(
+        "--plugin", help="The path to a directory containing plugin .whl files"
     )
     args = parser.parse_args()
     path = args.PATH
@@ -35,8 +47,16 @@ def cli():
         kwargs["host"] = args.host
     if args.port:
         kwargs["port"] = args.port
+    if args.plugin:
+        plugin_path = args.plugin
+    else:
+        plugin_path = "plugins"
 
     unsafe_local_server = True if args.cache else False
 
-    app = setup_xiplot_dash_app(unsafe_local_server=unsafe_local_server, dir_path=path)
+    app = setup_xiplot_dash_app(
+        unsafe_local_server=unsafe_local_server,
+        dir_path=path,
+        plugin_path=plugin_path,
+    )
     app.run(**kwargs)

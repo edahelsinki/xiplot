@@ -1,8 +1,9 @@
 from io import BytesIO
+
 import numpy as np
 import pandas as pd
 
-from xiplot.utils.dataframe import write_functions, read_only_dataframe
+from xiplot.utils.dataframe import read_only_dataframe, write_functions
 
 
 def test_read_write():
@@ -24,7 +25,7 @@ def test_read_write():
         bytes1 = write(fn)
         try:
             read1 = read_only_dataframe(bytes1, "a" + ext)
-        except:
+        except Exception:
             print("Error when reading:", ext)
             raise
         if "example" not in mime:

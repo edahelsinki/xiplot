@@ -107,30 +107,30 @@
     color: var(--placeholder-color) !important;
 }
 
-.tab.jsx-3201076643 {
+.tab.jsx-535771872 {
     padding: 20px 25px 5px 25px;
 }
 
-.tab.jsx-3201076643.tab,
-.tab.jsx-3201076643:last-of-type {
+.tab.jsx-535771872.tab,
+.tab.jsx-535771872:last-of-type {
     background-color: transparent;
     border: none !important;
     border-bottom: 2px solid #45A29E !important;
     border-bottom: 2px solid var(--tab-underline) !important;
 }
 
-.tab.jsx-3201076643.tab:hover {
+.tab.jsx-535771872.tab:hover {
     border-bottom: 4px solid #C5C6C7 !important;
 }
 
-.tab.jsx-3201076643.tab.tab--selected {
+.tab.jsx-535771872.tab.tab--selected {
     color: black !important;
     color: var(--font-color) !important;
     border-bottom: 4px solid rgb(214, 214, 214) !important;
     border-bottom: 4px solid var(--selected-tab-underline) !important;
 }
 
-.tab.jsx-3201076643.tab.tab--selected:hover {
+.tab.jsx-535771872.tab.tab--selected:hover {
     background-color: transparent;
 }
 

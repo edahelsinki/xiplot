@@ -4,7 +4,6 @@ import dash
 import dash_mantine_components as dmc
 import jsonschema
 from dash import ALL, Input, Output, State, ctx, dcc, html
-from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.plots.barplot import Barplot
@@ -17,7 +16,6 @@ from xiplot.plugin import get_plugins_cached
 from xiplot.tabs import Tab
 from xiplot.utils import generate_id
 from xiplot.utils.components import DeleteButton, FlexRow
-from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.utils.layouts import layout_wrapper
 
 
@@ -25,7 +23,7 @@ class Plots(Tab):
     plot_types = {
         p.name(): p
         for p in [Scatterplot, Histogram, Heatmap, Barplot, Table, Smiles]
-        + get_plugins_cached("plot")
+        + [plot for (_, _, plot) in get_plugins_cached("plot")]
     }
 
     @staticmethod
@@ -62,7 +60,27 @@ class Plots(Tab):
             last_meta_session,
         ):
             if meta is None:
-                return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+                if ctx.triggered_id == "new_plot-button":
+                    return (
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message="You have not yet loaded any data file.",
+                            action="show",
+                            autoClose=10000,
+                        ),
+                    )
+                else:
+                    return (
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                        dash.no_update,
+                    )
 
             if not children:
                 children = []
@@ -122,7 +140,7 @@ class Plots(Tab):
                                     plots=dict(
                                         type="object",
                                         patternProperties={
-                                            r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$": dict(
+                                            r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$": dict(  # noqa: 501
                                                 type="object",
                                                 properties=dict(
                                                     type=dict(type="string")
@@ -145,7 +163,10 @@ class Plots(Tab):
                                 id=str(uuid.uuid4()),
                                 color="yellow",
                                 title="Warning",
-                                message=f"Invalid plots configuration at meta{err.json_path[1:]}: {err.message}.",
+                                message=(
+                                    "Invalid plots configuration at"
+                                    f" meta{err.json_path[1:]}: {err.message}."
+                                ),
                                 action="show",
                                 autoClose=10000,
                             ),
@@ -172,7 +193,7 @@ class Plots(Tab):
                     plot_type = config["type"]
                     config = {k: v for k, v in config.items() if k != "type"}
 
-                    if not plot_type in Plots.plot_types:
+                    if plot_type not in Plots.plot_types:
                         notifications.append(
                             dmc.Notification(
                                 id=str(uuid.uuid4()),
@@ -200,7 +221,12 @@ class Plots(Tab):
                                 id=str(uuid.uuid4()),
                                 color="yellow",
                                 title="Warning",
-                                message=f"Invalid configuration for a {plot_type} at meta.plots.{index}{err.json_path[1:]}: {err.message}",
+                                message=(
+                                    "Invalid configuration for a"
+                                    f" {plot_type} at"
+                                    f" meta.plots.{index}{err.json_path[1:]}:"
+                                    f" {err.message}"
+                                ),
                                 action="show",
                                 autoClose=10000,
                             )
@@ -213,14 +239,21 @@ class Plots(Tab):
                                 id=str(uuid.uuid4()),
                                 color="yellow",
                                 title="Warning",
-                                message=f"Failed to create a {plot_type}: {err}.",
+                                message=(
+                                    f"Failed to create a {plot_type}: {err}."
+                                ),
                                 action="show",
                                 autoClose=10000,
                             )
                         )
 
                 if ctx.triggered_id == "new_plot-button":
-                    return meta["session"], children, dash.no_update, notifications
+                    return (
+                        meta["session"],
+                        children,
+                        dash.no_update,
+                        notifications,
+                    )
                 else:
                     meta["plots"].clear()
                     return meta["session"], children, meta, notifications
@@ -242,8 +275,12 @@ class Plots(Tab):
             [
                 layout_wrapper(
                     component=FlexRow(
-                        dcc.Dropdown(plots, plots[0], id="plot_type", clearable=False),
-                        html.Button("Add", id="new_plot-button", className="button"),
+                        dcc.Dropdown(
+                            plots, plots[0], id="plot_type", clearable=False
+                        ),
+                        html.Button(
+                            "Add", id="new_plot-button", className="button"
+                        ),
                     ),
                     title="Select a plot type",
                 ),
@@ -255,8 +292,12 @@ class Plots(Tab):
     def create_layout_globals():
         return html.Div(
             [
-                html.Div(id="plots-tab-notify-container", style={"display": "none"}),
-                html.Div(id="plots-tab-settings-session", style={"display": "none"}),
+                html.Div(
+                    id="plots-tab-notify-container", style={"display": "none"}
+                ),
+                html.Div(
+                    id="plots-tab-settings-session", style={"display": "none"}
+                ),
             ],
             style={"display": "none"},
         )

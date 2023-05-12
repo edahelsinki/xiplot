@@ -2,21 +2,20 @@ import json
 import uuid
 
 import dash
+import jsonschema
 import numpy as np
 import pandas as pd
 import plotly.express as px
-import jsonschema
-
-from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
+from dash import ALL, MATCH, Input, Output, State, ctx, dcc
 from dash.exceptions import PreventUpdate
-from xiplot.utils.components import DeleteButton, PdfButton, PlotData
 
-from xiplot.utils.layouts import layout_wrapper
-from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.scatterplot import get_row
-from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.plots import APlot
+from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.components import PdfButton, PlotData
+from xiplot.utils.dataframe import get_numeric_columns
+from xiplot.utils.embedding import add_pca_columns_to_df
+from xiplot.utils.layouts import layout_wrapper
+from xiplot.utils.scatterplot import get_row
 
 
 class Scatterplot(APlot):
@@ -56,7 +55,7 @@ class Scatterplot(APlot):
                     raise PreventUpdate()
             except PreventUpdate:
                 raise
-            except:
+            except Exception:
                 pass
 
             df = df_from_store(df)
@@ -93,7 +92,9 @@ class Scatterplot(APlot):
             output=dict(
                 selected_rows_store=Output("selected_rows_store", "data"),
                 click_store=Output("lastly_clicked_point_store", "data"),
-                scatter=Output({"type": "scatterplot", "index": ALL}, "clickData"),
+                scatter=Output(
+                    {"type": "scatterplot", "index": ALL}, "clickData"
+                ),
             ),
             inputs=[
                 Input({"type": "scatterplot", "index": ALL}, "clickData"),
@@ -107,7 +108,7 @@ class Scatterplot(APlot):
                     raise PreventUpdate()
             except PreventUpdate:
                 raise
-            except:
+            except Exception:
                 pass
 
             if not selected_rows:
@@ -133,7 +134,9 @@ class Scatterplot(APlot):
         @app.callback(
             output=dict(
                 hover_store=Output("lastly_hovered_point_store", "data"),
-                scatter=Output({"type": "scatterplot", "index": ALL}, "hoverData"),
+                scatter=Output(
+                    {"type": "scatterplot", "index": ALL}, "hoverData"
+                ),
             ),
             inputs=[
                 Input({"type": "scatterplot", "index": ALL}, "hoverData"),
@@ -187,22 +190,28 @@ class Scatterplot(APlot):
                     try:
                         if selection_mode:
                             for p in trigger["value"]["points"]:
-                                kmeans_col[p["customdata"][0]["index"]] = cluster_id
+                                kmeans_col[p["customdata"][0]["index"]] = (
+                                    cluster_id
+                                )
                         else:
                             for p in trigger["value"]["points"]:
                                 kmeans_col[p["customdata"][0]["index"]] = "c1"
                     except Exception:
                         return dash.no_update
             # Try branch for testing
-            except:
-                trigger = {"value": {"points": [{"customdata": [{"index": 1}]}]}}
+            except Exception:
+                trigger = {
+                    "value": {"points": [{"customdata": [{"index": 1}]}]}
+                }
 
                 updated = updated or len(trigger["value"]["points"]) > 0
 
                 try:
                     if selection_mode:
                         for p in trigger["value"]["points"]:
-                            kmeans_col[p["customdata"][0]["index"]] = cluster_id
+                            kmeans_col[p["customdata"][0]["index"]] = (
+                                cluster_id
+                            )
                     else:
                         for p in trigger["value"]["points"]:
                             kmeans_col[p["customdata"][0]["index"]] = "c1"
@@ -220,19 +229,30 @@ class Scatterplot(APlot):
             (
                 Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
                 Input({"type": "scatter_y_axis", "index": MATCH}, "value"),
-                Input({"type": "scatter_target_color", "index": MATCH}, "value"),
-                Input({"type": "scatter_target_symbol", "index": MATCH}, "value"),
+                Input(
+                    {"type": "scatter_target_color", "index": MATCH}, "value"
+                ),
+                Input(
+                    {"type": "scatter_target_symbol", "index": MATCH}, "value"
+                ),
                 Input({"type": "jitter-slider", "index": MATCH}, "value"),
             ),
             lambda i: dict(
-                axes=dict(x=i[0], y=i[1]), colour=i[2], symbol=i[3], jitter=i[4]
+                axes=dict(x=i[0], y=i[1]),
+                colour=i[2],
+                symbol=i[3],
+                jitter=i[4],
             ),
         )
 
         @app.callback(
             output=dict(
-                scatter_x=Output({"type": "scatter_x_axis", "index": ALL}, "options"),
-                scatter_y=Output({"type": "scatter_y_axis", "index": ALL}, "options"),
+                scatter_x=Output(
+                    {"type": "scatter_x_axis", "index": ALL}, "options"
+                ),
+                scatter_y=Output(
+                    {"type": "scatter_y_axis", "index": ALL}, "options"
+                ),
             ),
             inputs=[
                 Input("pca_column_store", "data"),
@@ -262,7 +282,12 @@ class Scatterplot(APlot):
                 scatter_y=[options] * len(all_options),
             )
 
-        return [tmp, handle_click_events, handle_hover_events, handle_cluster_drawing]
+        return [
+            tmp,
+            handle_click_events,
+            handle_hover_events,
+            handle_cluster_drawing,
+        ]
 
     @staticmethod
     def render(
@@ -330,7 +355,9 @@ class Scatterplot(APlot):
             render_mode="webgl",
             template=template,
         )
-        fig.update_layout(showlegend=False, uirevision=json.dumps([x_axis, y_axis]))
+        fig.update_layout(
+            showlegend=False, uirevision=json.dumps([x_axis, y_axis])
+        )
         fig.update(layout_coloraxis_showscale=False)
         fig.update_traces(marker={"line": {"width": 0}})
 
@@ -341,9 +368,10 @@ class Scatterplot(APlot):
         num_columns = get_numeric_columns(df, columns)
 
         try:
-            if config["axes"]["x"] in ("Xiplot_PCA_1", "Xiplot_PCA_2") or config[
-                "axes"
-            ]["y"] in (
+            if config["axes"]["x"] in (
+                "Xiplot_PCA_1",
+                "Xiplot_PCA_2",
+            ) or config["axes"]["y"] in (
                 "Xiplot_PCA_1",
                 "Xiplot_PCA_2",
             ):

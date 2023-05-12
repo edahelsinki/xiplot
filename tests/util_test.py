@@ -1,6 +1,7 @@
 import time
-from selenium.webdriver.common.keys import Keys
+
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
 
 
 def load_file(dash_duo, driver):
@@ -24,12 +25,17 @@ def load_file(dash_duo, driver):
 def render_plot(dash_duo, driver, plot_name):
     load_file(dash_duo, driver)
 
-    plots_tab = driver.find_element(By.XPATH, "//div[@id='control-tabs']/div[2]")
+    plots_tab = driver.find_element(
+        By.XPATH, "//div[@id='control-tabs']/div[2]"
+    )
     plots_tab.click()
 
     plot_type_dd_input = driver.find_element(
         By.XPATH,
-        "//div[@id='plot_type']/div[1]/div[1]/div[1]/div[@class='Select-input']/input[1]",
+        (
+            "//div[@id='plot_type']/div[1]/div[1]/div[1]"
+            "/div[@class='Select-input']/input[1]"
+        ),
     )
     plot_type_dd_input.send_keys(plot_name)
     plot_type_dd_input.send_keys(Keys.RETURN)

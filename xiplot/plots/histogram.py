@@ -1,17 +1,16 @@
+import dash
+import jsonschema
 import pandas as pd
 import plotly.express as px
-import jsonschema
-import dash
-
-from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
+from dash import ALL, MATCH, Input, Output, State, ctx, dcc
 from dash.exceptions import PreventUpdate
-from xiplot.utils.components import DeleteButton, PdfButton, PlotData
 
-from xiplot.utils.layouts import layout_wrapper, cluster_dropdown
-from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.plots import APlot
+from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.components import PdfButton, PlotData
+from xiplot.utils.dataframe import get_numeric_columns
+from xiplot.utils.embedding import add_pca_columns_to_df
+from xiplot.utils.layouts import cluster_dropdown, layout_wrapper
 
 
 class Histogram(APlot):
@@ -22,21 +21,26 @@ class Histogram(APlot):
         @app.callback(
             Output({"type": "histogram", "index": MATCH}, "figure"),
             Input({"type": "x_axis_histo", "index": MATCH}, "value"),
-            Input({"type": "hg_cluster_comparison_dropdown", "index": MATCH}, "value"),
+            Input(
+                {"type": "hg_cluster_comparison_dropdown", "index": MATCH},
+                "value",
+            ),
             Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
             Input("pca_column_store", "data"),
             Input("plotly-template", "data"),
             prevent_initial_call=False,
         )
-        def tmp(x_axis, selected_clusters, kmeans_col, df, pca_cols, template=None):
+        def tmp(
+            x_axis, selected_clusters, kmeans_col, df, pca_cols, template=None
+        ):
             # Try branch for testing
             try:
                 if ctx.triggered_id == "data_frame_store":
                     raise PreventUpdate()
             except PreventUpdate:
                 raise
-            except:
+            except Exception:
                 pass
 
             return Histogram.render(
@@ -54,15 +58,20 @@ class Histogram(APlot):
             (
                 Input({"type": "x_axis_histo", "index": ALL}, "value"),
                 Input(
-                    {"type": "hg_cluster_comparison_dropdown", "index": ALL}, "value"
+                    {"type": "hg_cluster_comparison_dropdown", "index": ALL},
+                    "value",
                 ),
             ),
-            lambda i: dict(axes=dict(x=i[0]), groupby="Clusters", classes=i[1] or []),
+            lambda i: dict(
+                axes=dict(x=i[0]), groupby="Clusters", classes=i[1] or []
+            ),
         )
 
         @app.callback(
             output=dict(
-                histogram_x=Output({"type": "x_axis_histo", "index": ALL}, "options"),
+                histogram_x=Output(
+                    {"type": "x_axis_histo", "index": ALL}, "options"
+                ),
             ),
             inputs=[
                 Input("pca_column_store", "data"),
@@ -94,13 +103,17 @@ class Histogram(APlot):
         return [tmp]
 
     @staticmethod
-    def render(x_axis, selected_clusters, kmeans_col, df, pca_cols=[], template=None):
+    def render(
+        x_axis, selected_clusters, kmeans_col, df, pca_cols=[], template=None
+    ):
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
 
         df = add_pca_columns_to_df(df, pca_cols)
 
-        fig = make_fig_property(df, x_axis, selected_clusters, kmeans_col, template)
+        fig = make_fig_property(
+            df, x_axis, selected_clusters, kmeans_col, template
+        )
 
         return fig
 
@@ -146,7 +159,7 @@ class Histogram(APlot):
         if x_axis is None:
             raise Exception("The dataframe contains no numeric columns")
 
-        groupby = config.get("groupby", "Clusters")
+        _groupby = config.get("groupby", "Clusters")  # noqa: F841
         classes = config.get("classes", [])
 
         return [

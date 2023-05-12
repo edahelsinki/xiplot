@@ -1,22 +1,19 @@
-import re
-import uuid
 import sys
+import uuid
 
 import dash
 import dash_mantine_components as dmc
-import plotly.express as px
 import jsonschema
-
-from dash import Output, Input, State, ctx, ALL, html, dcc
+from dash import Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.tabs import Tab
-from xiplot.utils.layouts import layout_wrapper, cluster_dropdown
-from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
-from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.cluster import cluster_colours, KMeans
+from xiplot.utils.cluster import KMeans, cluster_colours
 from xiplot.utils.components import FlexRow
+from xiplot.utils.dataframe import get_numeric_columns
+from xiplot.utils.layouts import cluster_dropdown, layout_wrapper
+from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 
 
 class Cluster(Tab):
@@ -110,7 +107,11 @@ class Cluster(Tab):
                             id=process_id or str(uuid.uuid4()),
                             color="red",
                             title="Error",
-                            message=f"The clustering failed with an internal error. Please report the following bug: {err}",
+                            message=(
+                                "The clustering failed with an internal"
+                                " error. Please report the following bug:"
+                                f" {err}"
+                            ),
                             action="update" if process_id else "show",
                             autoClose=False,
                         )
@@ -151,7 +152,9 @@ class Cluster(Tab):
                     id=str(uuid.uuid4()),
                     color="yellow",
                     title="Warning",
-                    message="The k-means clustering process has not yet finished.",
+                    message=(
+                        "The k-means clustering process has not yet finished."
+                    ),
                     action="show",
                     autoClose=10000,
                 )
@@ -193,6 +196,24 @@ class Cluster(Tab):
             State("cluster_feature", "options"),
         )
         def add_matching_values(df, n_clicks, features, keyword, options):
+            if df is None:
+                if ctx.triggered_id == "add_by_keyword-button":
+                    return (
+                        [],
+                        None,
+                        dash.no_update,
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message="You have not yet loaded any data file.",
+                            action="show",
+                            autoClose=10000,
+                        ),
+                    )
+                else:
+                    return ([], None, dash.no_update, dash.no_update)
+
             df = df_from_store(df)
             if ctx.triggered_id == "data_frame_store":
                 options = get_numeric_columns(df, df.columns.to_list())
@@ -207,7 +228,7 @@ class Cluster(Tab):
                         id=str(uuid.uuid4()),
                         color="yellow",
                         title="Warning",
-                        message=f"No regular expression was given.",
+                        message="No regular expression was given.",
                         action="show",
                         autoClose=10000,
                     )
@@ -216,7 +237,10 @@ class Cluster(Tab):
                         id=str(uuid.uuid4()),
                         color="yellow",
                         title="Warning",
-                        message=f'No new features matched the regular expression r"{keyword}".',
+                        message=(
+                            "No new features matched the regular expression"
+                            f' r"{keyword}".'
+                        ),
                         action="show",
                         autoClose=10000,
                     )
@@ -225,7 +249,10 @@ class Cluster(Tab):
                         id=str(uuid.uuid4()),
                         color="blue",
                         title="Info",
-                        message=f'One new feature matched the regular expression r"{keyword}".',
+                        message=(
+                            "One new feature matched the regular expression"
+                            f' r"{keyword}".'
+                        ),
                         action="show",
                         autoClose=5000,
                     )
@@ -234,7 +261,10 @@ class Cluster(Tab):
                         id=str(uuid.uuid4()),
                         color="blue",
                         title="Info",
-                        message=f'{hits} new features matched the regular expression r"{keyword}".',
+                        message=(
+                            f"{hits} new features matched the regular"
+                            f' expression r"{keyword}".'
+                        ),
                         action="show",
                         autoClose=5000,
                     )
@@ -275,10 +305,20 @@ class Cluster(Tab):
         )
         def init_from_settings(meta, last_meta_session):
             if meta is None:
-                return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+                return (
+                    dash.no_update,
+                    dash.no_update,
+                    dash.no_update,
+                    dash.no_update,
+                )
 
             if meta["session"] == last_meta_session:
-                return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+                return (
+                    dash.no_update,
+                    dash.no_update,
+                    dash.no_update,
+                    dash.no_update,
+                )
 
             try:
                 jsonschema.validate(
@@ -295,10 +335,12 @@ class Cluster(Tab):
                                             selection={
                                                 "type": "object",
                                                 "properties": dict(
-                                                    mode=dict(enum=["fg-bg", "draw"]),
+                                                    mode=dict(
+                                                        enum=["fg-bg", "draw"]
+                                                    ),
                                                     brush=dict(
                                                         enum=list(
-                                                            cluster_colours().keys()
+                                                            cluster_colours().keys()  # noqa: 501
                                                         )
                                                     ),
                                                 ),
@@ -307,7 +349,9 @@ class Cluster(Tab):
                                                         mode=dict(const="draw")
                                                     ),
                                                 ),
-                                                "then": dict(required=["brush"]),
+                                                "then": dict(
+                                                    required=["brush"]
+                                                ),
                                             },
                                         ),
                                     ),
@@ -326,7 +370,10 @@ class Cluster(Tab):
                         id=str(uuid.uuid4()),
                         color="yellow",
                         title="Warning",
-                        message=f"Invalid cluster tab settings at meta{err.json_path[1:]}: {err.message}.",
+                        message=(
+                            "Invalid cluster tab settings at"
+                            f" meta{err.json_path[1:]}: {err.message}."
+                        ),
                         action="show",
                         autoClose=10000,
                     ),
@@ -335,7 +382,12 @@ class Cluster(Tab):
             try:
                 mode = meta["settings"]["cluster-tab"]["selection"]["mode"]
             except Exception:
-                return meta["session"], dash.no_update, dash.no_update, dash.no_update
+                return (
+                    meta["session"],
+                    dash.no_update,
+                    dash.no_update,
+                    dash.no_update,
+                )
 
             if mode == "draw":
                 brush = meta["settings"]["cluster-tab"]["selection"]["brush"]
@@ -355,7 +407,9 @@ class Cluster(Tab):
                 return dash.no_update
 
             if not selection_mode:
-                meta["settings"]["cluster-tab"] = dict(selection=dict(mode="fg-bg"))
+                meta["settings"]["cluster-tab"] = dict(
+                    selection=dict(mode="fg-bg")
+                )
             else:
                 meta["settings"]["cluster-tab"] = dict(
                     selection=dict(mode="draw", brush=selection_cluster)
@@ -382,7 +436,9 @@ class Cluster(Tab):
                         id=str(uuid.uuid4()),
                         color="yellow",
                         title="Warning",
-                        message="You have not selected any features to cluster by.",
+                        message=(
+                            "You have not selected any features to cluster by."
+                        ),
                         action="show",
                         autoClose=10000,
                     )
@@ -394,7 +450,9 @@ class Cluster(Tab):
                         id=str(uuid.uuid4()),
                         color="yellow",
                         title="Warning",
-                        message="You have not selected the number of clusters.",
+                        message=(
+                            "You have not selected the number of clusters."
+                        ),
                         action="show",
                         autoClose=10000,
                     )
@@ -406,7 +464,12 @@ class Cluster(Tab):
 
     @staticmethod
     def create_by_input(
-        df, features, n_clusters, kmeans_col, notifications=None, process_id=None
+        df,
+        features,
+        n_clusters,
+        kmeans_col,
+        notifications=None,
+        process_id=None,
     ):
         if not Cluster.validate_cluster_params(
             features, n_clusters, notifications, process_id
@@ -429,7 +492,7 @@ class Cluster(Tab):
                 id=process_id or str(uuid.uuid4()),
                 color="green",
                 title="Success",
-                message=f"The data was clustered successfully!",
+                message="The data was clustered successfully!",
                 action="update" if process_id else "show",
                 autoClose=5000,
                 disallowClose=False,
@@ -458,7 +521,9 @@ class Cluster(Tab):
                     layout_wrapper(
                         component=FlexRow(
                             dcc.Dropdown(
-                                options=[i for i in range(2, len(cluster_colours()))],
+                                options=[
+                                    i for i in range(2, len(cluster_colours()))
+                                ],
                                 value=3,
                                 clearable=False,
                                 id="cluster_amount",
@@ -518,12 +583,17 @@ class Cluster(Tab):
                     id="cluster-tab-compute-notify-container",
                     style={"display": "none"},
                 ),
-                html.Div(id="cluster-tab-compute-done", style={"display": "none"}),
+                html.Div(
+                    id="cluster-tab-compute-done", style={"display": "none"}
+                ),
                 html.Div(
                     id="cluster-tab-settings-notify-container",
                     style={"display": "none"},
                 ),
-                html.Div(id="cluster-tab-settings-session", style={"display": "none"}),
+                html.Div(
+                    id="cluster-tab-settings-session",
+                    style={"display": "none"},
+                ),
             ],
             style={"display": "none"},
         )
