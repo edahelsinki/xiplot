@@ -16,15 +16,27 @@ build_xiplot: xiplot/.gitignore
 	pip install . && \
 	python3 -m build
 
-xiplot: install_xiplot build_xiplot
+build_plugins: xiplot/.gitignore
+	cd xiplot && \
+	rm -f plugins/*.whl && \
+	cd test_plugin && \
+	rm -rf dist && \
+	pip install build && \
+	python3 -m build && \
+	cp dist/xiplot_test_plugin-*.*.*-py3-none-any.whl ../plugins
+
+xiplot: install_xiplot build_xiplot build_plugins
 
 deploy: xiplot
 	rm -rf dist
 	mkdir dist
-	cp -r xiplot/data dist/
 	cp -r xiplot/xiplot/assets dist/
 	cp xiplot/dist/xiplot-*.*.*-py3-none-any.whl dist/
+	cp -r xiplot/data dist/
 	ls dist/data > dist/assets/data.ls
+	cp -r xiplot/plugins dist/
+	rm dist/plugins/.gitignore
+	ls dist/plugins > dist/assets/plugins.ls
 	python3 patches/bundle-dash-app.py
 	npm install
 	npm run build
