@@ -1,10 +1,16 @@
 import uuid
+from pathlib import Path
 
 import dash
 import dash_mantine_components as dmc
 from dash import Input, Output, State, ctx, dcc, html
 
-from xiplot.plugin import get_all_loaded_plugins, get_plugin_filepaths
+from xiplot.plugin import (
+    get_all_loaded_plugins,
+    get_plugin_filepaths,
+    install_local_plugin,
+    install_remote_plugin,
+)
 from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
 from xiplot.utils.layouts import layout_wrapper
@@ -16,6 +22,7 @@ class Plugins(Tab):
         @app.callback(
             Output("plugin-tab-notify-container", "children"),
             Output("plugin-search-input", "value"),
+            Output("loaded_plugins", "options"),
             Input("plugin-submit-button", "n_clicks"),
             State("plugin_paths", "value"),
             State("plugin-search-input", "value"),
@@ -23,21 +30,47 @@ class Plugins(Tab):
         def load_plugin(plugin_btn, plugin_path, plugin_search):
             trigger = ctx.triggered_id
 
+            # TODO:
+            # - properly handle the async install in WASM
+            # - update the loaded plugins list only after the install
+            # - add NEW globals
+            # - register NEW callbacks
+            # - register NEW plots and register their callbacks
+            # - what to do about reinstalls since registers are not done
+
             if not plugin_path and plugin_search:
-                return (
-                    dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="red",
-                        title="Error",
-                        message=(
-                            f"Loading a plugins from '{plugin_search}' using"
-                            " pip is not yet supported."
+                try:
+                    # TODO: Provide a progress indicator
+                    install_remote_plugin(plugin_search)
+
+                    return (
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="green",
+                            title="Success",
+                            message="The plugin was successfully loaded!",
+                            action="show",
+                            autoClose=5000,
                         ),
-                        action="show",
-                        autoClose=False,
-                    ),
-                    "",
-                )
+                        "",
+                        get_loaded_plugin_options(),
+                    )
+                except Exception as err:
+                    return (
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="red",
+                            title="Error",
+                            message=(
+                                f"Loading a plugin from '{plugin_search}'"
+                                f" failed with the following error: {err}"
+                            ),
+                            action="show",
+                            autoClose=False,
+                        ),
+                        "",
+                        dash.no_update,
+                    )
 
             if not plugin_path:
                 return (
@@ -50,24 +83,45 @@ class Plugins(Tab):
                         autoClose=10000,
                     ),
                     "",
+                    dash.no_update,
                 )
 
             if trigger == "plugin-submit-button":
-                return (
-                    dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="red",
-                        title="Error",
-                        message=(
-                            "Loading plugins from a file is not yet supported."
-                        ),
-                        action="show",
-                        autoClose=False,
-                    ),
-                    "",
-                )
+                try:
+                    # TODO: Provide a progress indicator
+                    install_local_plugin(plugin_path)
 
-            return (dash.no_update,)
+                    return (
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="green",
+                            title="Success",
+                            message="The plugin was successfully loaded!",
+                            action="show",
+                            autoClose=5000,
+                        ),
+                        "",
+                        get_loaded_plugin_options(),
+                    )
+                except Exception as err:
+                    return (
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="red",
+                            title="Error",
+                            message=(
+                                "Loading a plugin from"
+                                f" '{Path(plugin_path).name}' failed with the"
+                                f" following error: {err}"
+                            ),
+                            action="show",
+                            autoClose=False,
+                        ),
+                        "",
+                        dash.no_update,
+                    )
+
+            return (dash.no_update, "", dash.no_update)
 
         @app.callback(
             Output("plugin-search-input", "value"),
@@ -139,18 +193,7 @@ class Plugins(Tab):
                     layout_wrapper(
                         component=FlexRow(
                             dcc.Dropdown(
-                                [
-                                    {
-                                        "label": f"[{kind}] {name}: {path}",
-                                        "value": path,
-                                        "disabled": True,
-                                    }
-                                    for (
-                                        kind,
-                                        name,
-                                        path,
-                                    ) in get_all_loaded_plugins()
-                                ],
+                                get_loaded_plugin_options(),
                                 id="loaded_plugins",
                                 clearable=False,
                                 searchable=False,
@@ -184,3 +227,18 @@ class Plugins(Tab):
                 ),
             ]
         )
+
+
+def get_loaded_plugin_options():
+    return [
+        {
+            "label": f"[{kind}] {name}: {path}",
+            "value": path,
+            "disabled": True,
+        }
+        for (
+            kind,
+            name,
+            path,
+        ) in get_all_loaded_plugins()
+    ]
