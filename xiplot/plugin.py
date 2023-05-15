@@ -8,11 +8,12 @@
 import uuid
 from asyncio import Future
 from collections import defaultdict
+from functools import partial
 from importlib.metadata import entry_points as _entry_points
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Literal, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 from warnings import warn
 
 import pandas as pd
@@ -172,7 +173,9 @@ def get_plugin_filepaths(dir_path=""):
         return []
 
 
-def __micropip_install_callback(future: Future):
+def __micropip_install_callback(
+    future: Future, try_remove_file: Optional[Path]
+):
     import pyodide
 
     get_plugins_cached.cache = dict()
@@ -184,6 +187,12 @@ def __micropip_install_callback(future: Future):
     except Exception as err:
         target = "exception"
         result = str(err)
+
+    if target == "success" and try_remove_file is not None:
+        try:
+            try_remove_file.unlink()
+        except Exception:
+            pass
 
     js_callback_code = f"""
 window.Object.getOwnPropertyDescriptor(
@@ -211,11 +220,13 @@ def install_local_plugin(plugin_path: str):
             "Loading new plugins is only supported in WASM"
         )
 
-    plugin_path = str(Path(plugin_path).resolve())
+    plugin_path = Path(plugin_path).resolve()
 
     asyncio.ensure_future(
-        micropip.install(f"emfs:{plugin_path}")
-    ).add_done_callback(__micropip_install_callback)
+        micropip.install(f"emfs:{str(plugin_path)}")
+    ).add_done_callback(
+        partial(__micropip_install_callback, try_remove_file=plugin_path)
+    )
 
 
 def install_remote_plugin(plugin_source: str):
@@ -238,7 +249,7 @@ def install_remote_plugin(plugin_source: str):
         raise ValueError("Plugin source must be a URL or PyPi package name")
 
     asyncio.ensure_future(micropip.install(plugin_source)).add_done_callback(
-        __micropip_install_callback
+        partial(__micropip_install_callback, try_remove_file=None)
     )
 
 

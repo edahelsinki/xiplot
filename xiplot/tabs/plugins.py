@@ -187,6 +187,16 @@ class Plugins(Tab):
                 return dash.no_update
             return search
 
+        @app.callback(
+            Output("plugin_paths", "options"),
+            Input("loaded_plugins", "options"),
+        )
+        def update_suggested_plugins(plugins):
+            return [
+                {"label": fp.name, "value": str(fp)}
+                for fp in get_plugin_filepaths(dir_path=dir_path)
+            ]
+
     @staticmethod
     def create_layout(dir_path=""):
         try:
@@ -233,7 +243,7 @@ class Plugins(Tab):
                                 ],
                                 id="plugin_paths",
                                 placeholder=(
-                                    "Select a suggested plugin or give its URL"
+                                    "Select a suggested plugin or type its URL"
                                     " or PyPi package name"
                                     if is_plugin_loading_supported()
                                     else (
