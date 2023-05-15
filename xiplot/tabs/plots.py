@@ -271,24 +271,21 @@ class Plots(Tab):
         @app.callback(
             Output("plot_type", "options"),
             Input("loaded_plugins", "options"),
-            State("plot_type", "options"),
         )
-        def update_plugin_plots_callbacks(plugins, loaded_plots):
+        def update_plugin_plots_callbacks(plugins):
             for _, _, p in get_new_plugins_cached("plot"):
                 plot_name, plot_type = p.name(), p
 
                 if Plots.plot_types.get(plot_name, None) is not None:
                     continue
-                
+
                 Plots.plot_types[plot_name] = p
 
                 plot_type.register_callbacks(
                     app, df_from_store=df_from_store, df_to_store=df_to_store
                 )
 
-                loaded_plots.append(plot_name)
-
-            return loaded_plots
+            return list(Plots.plot_types.keys())
 
     @staticmethod
     def create_layout():

@@ -1,6 +1,5 @@
 from collections import Counter
 
-import dash
 import dash_mantine_components as dmc
 from dash import ALL, Input, Output, State, ctx, dcc, html
 
