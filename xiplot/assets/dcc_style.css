@@ -77,7 +77,7 @@
 
 .Select-control,
 .Select-menu-outer,
-.Select-input,
+.Select-input:not([aria-disabled='true']),
 .Select-input input {
     background-color: white !important;
     background-color: var(--bg-color) !important;

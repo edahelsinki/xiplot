@@ -5,6 +5,8 @@
     objects.
 """
 
+import uuid
+from asyncio import Future
 from importlib.metadata import entry_points as _entry_points
 from io import BytesIO
 from os import PathLike
@@ -139,31 +141,65 @@ def get_plugin_filepaths(dir_path=""):
         return []
 
 
-def install_local_plugin(plugin_path: str):
-    plugin_path = str(Path(plugin_path).resolve())
+def __micropip_install_callback(future: Future):
+    get_plugins_cached.cache = dict()
 
     try:
-        import asyncio
+        future.result()
+        print(
+            "pyodide-eval:let plugin_tab_load_success ="
+            ' window.document.getElementById("plugin-tab-load-success");let'
+            " nativeInputValueSetter = window.Object.getOwnPropertyDescriptor"
+            "(window.HTMLInputElement.prototype,"
+            ' "value").set;nativeInputValueSetter.call('
+            f"plugin_tab_load_success, {repr(str(uuid.uuid4()))});let"
+            ' plugin_tab_load_success_event = new Event("input", {'
+            " bubbles: true }"
+            " );plugin_tab_load_success.dispatchEvent("
+            "plugin_tab_load_success_event);"
+        )
+    except Exception as err:
+        print(
+            "pyodide-eval:let plugin_tab_load_exception ="
+            ' window.document.getElementById("plugin-tab-load-exception");let'
+            " nativeInputValueSetter = window.Object.getOwnPropertyDescriptor"
+            "(window.HTMLInputElement.prototype,"
+            ' "value").set;nativeInputValueSetter.call('
+            f"plugin_tab_load_exception, {repr(str(err))});let "
+            "plugin_tab_load_exception_event = new"
+            ' Event("input", { bubbles: true }'
+            " );plugin_tab_load_exception.dispatchEvent("
+            "plugin_tab_load_exception_event);"
+        )
 
+
+def install_local_plugin(plugin_path: str):
+    import asyncio
+
+    try:
         import micropip
-
-        # FIXME: get_running_loop doesn't work in WASM
-        # Needs to run in the background and report back via hidden UI
-        asyncio.get_running_loop().run_until_complete(
-            micropip.install(f"emfs:{plugin_path}")
-        )
     except ImportError:
-        import subprocess
-        import sys
-
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", "--no-input", plugin_path]
+        raise NotImplementedError(
+            "Loading new plugins is only supported in WASM"
         )
 
-    get_plugins_cached.cache = dict()
+    plugin_path = str(Path(plugin_path).resolve())
+
+    asyncio.ensure_future(
+        micropip.install(f"emfs:{plugin_path}")
+    ).add_done_callback(__micropip_install_callback)
 
 
 def install_remote_plugin(plugin_source: str):
+    import asyncio
+
+    try:
+        import micropip
+    except ImportError:
+        raise NotImplementedError(
+            "Loading new plugins is only supported in WASM"
+        )
+
     if len(plugin_source.split()) != 1:
         raise ValueError("Plugin source must be a URL or PyPi package name")
 
@@ -173,32 +209,9 @@ def install_remote_plugin(plugin_source: str):
     ):
         raise ValueError("Plugin source must be a URL or PyPi package name")
 
-    try:
-        import asyncio
-
-        import micropip
-
-        # FIXME: get_running_loop doesn't work in WASM
-        # Needs to run in the background and report back via hidden UI
-        asyncio.get_running_loop().run_until_complete(
-            micropip.install(plugin_source)
-        )
-    except ImportError:
-        import subprocess
-        import sys
-
-        subprocess.check_call(
-            [
-                sys.executable,
-                "-m",
-                "pip",
-                "install",
-                "--no-input",
-                plugin_source,
-            ]
-        )
-
-    get_plugins_cached.cache = dict()
+    asyncio.ensure_future(micropip.install(plugin_source)).add_done_callback(
+        __micropip_install_callback
+    )
 
 
 def get_all_loaded_plugins():
@@ -209,3 +222,12 @@ def get_all_loaded_plugins():
             plugins.append((plugin_type, name, path))
 
     return plugins
+
+
+def is_plugin_loading_supported() -> bool:
+    try:
+        import micropip  # noqa: F401
+    except ImportError:
+        return False
+
+    return True

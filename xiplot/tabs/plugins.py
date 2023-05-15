@@ -1,5 +1,4 @@
 import uuid
-from pathlib import Path
 
 import dash
 import dash_mantine_components as dmc
@@ -10,6 +9,7 @@ from xiplot.plugin import (
     get_plugin_filepaths,
     install_local_plugin,
     install_remote_plugin,
+    is_plugin_loading_supported,
 )
 from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
@@ -23,56 +23,89 @@ class Plugins(Tab):
             Output("plugin-tab-notify-container", "children"),
             Output("plugin-search-input", "value"),
             Output("loaded_plugins", "options"),
+            Output("plugin-tab-load-progress", "value"),
             Input("plugin-submit-button", "n_clicks"),
+            Input("plugin-tab-load-success", "value"),
+            Input("plugin-tab-load-exception", "value"),
             State("plugin_paths", "value"),
             State("plugin-search-input", "value"),
+            State("plugin-tab-load-progress", "value"),
         )
-        def load_plugin(plugin_btn, plugin_path, plugin_search):
+        def load_plugin(
+            plugin_btn,
+            success,
+            exception,
+            plugin_path,
+            plugin_search,
+            progress_id,
+        ):
+            if not is_plugin_loading_supported():
+                return (
+                    dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message=(
+                            "Loading new plugins is not supported. Please run"
+                            " `pip install <plugin>` from your terminal"
+                            " instead."
+                        ),
+                        action="show",
+                        autoClose=10000,
+                    ),
+                    "",
+                    dash.no_update,
+                    dash.no_update,
+                )
+
             trigger = ctx.triggered_id
 
+            if trigger == "plugin-tab-load-success":
+                return (
+                    dmc.Notification(
+                        id=progress_id,
+                        color="green",
+                        title="Success",
+                        message="The plugin was successfully loaded!",
+                        action="update",
+                        autoClose=5000,
+                    ),
+                    "",
+                    get_loaded_plugin_options(),
+                    "",
+                )
+            if trigger == "plugin-tab-load-exception":
+                return (
+                    dmc.Notification(
+                        id=progress_id,
+                        color="red",
+                        title="Error",
+                        message=str(exception),
+                        action="update",
+                        autoClose=False,
+                    ),
+                    "",
+                    get_loaded_plugin_options(),
+                    "",
+                )
+
             # TODO:
-            # - properly handle the async install in WASM
-            # - update the loaded plugins list only after the install
             # - add NEW globals
             # - register NEW callbacks
             # - register NEW plots and register their callbacks
             # - what to do about reinstalls since registers are not done
 
+            plugin_source = None
+
             if not plugin_path and plugin_search:
-                try:
-                    # TODO: Provide a progress indicator
-                    install_remote_plugin(plugin_search)
+                plugin_source = plugin_search
+                install_plugin = install_remote_plugin
 
-                    return (
-                        dmc.Notification(
-                            id=str(uuid.uuid4()),
-                            color="green",
-                            title="Success",
-                            message="The plugin was successfully loaded!",
-                            action="show",
-                            autoClose=5000,
-                        ),
-                        "",
-                        get_loaded_plugin_options(),
-                    )
-                except Exception as err:
-                    return (
-                        dmc.Notification(
-                            id=str(uuid.uuid4()),
-                            color="red",
-                            title="Error",
-                            message=(
-                                f"Loading a plugin from '{plugin_search}'"
-                                f" failed with the following error: {err}"
-                            ),
-                            action="show",
-                            autoClose=False,
-                        ),
-                        "",
-                        dash.no_update,
-                    )
+            if plugin_path:
+                plugin_source = plugin_path
+                install_plugin = install_local_plugin
 
-            if not plugin_path:
+            if not plugin_source:
                 return (
                     dmc.Notification(
                         id=str(uuid.uuid4()),
@@ -84,44 +117,64 @@ class Plugins(Tab):
                     ),
                     "",
                     dash.no_update,
+                    dash.no_update,
                 )
 
-            if trigger == "plugin-submit-button":
-                try:
-                    # TODO: Provide a progress indicator
-                    install_local_plugin(plugin_path)
-
-                    return (
-                        dmc.Notification(
-                            id=str(uuid.uuid4()),
-                            color="green",
-                            title="Success",
-                            message="The plugin was successfully loaded!",
-                            action="show",
-                            autoClose=5000,
+            if progress_id:
+                return (
+                    dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message=(
+                            "Please wait until the previous plugin has"
+                            " finished loading."
                         ),
-                        "",
-                        get_loaded_plugin_options(),
-                    )
-                except Exception as err:
-                    return (
-                        dmc.Notification(
-                            id=str(uuid.uuid4()),
-                            color="red",
-                            title="Error",
-                            message=(
-                                "Loading a plugin from"
-                                f" '{Path(plugin_path).name}' failed with the"
-                                f" following error: {err}"
-                            ),
-                            action="show",
-                            autoClose=False,
-                        ),
-                        "",
-                        dash.no_update,
-                    )
+                        action="show",
+                        autoClose=10000,
+                    ),
+                    "",
+                    dash.no_update,
+                    dash.no_update,
+                )
 
-            return (dash.no_update, "", dash.no_update)
+            try:
+                install_plugin(plugin_source)
+
+                progress_id = str(uuid.uuid4())
+
+                return (
+                    dmc.Notification(
+                        id=progress_id,
+                        color="blue",
+                        title="Processing",
+                        message="Loading the plugin",
+                        action="show",
+                        loading=True,
+                        autoClose=False,
+                        disallowClose=True,
+                    ),
+                    "",
+                    dash.no_update,
+                    progress_id,
+                )
+            except Exception as err:
+                return (
+                    dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="red",
+                        title="Error",
+                        message=(
+                            f"Loading a plugin from '{plugin_source}'"
+                            f" failed with the following error: {err}"
+                        ),
+                        action="show",
+                        autoClose=False,
+                    ),
+                    "",
+                    dash.no_update,
+                    dash.no_update,
+                )
 
         @app.callback(
             Output("plugin-search-input", "value"),
@@ -140,6 +193,10 @@ class Plugins(Tab):
             uploader = du.Upload(
                 id="plugin_uploader",
                 text="Drag and Drop or Select a Python .whl File to upload",
+                text_disabled=(
+                    "Uploading new plugins is not supported. Please run"
+                    " `pip install <plugin>` from your terminal instead."
+                ),
                 default_style={"minHeight": 1, "lineHeight": 4},
                 disabled=True,
             )
@@ -152,6 +209,8 @@ class Plugins(Tab):
                         html.A("Select a Python .whl File"),
                         " to upload",
                     ]
+                    if is_plugin_loading_supported()
+                    else "Uploading new plugins is not supported."
                 ),
                 className="dcc-upload",
                 disabled=True,
@@ -171,9 +230,16 @@ class Plugins(Tab):
                                 ],
                                 id="plugin_paths",
                                 placeholder=(
-                                    "Select a plugin .whl file or URL or give"
-                                    " its PyPi name"
+                                    "Select a suggested plugin or give its URL"
+                                    " or PyPi package name"
+                                    if is_plugin_loading_supported()
+                                    else (
+                                        "Loading new plugins is not supported."
+                                        " Please run `pip install <plugin>`"
+                                        " from your terminal instead."
+                                    )
                                 ),
+                                disabled=not is_plugin_loading_supported(),
                             ),
                             layout_wrapper(
                                 component=dcc.Input(id="plugin-search-input"),
@@ -184,9 +250,10 @@ class Plugins(Tab):
                                 id="plugin-submit-button",
                                 n_clicks=0,
                                 className="button",
+                                disabled=not is_plugin_loading_supported(),
                             ),
                         ),
-                        title="Choose a Plugin",
+                        title="Load a Plugin",
                         css_class="dash-dropdown",
                     ),
                     html.Br(),
@@ -197,7 +264,9 @@ class Plugins(Tab):
                                 id="loaded_plugins",
                                 clearable=False,
                                 searchable=False,
-                                placeholder="Check the loaded plugins",
+                                placeholder=(
+                                    "Check the list of already loaded plugins"
+                                ),
                             ),
                         ),
                         title="Loaded Plugins",
@@ -224,6 +293,21 @@ class Plugins(Tab):
                 html.Div(
                     id="plugin-tab-upload-notify-container",
                     style={"display": "none"},
+                ),
+                dcc.Input(
+                    id="plugin-tab-load-progress",
+                    style={"display": "none"},
+                    type="text",
+                ),
+                dcc.Input(
+                    id="plugin-tab-load-success",
+                    style={"display": "none"},
+                    type="text",
+                ),
+                dcc.Input(
+                    id="plugin-tab-load-exception",
+                    style={"display": "none"},
+                    type="text",
                 ),
             ]
         )
