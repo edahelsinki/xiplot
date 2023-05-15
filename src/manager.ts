@@ -140,16 +140,6 @@ export class WorkerManager {
 
     // Forward console messages to the status tracker or `console.log`
     if (event.data.consoleMessage) {
-      if (event.data.consoleMessage.startsWith("pyodide-eval:")) {
-        try {
-          eval(event.data.consoleMessage.slice("pyodide-eval:".length))
-        } catch (error) {
-          console.error(error);
-        }
-
-        return;
-      }
-
       const statusBar = document.querySelector(".status");
 
       if (statusBar) {
@@ -177,6 +167,27 @@ export class WorkerManager {
         statusBar.appendChild(error);
       } else {
         console.error(event.data.consoleError);
+      }
+
+      return;
+    }
+
+    // Evaluate raw JavaScript coming from the Python dash app
+    if (event.data.jsEval) {
+      try {
+        eval(event.data.jsEval)
+      } catch (err) {
+        const statusBar = document.querySelector(".status");
+
+        if (statusBar) {
+          const error = document.createElement("div");
+          error.className = "stderr";
+          error.innerText = err.toString();
+
+          statusBar.appendChild(error);
+        } else {
+          console.error(err);
+        }
       }
 
       return;
