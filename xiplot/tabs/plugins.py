@@ -89,12 +89,6 @@ class Plugins(Tab):
                     "",
                 )
 
-            # TODO:
-            # - add NEW globals
-            # - register NEW callbacks
-            # - register NEW plots and register their callbacks
-            # - what to do about reinstalls since registers are not done
-
             plugin_source = None
 
             if not plugin_path and plugin_search:

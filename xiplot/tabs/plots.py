@@ -12,7 +12,7 @@ from xiplot.plots.histogram import Histogram
 from xiplot.plots.scatterplot import Scatterplot
 from xiplot.plots.smiles import Smiles
 from xiplot.plots.table import Table
-from xiplot.plugin import get_plugins_cached
+from xiplot.plugin import get_new_plugins_cached
 from xiplot.tabs import Tab
 from xiplot.utils import generate_id
 from xiplot.utils.components import DeleteButton, FlexRow
@@ -23,7 +23,7 @@ class Plots(Tab):
     plot_types = {
         p.name(): p
         for p in [Scatterplot, Histogram, Heatmap, Barplot, Table, Smiles]
-        + [plot for (_, _, plot) in get_plugins_cached("plot")]
+        + [plot for (_, _, plot) in get_new_plugins_cached("plot")]
     }
 
     @staticmethod
@@ -267,6 +267,28 @@ class Plots(Tab):
             ]
 
             return meta["session"], children, dash.no_update, None
+
+        @app.callback(
+            Output("plot_type", "options"),
+            Input("loaded_plugins", "options"),
+            State("plot_type", "options"),
+        )
+        def update_plugin_plots_callbacks(plugins, loaded_plots):
+            for _, _, p in get_new_plugins_cached("plot"):
+                plot_name, plot_type = p.name(), p
+
+                if Plots.plot_types.get(plot_name, None) is not None:
+                    continue
+                
+                Plots.plot_types[plot_name] = p
+
+                plot_type.register_callbacks(
+                    app, df_from_store=df_from_store, df_to_store=df_to_store
+                )
+
+                loaded_plots.append(plot_name)
+
+            return loaded_plots
 
     @staticmethod
     def create_layout():

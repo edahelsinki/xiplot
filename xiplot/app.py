@@ -1,9 +1,10 @@
 from collections import Counter
 
+import dash
 import dash_mantine_components as dmc
-from dash import ALL, Input, Output, ctx, dcc, html
+from dash import ALL, Input, Output, State, ctx, dcc, html
 
-from xiplot.plugin import get_plugins_cached
+from xiplot.plugin import get_new_plugins_cached
 from xiplot.tabs.cluster import Cluster
 from xiplot.tabs.data import Data
 from xiplot.tabs.embedding import Embedding
@@ -84,8 +85,14 @@ class XiPlot:
                         id="globals",
                     ),
                     PdfButton.create_global(),
-                ]
-                + [g() for (_, _, g) in get_plugins_cached("global")],
+                    html.Div(
+                        [
+                            g()
+                            for (_, _, g) in get_new_plugins_cached("global")
+                        ],
+                        id="plugin-globals",
+                    ),
+                ],
                 id="main",
             ),
             position="top-right",
@@ -100,8 +107,22 @@ class XiPlot:
                 else tab.register_callbacks(app, df_from_store, df_to_store)
             )
 
-        for _, _, cb in get_plugins_cached("callback"):
+        for _, _, cb in get_new_plugins_cached("callback"):
             cb(app, df_from_store, df_to_store)
+
+        @app.callback(
+            Output("plugin-globals", "children"),
+            Input("loaded_plugins", "options"),
+            State("plugin-globals", "children"),
+        )
+        def update_plugin_globals_callbacks(plugins, loaded_globals):
+            for _, _, g in get_new_plugins_cached("global"):
+                loaded_globals.append(g())
+
+            for _, _, cb in get_new_plugins_cached("callback"):
+                cb(app, df_from_store, df_to_store)
+
+            return loaded_globals
 
         @app.callback(
             Output(

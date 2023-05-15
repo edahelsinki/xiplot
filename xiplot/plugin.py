@@ -7,6 +7,7 @@
 
 import uuid
 from asyncio import Future
+from collections import defaultdict
 from importlib.metadata import entry_points as _entry_points
 from io import BytesIO
 from os import PathLike
@@ -102,11 +103,13 @@ def get_plugins_cached(
     Returns:
         A list of loaded `entry_points`.
     """
-    try:
-        if plugin_type in get_plugins_cached.cache:
-            return get_plugins_cached.cache[plugin_type]
-    except AttributeError:
+    if getattr(get_plugins_cached, "cache", None) is None:
         get_plugins_cached.cache = dict()
+
+    cached_plugins_of_type = get_plugins_cached.cache.get(plugin_type, None)
+
+    if cached_plugins_of_type is not None:
+        return cached_plugins_of_type
 
     try:
         # Python 3.10+
@@ -124,6 +127,34 @@ def get_plugins_cached(
 
     get_plugins_cached.cache[plugin_type] = loaded_plugins
     return loaded_plugins
+
+
+def get_new_plugins_cached(
+    plugin_type: Literal["read", "write", "plot", "global", "callback"]
+) -> List[Any]:
+    if getattr(get_new_plugins_cached, "cache", None) is None:
+        get_new_plugins_cached.cache = defaultdict(list)
+
+    current_plugins = get_plugins_cached(plugin_type)
+
+    new_plugins = []
+
+    for name, path, plugin in current_plugins:
+        new = True
+
+        for old_name, old_path, old_plugin in get_new_plugins_cached.cache[
+            plugin_type
+        ]:
+            if path == old_path:
+                new = False
+                break
+
+        if new:
+            new_plugins.append((name, path, plugin))
+
+    get_new_plugins_cached.cache[plugin_type] += new_plugins
+
+    return new_plugins
 
 
 def get_plugin_filepaths(dir_path=""):
