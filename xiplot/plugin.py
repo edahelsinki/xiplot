@@ -173,35 +173,32 @@ def get_plugin_filepaths(dir_path=""):
 
 
 def __micropip_install_callback(future: Future):
+    import pyodide
+
     get_plugins_cached.cache = dict()
 
     try:
         future.result()
-        print(
-            "pyodide-eval:let plugin_tab_load_success ="
-            ' window.document.getElementById("plugin-tab-load-success");let'
-            " nativeInputValueSetter = window.Object.getOwnPropertyDescriptor"
-            "(window.HTMLInputElement.prototype,"
-            ' "value").set;nativeInputValueSetter.call('
-            f"plugin_tab_load_success, {repr(str(uuid.uuid4()))});let"
-            ' plugin_tab_load_success_event = new Event("input", {'
-            " bubbles: true }"
-            " );plugin_tab_load_success.dispatchEvent("
-            "plugin_tab_load_success_event);"
-        )
+        target = "success"
+        result = str(uuid.uuid4())
     except Exception as err:
-        print(
-            "pyodide-eval:let plugin_tab_load_exception ="
-            ' window.document.getElementById("plugin-tab-load-exception");let'
-            " nativeInputValueSetter = window.Object.getOwnPropertyDescriptor"
-            "(window.HTMLInputElement.prototype,"
-            ' "value").set;nativeInputValueSetter.call('
-            f"plugin_tab_load_exception, {repr(str(err))});let "
-            "plugin_tab_load_exception_event = new"
-            ' Event("input", { bubbles: true }'
-            " );plugin_tab_load_exception.dispatchEvent("
-            "plugin_tab_load_exception_event);"
-        )
+        target = "exception"
+        result = str(err)
+
+    js_callback_code = f"""
+window.Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype, "value",
+).set.call(
+    window.document.getElementById("plugin-tab-load-{target}"), {repr(result)},
+);
+window.document.getElementById("plugin-tab-load-{target}").dispatchEvent(
+    new Event("input", {{ bubbles: true }}),
+);
+    """
+
+    pyodide.code.run_js(
+        f"self.postMessage({{ jsEval: {repr(js_callback_code)} }})"
+    )
 
 
 def install_local_plugin(plugin_path: str):

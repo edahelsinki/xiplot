@@ -21,6 +21,7 @@ class Plugins(Tab):
     def register_callbacks(app, df_from_store, df_to_store, dir_path=""):
         @app.callback(
             Output("plugin-tab-notify-container", "children"),
+            Output("plugin_paths", "value"),
             Output("plugin-search-input", "value"),
             Output("loaded_plugins", "options"),
             Output("plugin-tab-load-progress", "value"),
@@ -53,6 +54,7 @@ class Plugins(Tab):
                         action="show",
                         autoClose=10000,
                     ),
+                    dash.no_update,
                     "",
                     dash.no_update,
                     dash.no_update,
@@ -70,6 +72,7 @@ class Plugins(Tab):
                         action="update",
                         autoClose=5000,
                     ),
+                    dash.no_update,
                     "",
                     get_loaded_plugin_options(),
                     "",
@@ -84,6 +87,7 @@ class Plugins(Tab):
                         action="update",
                         autoClose=False,
                     ),
+                    dash.no_update,
                     "",
                     get_loaded_plugin_options(),
                     "",
@@ -109,6 +113,7 @@ class Plugins(Tab):
                         action="show",
                         autoClose=10000,
                     ),
+                    dash.no_update,
                     "",
                     dash.no_update,
                     dash.no_update,
@@ -127,6 +132,7 @@ class Plugins(Tab):
                         action="show",
                         autoClose=10000,
                     ),
+                    dash.no_update,
                     "",
                     dash.no_update,
                     dash.no_update,
@@ -148,6 +154,7 @@ class Plugins(Tab):
                         autoClose=False,
                         disallowClose=True,
                     ),
+                    None,
                     "",
                     dash.no_update,
                     progress_id,
@@ -165,6 +172,7 @@ class Plugins(Tab):
                         action="show",
                         autoClose=False,
                     ),
+                    None,
                     "",
                     dash.no_update,
                     dash.no_update,
@@ -198,11 +206,12 @@ class Plugins(Tab):
             uploader = dcc.Upload(
                 id="plugin_uploader",
                 children=html.Div(
-                    [
-                        "Drag and Drop or ",
-                        html.A("Select a Python .whl File"),
-                        " to upload",
-                    ]
+                    # [
+                    #     "Drag and Drop or ",
+                    #     html.A("Select a Python .whl File"),
+                    #     " to upload",
+                    # ]
+                    "Uploading new plugins is not yet supported."
                     if is_plugin_loading_supported()
                     else "Uploading new plugins is not supported."
                 ),
