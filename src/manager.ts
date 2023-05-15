@@ -140,6 +140,16 @@ export class WorkerManager {
 
     // Forward console messages to the status tracker or `console.log`
     if (event.data.consoleMessage) {
+      if (event.data.consoleMessage.startsWith("pyodide-eval:")) {
+        try {
+          eval(event.data.consoleMessage.slice("pyodide-eval:".length))
+        } catch (error) {
+          console.error(error);
+        }
+
+        return;
+      }
+
       const statusBar = document.querySelector(".status");
 
       if (statusBar) {
