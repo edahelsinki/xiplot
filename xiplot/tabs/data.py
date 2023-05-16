@@ -24,6 +24,7 @@ from xiplot.utils.dataframe import (
     write_functions,
     write_only_dataframe,
 )
+from xiplot.utils.io import FinallyCloseBytesIO
 from xiplot.utils.layouts import layout_wrapper
 
 
@@ -465,101 +466,103 @@ class Data(Tab):
 
             filepath = Path(filepath)
 
-            file = BytesIO()
-
-            if ctx.triggered_id == "download-data-file-button":
-                try:
-                    filename, mime = write_only_dataframe(
-                        df, meta["filename"], file, file_extension
-                    )
-                except Exception as err:
-                    return dash.no_update, dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="yellow",
-                        title="Warning",
-                        message=[
-                            html.Div(
-                                [
-                                    (
-                                        "Failed to download the data file for"
-                                        f" {filepath.name}"
-                                    ),
-                                    (
-                                        html.I(" (upload)")
-                                        if ctx.triggered_id
-                                        == "uploaded_data_file_store"
-                                        else None
-                                    ),
-                                    f": {err}.",
-                                ]
-                            )
-                        ],
-                        action="show",
-                        autoClose=10000,
-                    )
-
-            if ctx.triggered_id == "download-plots-file-button":
-                try:
-                    aux = dict()
-
-                    if clusters is not None:
-                        aux["cluster"] = clusters
-
-                    if selected_rows is not None:
-                        aux["is_selected"] = ~np.asarray(
-                            selected_rows, dtype=bool
+            with FinallyCloseBytesIO() as file:
+                if ctx.triggered_id == "download-data-file-button":
+                    try:
+                        filename, mime = write_only_dataframe(
+                            df, meta["filename"], file, file_extension
+                        )
+                    except Exception as err:
+                        return dash.no_update, dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message=[
+                                html.Div(
+                                    [
+                                        (
+                                            "Failed to download the data file"
+                                            f" for {filepath.name}"
+                                        ),
+                                        (
+                                            html.I(" (upload)")
+                                            if ctx.triggered_id
+                                            == "uploaded_data_file_store"
+                                            else None
+                                        ),
+                                        f": {err}.",
+                                    ]
+                                )
+                            ],
+                            action="show",
+                            autoClose=10000,
                         )
 
-                    if pca_cols is not None:
-                        aux["pca_cols"] = pca_cols
+                if ctx.triggered_id == "download-plots-file-button":
+                    try:
+                        aux = dict()
 
-                    for data in plot_data:
-                        index = data["index"]
-                        del data["index"]
-                        meta["plots"][index] = data
+                        if clusters is not None:
+                            aux["cluster"] = clusters
 
-                    filename, mime = write_dataframe_and_metadata(
-                        df,
-                        pd.DataFrame(aux),
-                        meta,
-                        meta["filename"],
-                        file,
-                        file_extension,
-                    )
-                except Exception as err:
-                    return dash.no_update, dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="yellow",
-                        title="Warning",
-                        message=[
-                            html.Div(
-                                [
-                                    (
-                                        "Failed to download plots and data"
-                                        f" file for {filepath.name}"
-                                    ),
-                                    (
-                                        html.I(" (upload)")
-                                        if ctx.triggered_id
-                                        == "uploaded_data_file_store"
-                                        else None
-                                    ),
-                                    f": {err}.",
-                                ]
+                        if selected_rows is not None:
+                            aux["is_selected"] = ~np.asarray(
+                                selected_rows, dtype=bool
                             )
-                        ],
-                        action="show",
-                        autoClose=10000,
-                    )
 
-            encoded = base64.b64encode(file.getvalue()).decode("ascii")
+                        if pca_cols is not None:
+                            aux["pca_cols"] = pca_cols
 
-            return (
-                dict(
-                    base64=True, content=encoded, filename=filename, type=mime
-                ),
-                None,
-            )
+                        for data in plot_data:
+                            index = data["index"]
+                            del data["index"]
+                            meta["plots"][index] = data
+
+                        filename, mime = write_dataframe_and_metadata(
+                            df,
+                            pd.DataFrame(aux),
+                            meta,
+                            meta["filename"],
+                            file,
+                            file_extension,
+                        )
+                    except Exception as err:
+                        return dash.no_update, dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message=[
+                                html.Div(
+                                    [
+                                        (
+                                            "Failed to download plots and data"
+                                            f" file for {filepath.name}"
+                                        ),
+                                        (
+                                            html.I(" (upload)")
+                                            if ctx.triggered_id
+                                            == "uploaded_data_file_store"
+                                            else None
+                                        ),
+                                        f": {err}.",
+                                    ]
+                                )
+                            ],
+                            action="show",
+                            autoClose=10000,
+                        )
+
+                encoded = base64.b64encode(file.getvalue()).decode("ascii")
+
+                return (
+                    dict(
+                        base64=True,
+                        content=encoded,
+                        filename=filename,
+                        type=mime,
+                    ),
+                    None,
+                )
 
         @app.callback(
             Output(generate_id(WriteFormatDropdown), "options"),

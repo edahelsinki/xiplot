@@ -3,7 +3,7 @@ from collections import Counter
 import dash_mantine_components as dmc
 from dash import ALL, Input, Output, State, ctx, dcc, html
 
-from xiplot.plugin import get_new_plugins_cached
+from xiplot.plugin import get_new_plugins_cached, is_plugin_loading_supported
 from xiplot.tabs.cluster import Cluster
 from xiplot.tabs.data import Data
 from xiplot.tabs.embedding import Embedding
@@ -29,7 +29,10 @@ class XiPlot:
         except (ImportError, AttributeError):
             pass
 
-        TABS = [Data, Plots, Cluster, Embedding, Plugins, Settings]
+        TABS = [Data, Plots, Cluster, Embedding, Settings]
+
+        if is_plugin_loading_supported():
+            TABS.insert(-1, Plugins)
 
         self.app.layout = dmc.NotificationsProvider(
             html.Div(

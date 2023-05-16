@@ -8,6 +8,7 @@ from typing import Any, Callable, Dict, Iterator, Optional, Tuple
 import pandas as pd
 
 from xiplot.plugin import get_plugins_cached
+from xiplot.utils.io import FinallyCloseBytesIO
 
 
 def get_data_filepaths(dir_path=""):
@@ -241,18 +242,18 @@ def write_dataframe_and_metadata(
         meta_file = "meta.json"
         tar_file = Path(filepath).with_suffix(".tar.gz").name
 
-        df_bytes = BytesIO()
-        write_only_dataframe(df, filepath, df_bytes, file_extension)
-        df_bytes = df_bytes.getvalue()
+        with FinallyCloseBytesIO() as df_bytes:
+            write_only_dataframe(df, filepath, df_bytes, file_extension)
+            df_bytes = df_bytes.getvalue()
 
         df_info = tarfile.TarInfo(df_file)
         df_info.size = len(df_bytes)
 
         tar.addfile(df_info, BytesIO(df_bytes))
 
-        aux_bytes = BytesIO()
-        write_only_dataframe(aux, aux_file, aux_bytes, file_extension)
-        aux_bytes = aux_bytes.getvalue()
+        with FinallyCloseBytesIO() as aux_bytes:
+            write_only_dataframe(aux, aux_file, aux_bytes, file_extension)
+            aux_bytes = aux_bytes.getvalue()
 
         aux_info = tarfile.TarInfo(aux_file)
         aux_info.size = len(aux_bytes)

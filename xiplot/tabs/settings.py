@@ -1,7 +1,10 @@
+from collections import defaultdict
+
 import plotly.graph_objects as go
 import plotly.io as pio
 from dash import Dash, Input, Output, State, dcc, html
 
+from xiplot.plugin import get_all_loaded_plugins, is_plugin_loading_supported
 from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
 from xiplot.utils.layouts import layout_wrapper
@@ -76,38 +79,63 @@ function toggleLightDarkMode(clicks, data) {
     @staticmethod
     def create_layout():
         return FlexRow(
-            layout_wrapper(
-                component=html.Button(
-                    "Dark mode",
-                    id="light-dark-toggle",
-                    className="light-dark-toggle button",
+            *[
+                layout_wrapper(
+                    component=html.Button(
+                        "Dark mode",
+                        id="light-dark-toggle",
+                        className="light-dark-toggle button",
+                    ),
+                    title="Colour scheme",
                 ),
-                title="Colour scheme",
-            ),
-            html.Span(" ", id="settings-tab-dummy"),
-            layout_wrapper(
-                component=dcc.Dropdown(
-                    ["1", "2", "3", "4", "5"],
-                    "3",
-                    clearable=False,
-                    persistence="true",
-                    id="settings-column-size",
+                html.Span(" ", id="settings-tab-dummy"),
+                layout_wrapper(
+                    component=dcc.Dropdown(
+                        ["1", "2", "3", "4", "5"],
+                        "3",
+                        clearable=False,
+                        persistence="true",
+                        id="settings-column-size",
+                    ),
+                    title="Maximum number of columns",
                 ),
-                title="Maximum number of columns",
-            ),
-            html.Span(" "),
-            layout_wrapper(
-                component=dcc.Slider(
-                    min=350,
-                    max=650,
-                    step=100,
-                    marks={i: f"{i}" for i in range(350, 651, 100)},
-                    value=450,
-                    id="settings-plot-height",
-                    persistence="true",
+                html.Span(" "),
+                layout_wrapper(
+                    component=dcc.Slider(
+                        min=350,
+                        max=650,
+                        step=100,
+                        marks={i: f"{i}" for i in range(350, 651, 100)},
+                        value=450,
+                        id="settings-plot-height",
+                        persistence="true",
+                    ),
+                    style={"width": "12rem"},
+                    title="Plot height",
                 ),
-                style={"width": "12rem"},
-                title="Plot height",
+            ]
+            + (
+                []
+                if is_plugin_loading_supported()
+                else [
+                    html.Span(" "),
+                    layout_wrapper(
+                        component=FlexRow(
+                            dcc.Dropdown(
+                                get_installed_plugin_options(),
+                                id="installed_plugins",
+                                clearable=False,
+                                searchable=False,
+                                placeholder=(
+                                    "Check the list of already installed"
+                                    " plugins"
+                                ),
+                            ),
+                        ),
+                        title="Installed Plugins",
+                        css_class="dash-dropdown",
+                    ),
+                ]
             ),
             id="control-settings-container",
             style={"alignItems": "start"},
@@ -123,3 +151,32 @@ function toggleLightDarkMode(clicks, data) {
             dcc.Store(id="plotly-template", data=None),
         ]
         return html.Div(globals)
+
+
+def get_installed_plugin_options():
+    plugins = defaultdict(set)
+
+    for (
+        kind,
+        name,
+        path,
+    ) in get_all_loaded_plugins():
+        plugins[path.split(":")[0]].add(kind)
+
+    plugin_options = []
+
+    for plugin, kinds in plugins.items():
+        if len(kinds) > 0:
+            kinds = f": {', '.join(kinds)}"
+        else:
+            kinds = ""
+
+        plugin_options.append(
+            {
+                "label": f"{plugin}{kinds}",
+                "value": plugin,
+                "disabled": True,
+            }
+        )
+
+    return plugin_options

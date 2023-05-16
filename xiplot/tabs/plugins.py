@@ -1,4 +1,5 @@
 import uuid
+from collections import defaultdict
 
 import dash
 import dash_mantine_components as dmc
@@ -9,7 +10,6 @@ from xiplot.plugin import (
     get_plugin_filepaths,
     install_local_plugin,
     install_remote_plugin,
-    is_plugin_loading_supported,
 )
 from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
@@ -40,26 +40,6 @@ class Plugins(Tab):
             plugin_search,
             progress_id,
         ):
-            if not is_plugin_loading_supported():
-                return (
-                    dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="yellow",
-                        title="Warning",
-                        message=(
-                            "Loading new plugins is not supported. Please run"
-                            " `pip install <plugin>` from your terminal"
-                            " instead."
-                        ),
-                        action="show",
-                        autoClose=10000,
-                    ),
-                    dash.no_update,
-                    "",
-                    dash.no_update,
-                    dash.no_update,
-                )
-
             trigger = ctx.triggered_id
 
             if trigger == "plugin-tab-load-success":
@@ -199,35 +179,19 @@ class Plugins(Tab):
 
     @staticmethod
     def create_layout(dir_path=""):
-        try:
-            import dash_uploader as du
-
-            uploader = du.Upload(
-                id="plugin_uploader",
-                text="Drag and Drop or Select a Python .whl File to upload",
-                text_disabled=(
-                    "Uploading new plugins is not supported. Please run"
-                    " `pip install <plugin>` from your terminal instead."
-                ),
-                default_style={"minHeight": 1, "lineHeight": 4},
-                disabled=True,
-            )
-        except (ImportError, AttributeError):
-            uploader = dcc.Upload(
-                id="plugin_uploader",
-                children=html.Div(
-                    # [
-                    #     "Drag and Drop or ",
-                    #     html.A("Select a Python .whl File"),
-                    #     " to upload",
-                    # ]
-                    "Uploading new plugins is not yet supported."
-                    if is_plugin_loading_supported()
-                    else "Uploading new plugins is not supported."
-                ),
-                className="dcc-upload",
-                disabled=True,
-            )
+        uploader = dcc.Upload(
+            id="plugin_uploader",
+            children=html.Div(
+                # [
+                #     "Drag and Drop or ",
+                #     html.A("Select a Python .whl File"),
+                #     " to upload",
+                # ]
+                "Uploading new plugins is not yet supported."
+            ),
+            className="dcc-upload",
+            disabled=True,
+        )
 
         return FlexRow(
             html.Div(
@@ -245,14 +209,7 @@ class Plugins(Tab):
                                 placeholder=(
                                     "Select a suggested plugin or type its URL"
                                     " or PyPi package name"
-                                    if is_plugin_loading_supported()
-                                    else (
-                                        "Loading new plugins is not supported."
-                                        " Please run `pip install <plugin>`"
-                                        " from your terminal instead."
-                                    )
                                 ),
-                                disabled=not is_plugin_loading_supported(),
                             ),
                             layout_wrapper(
                                 component=dcc.Input(id="plugin-search-input"),
@@ -263,7 +220,6 @@ class Plugins(Tab):
                                 id="plugin-submit-button",
                                 n_clicks=0,
                                 className="button",
-                                disabled=not is_plugin_loading_supported(),
                             ),
                         ),
                         title="Load a Plugin",
@@ -327,15 +283,29 @@ class Plugins(Tab):
 
 
 def get_loaded_plugin_options():
-    return [
-        {
-            "label": f"[{kind}] {name}: {path}",
-            "value": path,
-            "disabled": True,
-        }
-        for (
-            kind,
-            name,
-            path,
-        ) in get_all_loaded_plugins()
-    ]
+    plugins = defaultdict(set)
+
+    for (
+        kind,
+        name,
+        path,
+    ) in get_all_loaded_plugins():
+        plugins[path.split(":")[0]].add(kind)
+
+    plugin_options = []
+
+    for plugin, kinds in plugins.items():
+        if len(kinds) > 0:
+            kinds = f": {', '.join(kinds)}"
+        else:
+            kinds = ""
+
+        plugin_options.append(
+            {
+                "label": f"{plugin}{kinds}",
+                "value": plugin,
+                "disabled": True,
+            }
+        )
+
+    return plugin_options
