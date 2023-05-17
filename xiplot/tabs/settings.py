@@ -127,8 +127,7 @@ function toggleLightDarkMode(clicks, data) {
                                 clearable=False,
                                 searchable=False,
                                 placeholder=(
-                                    "Check the list of already installed"
-                                    " plugins"
+                                    "Check the list of installed plugins"
                                 ),
                             ),
                         ),
@@ -161,7 +160,7 @@ def get_installed_plugin_options():
         name,
         path,
     ) in get_all_loaded_plugins():
-        plugins[path.split(":")[0]].add(kind)
+        plugins[path.split(":")[0].split(".")[0]].add(kind)
 
     plugin_options = []
 

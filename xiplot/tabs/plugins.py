@@ -290,7 +290,7 @@ def get_loaded_plugin_options():
         name,
         path,
     ) in get_all_loaded_plugins():
-        plugins[path.split(":")[0]].add(kind)
+        plugins[path.split(":")[0].split(".")[0]].add(kind)
 
     plugin_options = []
 
