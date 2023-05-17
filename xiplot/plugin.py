@@ -5,15 +5,11 @@
     objects.
 """
 
-import uuid
-from asyncio import Future
 from collections import defaultdict
-from functools import partial
 from importlib.metadata import entry_points as _entry_points
 from io import BytesIO
 from os import PathLike
-from pathlib import Path
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Tuple, Union
 from warnings import warn
 
 import pandas as pd
@@ -94,7 +90,7 @@ def placeholder_figure(text: str) -> Dict[str, Any]:
 
 def get_plugins_cached(
     plugin_type: Literal["read", "write", "plot", "global", "callback"]
-) -> List[Any]:
+) -> List[Tuple[str, str, Any]]:
     """Get a list of all plugins of the specified type
      (this call is cached for future reuse).
 
@@ -102,7 +98,8 @@ def get_plugins_cached(
         plugin_type: The type of xiplot plugin.
 
     Returns:
-        A list of loaded `entry_points`.
+        A list of tuples of each plugin's name, path, and its
+        loaded `entry_point`.
     """
     if getattr(get_plugins_cached, "cache", None) is None:
         get_plugins_cached.cache = dict()
@@ -132,7 +129,18 @@ def get_plugins_cached(
 
 def get_new_plugins_cached(
     plugin_type: Literal["read", "write", "plot", "global", "callback"]
-) -> List[Any]:
+) -> List[Tuple[str, str, Any]]:
+    """Get a list of all new plugins of the specified type that have been
+     added since the last call of this function (this call is cached for
+     future reuse).
+
+    Args:
+        plugin_type: The type of xiplot plugin.
+
+    Returns:
+        A list of tuples of each plugin's name, path, and its
+        loaded `entry_point`.
+    """
     if getattr(get_new_plugins_cached, "cache", None) is None:
         get_new_plugins_cached.cache = defaultdict(list)
 
@@ -158,112 +166,29 @@ def get_new_plugins_cached(
     return new_plugins
 
 
-def get_plugin_filepaths(dir_path=""):
-    try:
-        return sorted(
-            (
-                fp
-                for fp in Path(dir_path).iterdir()
-                if fp.is_file() and fp.suffix == ".whl"
-            ),
-            reverse=True,
-        )
+def get_all_loaded_plugins() -> List[Tuple[str, str, str, Any]]:
+    """Collects the list of all loaded plugins and their types.
 
-    except FileNotFoundError:
-        return []
+    Returns:
+        A list of tuples of each plugin's type, name, path, and its
+        loaded `entry_point`.
 
-
-def __micropip_install_callback(
-    future: Future, try_remove_file: Optional[Path]
-):
-    import pyodide
-
-    get_plugins_cached.cache = dict()
-
-    try:
-        future.result()
-        target = "success"
-        result = str(uuid.uuid4())
-    except Exception as err:
-        target = "exception"
-        result = str(err)
-
-    if target == "success" and try_remove_file is not None:
-        try:
-            try_remove_file.unlink()
-        except Exception:
-            pass
-
-    js_callback_code = f"""
-window.Object.getOwnPropertyDescriptor(
-    window.HTMLInputElement.prototype, "value",
-).set.call(
-    window.document.getElementById("plugin-tab-load-{target}"), {repr(result)},
-);
-window.document.getElementById("plugin-tab-load-{target}").dispatchEvent(
-    new Event("input", {{ bubbles: true }}),
-);
     """
-
-    pyodide.code.run_js(
-        f"self.postMessage({{ jsEval: {repr(js_callback_code)} }})"
-    )
-
-
-def install_local_plugin(plugin_path: str):
-    import asyncio
-
-    try:
-        import micropip
-    except ImportError:
-        raise NotImplementedError(
-            "Loading new plugins is only supported in WASM"
-        )
-
-    plugin_path = Path(plugin_path).resolve()
-
-    asyncio.ensure_future(
-        micropip.install(f"emfs:{str(plugin_path)}")
-    ).add_done_callback(
-        partial(__micropip_install_callback, try_remove_file=plugin_path)
-    )
-
-
-def install_remote_plugin(plugin_source: str):
-    import asyncio
-
-    try:
-        import micropip
-    except ImportError:
-        raise NotImplementedError(
-            "Loading new plugins is only supported in WASM"
-        )
-
-    if len(plugin_source.split()) != 1:
-        raise ValueError("Plugin source must be a URL or PyPi package name")
-
-    if (
-        Path(plugin_source).exists()
-        and Path(plugin_source).name != plugin_source
-    ):
-        raise ValueError("Plugin source must be a URL or PyPi package name")
-
-    asyncio.ensure_future(micropip.install(plugin_source)).add_done_callback(
-        partial(__micropip_install_callback, try_remove_file=None)
-    )
-
-
-def get_all_loaded_plugins():
     plugins = []
 
     for plugin_type in ["read", "write", "plot", "global", "callback"]:
-        for name, path, _ in get_plugins_cached(plugin_type):
-            plugins.append((plugin_type, name, path))
+        for name, path, plugin in get_plugins_cached(plugin_type):
+            plugins.append((plugin_type, name, path, plugin))
 
     return plugins
 
 
-def is_plugin_loading_supported() -> bool:
+def is_dynamic_plugin_loading_supported() -> bool:
+    """Checks if xiplot supports dynamically loading new plugins at runtime.
+
+    Returns:
+        `True` if dynamic loading is supported, `False` otherwise.
+    """
     try:
         import micropip  # noqa: F401
     except ImportError:

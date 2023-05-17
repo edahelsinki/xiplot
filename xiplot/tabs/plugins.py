@@ -1,16 +1,15 @@
 import uuid
+from asyncio import Future
 from collections import defaultdict
+from functools import partial
+from pathlib import Path
+from typing import Optional
 
 import dash
 import dash_mantine_components as dmc
 from dash import Input, Output, State, ctx, dcc, html
 
-from xiplot.plugin import (
-    get_all_loaded_plugins,
-    get_plugin_filepaths,
-    install_local_plugin,
-    install_remote_plugin,
-)
+from xiplot.plugin import get_all_loaded_plugins, get_plugins_cached
 from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
 from xiplot.utils.layouts import layout_wrapper
@@ -289,6 +288,7 @@ def get_loaded_plugin_options():
         kind,
         name,
         path,
+        plugin,
     ) in get_all_loaded_plugins():
         plugins[path.split(":")[0].split(".")[0]].add(kind)
 
@@ -309,3 +309,98 @@ def get_loaded_plugin_options():
         )
 
     return plugin_options
+
+
+def get_plugin_filepaths(dir_path=""):
+    try:
+        return sorted(
+            (
+                fp
+                for fp in Path(dir_path).iterdir()
+                if fp.is_file() and fp.suffix == ".whl"
+            ),
+            reverse=True,
+        )
+
+    except FileNotFoundError:
+        return []
+
+
+def install_local_plugin(plugin_path: str):
+    import asyncio
+
+    try:
+        import micropip
+    except ImportError:
+        raise NotImplementedError(
+            "Loading new plugins is only supported in WASM"
+        )
+
+    plugin_path = Path(plugin_path).resolve()
+
+    asyncio.ensure_future(
+        micropip.install(f"emfs:{str(plugin_path)}")
+    ).add_done_callback(
+        partial(__micropip_install_callback, try_remove_file=plugin_path)
+    )
+
+
+def install_remote_plugin(plugin_source: str):
+    import asyncio
+
+    try:
+        import micropip
+    except ImportError:
+        raise NotImplementedError(
+            "Loading new plugins is only supported in WASM"
+        )
+
+    if len(plugin_source.split()) != 1:
+        raise ValueError("Plugin source must be a URL or PyPi package name")
+
+    if (
+        Path(plugin_source).exists()
+        and Path(plugin_source).name != plugin_source
+    ):
+        raise ValueError("Plugin source must be a URL or PyPi package name")
+
+    asyncio.ensure_future(micropip.install(plugin_source)).add_done_callback(
+        partial(__micropip_install_callback, try_remove_file=None)
+    )
+
+
+def __micropip_install_callback(
+    future: Future, try_remove_file: Optional[Path]
+):
+    import pyodide
+
+    get_plugins_cached.cache = dict()
+
+    try:
+        future.result()
+        target = "success"
+        result = str(uuid.uuid4())
+    except Exception as err:
+        target = "exception"
+        result = str(err)
+
+    if target == "success" and try_remove_file is not None:
+        try:
+            try_remove_file.unlink()
+        except Exception:
+            pass
+
+    js_callback_code = f"""
+window.Object.getOwnPropertyDescriptor(
+    window.HTMLInputElement.prototype, "value",
+).set.call(
+    window.document.getElementById("plugin-tab-load-{target}"), {repr(result)},
+);
+window.document.getElementById("plugin-tab-load-{target}").dispatchEvent(
+    new Event("input", {{ bubbles: true }}),
+);
+    """
+
+    pyodide.code.run_js(
+        f"self.postMessage({{ jsEval: {repr(js_callback_code)} }})"
+    )

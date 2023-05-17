@@ -4,7 +4,10 @@ import plotly.graph_objects as go
 import plotly.io as pio
 from dash import Dash, Input, Output, State, dcc, html
 
-from xiplot.plugin import get_all_loaded_plugins, is_plugin_loading_supported
+from xiplot.plugin import (
+    get_all_loaded_plugins,
+    is_dynamic_plugin_loading_supported,
+)
 from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
 from xiplot.utils.layouts import layout_wrapper
@@ -116,7 +119,7 @@ function toggleLightDarkMode(clicks, data) {
             ]
             + (
                 []
-                if is_plugin_loading_supported()
+                if is_dynamic_plugin_loading_supported()
                 else [
                     html.Span(" "),
                     layout_wrapper(
@@ -159,6 +162,7 @@ def get_installed_plugin_options():
         kind,
         name,
         path,
+        plugin,
     ) in get_all_loaded_plugins():
         plugins[path.split(":")[0].split(".")[0]].add(kind)
 
