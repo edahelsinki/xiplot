@@ -42,8 +42,8 @@ async def setup_bootstrap():
 
         app = setup_xiplot_dash_app(
             unsafe_local_server=True,
-            dir_path="data",
-            plugin_path="plugins",
+            data_dir="data",
+            plugin_dir="plugins",
             url_base_pathname=url_base_pathname,
             compress=False,
             eager_loading=True,
