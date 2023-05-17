@@ -19,9 +19,9 @@ build_xiplot:
 	pip install -r requirements.txt && \
 	pip install . && \
 	python3 -m build && \
+	cp dist/xiplot-*.*.*-py3-none-any.whl ../dist/ && \
 	python3 ../patches/bundle-dash-app.py && \
 	cp -r xiplot/assets ../dist/ && \
-	cp dist/xiplot-*.*.*-py3-none-any.whl ../dist/ && \
 	cp -r data ../dist/ &&  \
 	ls ../dist/data > ../dist/assets/data.ls
 
@@ -50,9 +50,9 @@ serve:
 	cd dist && \
 	python3 -m http.server
 
-deploy: install_xiplot build_xiplot setup_plugins bundle_plugins build_webdash
+deploy: install_xiplot setup_build build_xiplot setup_plugins bundle_plugins build_webdash
 
-run: install_xiplot build_xiplot setup_plugins build_test_plugin bundle_plugins build_webdash serve
+run: install_xiplot setup_build build_xiplot setup_plugins build_test_plugin bundle_plugins build_webdash serve
 
 clean:
 	rm -rf dist
