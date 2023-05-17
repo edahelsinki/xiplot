@@ -18,7 +18,7 @@ from xiplot.utils.components import PdfButton
 
 class XiPlot:
     def __init__(
-        self, app, df_from_store, df_to_store, dir_path="", plugin_path=""
+        self, app, df_from_store, df_to_store, data_dir="", plugin_dir=""
     ) -> None:
         self.app = app
         self.app.title = "χiplot"
@@ -48,11 +48,13 @@ class XiPlot:
                                     dcc.Tab(
                                         [
                                             (
-                                                t.create_layout(dir_path)
+                                                t.create_layout(
+                                                    data_dir=data_dir
+                                                )
                                                 if t == Data
                                                 else (
                                                     t.create_layout(
-                                                        plugin_path
+                                                        plugin_dir=plugin_dir
                                                     )
                                                     if t == Plugins
                                                     else t.create_layout()
@@ -106,10 +108,21 @@ class XiPlot:
         for tab in TABS:
             (
                 tab.register_callbacks(
-                    app, df_from_store, df_to_store, dir_path
+                    app, df_from_store, df_to_store, data_dir=data_dir
                 )
                 if tab == Data
-                else tab.register_callbacks(app, df_from_store, df_to_store)
+                else (
+                    tab.register_callbacks(
+                        app,
+                        df_from_store,
+                        df_to_store,
+                        plugin_dir=plugin_dir,
+                    )
+                    if tab == Plugins
+                    else tab.register_callbacks(
+                        app, df_from_store, df_to_store
+                    )
+                )
             )
 
         for _, _, cb in get_new_plugins_cached("callback"):

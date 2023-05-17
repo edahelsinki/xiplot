@@ -30,7 +30,7 @@ from xiplot.utils.layouts import layout_wrapper
 
 class Data(Tab):
     @staticmethod
-    def register_callbacks(app, df_from_store, df_to_store, dir_path=""):
+    def register_callbacks(app, df_from_store, df_to_store, data_dir=""):
         try:
             import dash_uploader as du
 
@@ -98,7 +98,7 @@ class Data(Tab):
                     df_to_store(df),
                     df_to_store(aux),
                     meta,
-                    generate_dataframe_options(upload_path, dir_path),
+                    generate_dataframe_options(upload_path, data_dir),
                     str(Path("uploads") / upload_path.name),
                     [uploader],
                     None,
@@ -164,7 +164,7 @@ class Data(Tab):
                     df_to_store(df),
                     df_to_store(aux),
                     meta,
-                    generate_dataframe_options(upload_name, dir_path),
+                    generate_dataframe_options(upload_name, data_dir),
                     str(Path("uploads") / upload_name.name),
                     None,
                     None,
@@ -239,7 +239,7 @@ class Data(Tab):
                         autoClose=5000,
                     )
                 else:
-                    filepath = Path(dir_path) / filepath.name
+                    filepath = Path(data_dir) / filepath.name
 
                     try:
                         df, aux, meta = read_dataframe_with_extension(
@@ -573,7 +573,7 @@ class Data(Tab):
             return [ext for _, ext, _ in write_functions()]
 
     @staticmethod
-    def create_layout(dir_path=""):
+    def create_layout(data_dir=""):
         try:
             import dash_uploader as du
 
@@ -604,7 +604,7 @@ class Data(Tab):
                                 [
                                     {"label": fp.name, "value": str(fp)}
                                     for fp in get_data_filepaths(
-                                        dir_path=dir_path
+                                        data_dir=data_dir
                                     )
                                 ],
                                 id="data_files",
@@ -689,7 +689,7 @@ class WriteFormatDropdown(dcc.Dropdown):
         )
 
 
-def generate_dataframe_options(upload_path, dir_path):
+def generate_dataframe_options(upload_path, data_dir):
     return [
         {
             "label": html.Div([upload_path.name, " ", html.I("(upload)")]),
@@ -697,5 +697,5 @@ def generate_dataframe_options(upload_path, dir_path):
         }
     ] + [
         {"label": fp.name, "value": str(fp)}
-        for fp in get_data_filepaths(dir_path=dir_path)
+        for fp in get_data_filepaths(data_dir=data_dir)
     ]

@@ -17,7 +17,7 @@ from xiplot.utils.layouts import layout_wrapper
 
 class Plugins(Tab):
     @staticmethod
-    def register_callbacks(app, df_from_store, df_to_store, dir_path=""):
+    def register_callbacks(app, df_from_store, df_to_store, plugin_dir=""):
         @app.callback(
             Output("plugin-tab-notify-container", "children"),
             Output("plugin_paths", "value"),
@@ -57,12 +57,15 @@ class Plugins(Tab):
                     "",
                 )
             if trigger == "plugin-tab-load-exception":
+                exception = str(exception)
+                exception = exception[exception.find("|") + 1 :]  # noqa: E203
+
                 return (
                     dmc.Notification(
                         id=progress_id,
                         color="red",
                         title="Error",
-                        message=str(exception),
+                        message=exception,
                         action="update",
                         autoClose=False,
                     ),
@@ -173,11 +176,11 @@ class Plugins(Tab):
         def update_suggested_plugins(plugins):
             return [
                 {"label": fp.name, "value": str(fp)}
-                for fp in get_plugin_filepaths(dir_path=dir_path)
+                for fp in get_plugin_filepaths(plugin_dir=plugin_dir)
             ]
 
     @staticmethod
-    def create_layout(dir_path=""):
+    def create_layout(plugin_dir=""):
         uploader = dcc.Upload(
             id="plugin_uploader",
             children=html.Div(
@@ -201,7 +204,7 @@ class Plugins(Tab):
                                 [
                                     {"label": fp.name, "value": str(fp)}
                                     for fp in get_plugin_filepaths(
-                                        dir_path=dir_path
+                                        plugin_dir=plugin_dir
                                     )
                                 ],
                                 id="plugin_paths",
@@ -311,12 +314,12 @@ def get_loaded_plugin_options():
     return plugin_options
 
 
-def get_plugin_filepaths(dir_path=""):
+def get_plugin_filepaths(plugin_dir=""):
     try:
         return sorted(
             (
                 fp
-                for fp in Path(dir_path).iterdir()
+                for fp in Path(plugin_dir).iterdir()
                 if fp.is_file() and fp.suffix == ".whl"
             ),
             reverse=True,
@@ -355,13 +358,8 @@ def install_remote_plugin(plugin_source: str):
             "Loading new plugins is only supported in WASM"
         )
 
-    if len(plugin_source.split()) != 1:
-        raise ValueError("Plugin source must be a URL or PyPi package name")
-
-    if (
-        Path(plugin_source).exists()
-        and Path(plugin_source).name != plugin_source
-    ):
+    # Protect against arbitrary local installs
+    if plugin_source.startswith("emfs:"):
         raise ValueError("Plugin source must be a URL or PyPi package name")
 
     asyncio.ensure_future(micropip.install(plugin_source)).add_done_callback(
@@ -376,13 +374,14 @@ def __micropip_install_callback(
 
     get_plugins_cached.cache = dict()
 
+    result = str(uuid.uuid4())
+
     try:
         future.result()
         target = "success"
-        result = str(uuid.uuid4())
     except Exception as err:
         target = "exception"
-        result = str(err)
+        result += f"|{err}"
 
     if target == "success" and try_remove_file is not None:
         try:

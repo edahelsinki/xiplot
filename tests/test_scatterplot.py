@@ -21,7 +21,7 @@ from xiplot.setup import setup_xiplot_dash_app
 
 def test_tesc001_render_scatterplot(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -37,7 +37,7 @@ def test_tesc001_render_scatterplot(dash_duo):
 
 def test_tesc002_change_axis_value(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -66,7 +66,7 @@ def test_tesc002_change_axis_value(dash_duo):
 
 def test_tesc003_target_setting(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -93,7 +93,7 @@ def test_tesc003_target_setting(dash_duo):
 
 def test_tesc004_jitter_setting(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 

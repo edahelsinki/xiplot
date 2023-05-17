@@ -48,15 +48,15 @@ def cli():
     if args.port:
         kwargs["port"] = args.port
     if args.plugin:
-        plugin_path = args.plugin
+        plugin_dir = args.plugin
     else:
-        plugin_path = "plugins"
+        plugin_dir = "plugins"
 
     unsafe_local_server = True if args.cache else False
 
     app = setup_xiplot_dash_app(
         unsafe_local_server=unsafe_local_server,
-        dir_path=path,
-        plugin_path=plugin_path,
+        data_dir=path,
+        plugin_dir=plugin_dir,
     )
     app.run(**kwargs)

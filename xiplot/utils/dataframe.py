@@ -11,10 +11,10 @@ from xiplot.plugin import get_plugins_cached
 from xiplot.utils.io import FinallyCloseBytesIO
 
 
-def get_data_filepaths(dir_path=""):
+def get_data_filepaths(data_dir=""):
     try:
         return sorted(
-            (fp for fp in Path(dir_path).iterdir() if fp.is_file()),
+            (fp for fp in Path(data_dir).iterdir() if fp.is_file()),
             reverse=True,
         )
 
