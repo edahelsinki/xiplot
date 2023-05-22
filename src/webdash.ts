@@ -77,6 +77,13 @@ class WebDash {
     this.bootstrap();
   }
 
+  public reload() {
+    document.body.innerHTML = "Reloading ...";
+    document.head.innerHTML = "";
+
+    this.bootstrap();
+  }
+
   private async bootstrap() {
     await this.initialiseDashApp();
 

@@ -28,17 +28,21 @@ async def setup_bootstrap():
     from xiplot.setup import setup_xiplot_dash_app
 
     def setup_dash_app(url_base_pathname):
-        Path("data").mkdir(exist_ok=True, parents=True)
-        for dataset in pyodide.http.open_url("assets/data.ls").read().splitlines():
-            pyodide_js.FS.createLazyFile(
-                "data", dataset, "data/" + dataset, True, False
-            )
+        if not Path("data").exists():
+            Path("data").mkdir(exist_ok=False, parents=True)
+            for dataset in pyodide.http.open_url("assets/data.ls").read().splitlines():
+                pyodide_js.FS.createLazyFile(
+                    "data", dataset, "data/" + dataset, True, False
+                )
 
-        Path("plugins").mkdir(exist_ok=True, parents=True)
-        for plugin in pyodide.http.open_url("assets/plugins.ls").read().splitlines():
-            pyodide_js.FS.createLazyFile(
-                "plugins", plugin, "plugins/" + plugin, True, False
-            )
+        if not Path("plugins").exists():
+            Path("plugins").mkdir(exist_ok=False, parents=True)
+            for plugin in (
+                pyodide.http.open_url("assets/plugins.ls").read().splitlines()
+            ):
+                pyodide_js.FS.createLazyFile(
+                    "plugins", plugin, "plugins/" + plugin, True, False
+                )
 
         app = setup_xiplot_dash_app(
             unsafe_local_server=True,
