@@ -12,7 +12,7 @@ from xiplot.plots.histogram import Histogram
 from xiplot.plots.scatterplot import Scatterplot
 from xiplot.plots.smiles import Smiles
 from xiplot.plots.table import Table
-from xiplot.plugin import get_new_plugins_cached
+from xiplot.plugin import get_plugins_cached
 from xiplot.tabs import Tab
 from xiplot.utils import generate_id
 from xiplot.utils.components import DeleteButton, FlexRow
@@ -20,15 +20,17 @@ from xiplot.utils.layouts import layout_wrapper
 
 
 class Plots(Tab):
-    plot_types = {
-        p.name(): p
-        for p in [Scatterplot, Histogram, Heatmap, Barplot, Table, Smiles]
-        + [plot for (_, _, plot) in get_new_plugins_cached("plot")]
-    }
+    @staticmethod
+    def get_plot_types():
+        return {
+            p.name(): p
+            for p in [Scatterplot, Histogram, Heatmap, Barplot, Table, Smiles]
+            + [plot for (_, _, plot) in get_plugins_cached("plot")]
+        }
 
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
-        for plot_name, plot_type in Plots.plot_types.items():
+        for plot_name, plot_type in Plots.get_plot_types().items():
             plot_type.register_callbacks(
                 app, df_from_store=df_from_store, df_to_store=df_to_store
             )
@@ -59,6 +61,8 @@ class Plots(Tab):
             meta,
             last_meta_session,
         ):
+            plot_types = Plots.get_plot_types()
+
             if meta is None:
                 if ctx.triggered_id == "new_plot-button":
                     return (
@@ -193,7 +197,7 @@ class Plots(Tab):
                     plot_type = config["type"]
                     config = {k: v for k, v in config.items() if k != "type"}
 
-                    if plot_type not in Plots.plot_types:
+                    if plot_type not in plot_types:
                         notifications.append(
                             dmc.Notification(
                                 id=str(uuid.uuid4()),
@@ -207,7 +211,7 @@ class Plots(Tab):
                         continue
 
                     try:
-                        layout = Plots.plot_types[plot_type].create_new_layout(
+                        layout = plot_types[plot_type].create_new_layout(
                             index,
                             df,
                             columns,
@@ -268,28 +272,9 @@ class Plots(Tab):
 
             return meta["session"], children, dash.no_update, None
 
-        @app.callback(
-            Output("plot_type", "options"),
-            Input("loaded_plugins", "options"),
-        )
-        def update_plugin_plots_callbacks(plugins):
-            for _, _, p in get_new_plugins_cached("plot"):
-                plot_name, plot_type = p.name(), p
-
-                if Plots.plot_types.get(plot_name, None) is not None:
-                    continue
-
-                Plots.plot_types[plot_name] = p
-
-                plot_type.register_callbacks(
-                    app, df_from_store=df_from_store, df_to_store=df_to_store
-                )
-
-            return list(Plots.plot_types.keys())
-
     @staticmethod
     def create_layout():
-        plots = list(Plots.plot_types.keys())
+        plots = list(Plots.get_plot_types().keys())
         return html.Div(
             [
                 layout_wrapper(

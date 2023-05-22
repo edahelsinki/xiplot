@@ -22,8 +22,9 @@ class Plugins(Tab):
             Output("plugin-tab-notify-container", "children"),
             Output("plugin_paths", "value"),
             Output("plugin-search-input", "value"),
-            Output("loaded_plugins", "options"),
+            Output("plugin_paths", "options"),
             Output("plugin-tab-load-progress", "value"),
+            Output("plugin-reload-button", "disabled"),
             Input("plugin-submit-button", "n_clicks"),
             Input("plugin-tab-load-success", "value"),
             Input("plugin-tab-load-exception", "value"),
@@ -43,18 +44,33 @@ class Plugins(Tab):
 
             if trigger == "plugin-tab-load-success":
                 return (
-                    dmc.Notification(
-                        id=progress_id,
-                        color="green",
-                        title="Success",
-                        message="The plugin was successfully loaded!",
-                        action="update",
-                        autoClose=5000,
-                    ),
+                    [
+                        dmc.Notification(
+                            id=progress_id,
+                            color="green",
+                            title="Success",
+                            message="The plugin was successfully installed!",
+                            action="update",
+                            autoClose=5000,
+                        ),
+                        dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Information",
+                            message=(
+                                "You can now load the newly installed plugin"
+                                " by clicking the 'Reload χiplot' button in"
+                                " the 'Plugins' tab."
+                            ),
+                            action="show",
+                            autoClose=False,
+                        ),
+                    ],
                     dash.no_update,
                     "",
-                    get_loaded_plugin_options(),
+                    get_suggested_plugin_options(plugin_dir=plugin_dir),
                     "",
+                    False,
                 )
             if trigger == "plugin-tab-load-exception":
                 exception = str(exception)
@@ -71,8 +87,9 @@ class Plugins(Tab):
                     ),
                     dash.no_update,
                     "",
-                    get_loaded_plugin_options(),
+                    get_suggested_plugin_options(plugin_dir=plugin_dir),
                     "",
+                    dash.no_update,
                 )
 
             plugin_source = None
@@ -91,12 +108,13 @@ class Plugins(Tab):
                         id=str(uuid.uuid4()),
                         color="yellow",
                         title="Warning",
-                        message="You have not selected a plugin to load.",
+                        message="You have not selected a plugin to install.",
                         action="show",
                         autoClose=10000,
                     ),
                     dash.no_update,
                     "",
+                    dash.no_update,
                     dash.no_update,
                     dash.no_update,
                 )
@@ -109,13 +127,14 @@ class Plugins(Tab):
                         title="Warning",
                         message=(
                             "Please wait until the previous plugin has"
-                            " finished loading."
+                            " finished installing."
                         ),
                         action="show",
                         autoClose=10000,
                     ),
                     dash.no_update,
                     "",
+                    dash.no_update,
                     dash.no_update,
                     dash.no_update,
                 )
@@ -130,7 +149,7 @@ class Plugins(Tab):
                         id=progress_id,
                         color="blue",
                         title="Processing",
-                        message="Loading the plugin",
+                        message="Installing the plugin",
                         action="show",
                         loading=True,
                         autoClose=False,
@@ -140,6 +159,7 @@ class Plugins(Tab):
                     "",
                     dash.no_update,
                     progress_id,
+                    dash.no_update,
                 )
             except Exception as err:
                 return (
@@ -148,7 +168,7 @@ class Plugins(Tab):
                         color="red",
                         title="Error",
                         message=(
-                            f"Loading a plugin from '{plugin_source}'"
+                            f"Installing a plugin from '{plugin_source}'"
                             f" failed with the following error: {err}"
                         ),
                         action="show",
@@ -156,6 +176,7 @@ class Plugins(Tab):
                     ),
                     None,
                     "",
+                    dash.no_update,
                     dash.no_update,
                     dash.no_update,
                 )
@@ -170,14 +191,26 @@ class Plugins(Tab):
             return search
 
         @app.callback(
-            Output("plugin_paths", "options"),
-            Input("loaded_plugins", "options"),
+            Output("plugin-reload-modal", "opened"),
+            Input("plugin-reload-button", "n_clicks"),
+            Input("plugin-reload-accept", "n_clicks"),
+            Input("plugin-reload-cancel", "n_clicks"),
+            State("plugin-reload-modal", "opened"),
+            prevent_initial_call=True,
         )
-        def update_suggested_plugins(plugins):
-            return [
-                {"label": fp.name, "value": str(fp)}
-                for fp in get_plugin_filepaths(plugin_dir=plugin_dir)
-            ]
+        def update_plugin_reload_modal(reload, accept, cancel, opened):
+            if ctx.triggered_id == "plugin-reload-accept":
+                import pyodide
+
+                get_plugins_cached.cache = dict()
+
+                pyodide.code.run_js(
+                    'self.postMessage({ jsEval: "window.web_dash.reload()" })'
+                )
+
+                return dash.no_update
+
+            return not opened
 
     @staticmethod
     def create_layout(plugin_dir=""):
@@ -201,12 +234,9 @@ class Plugins(Tab):
                     layout_wrapper(
                         component=FlexRow(
                             dcc.Dropdown(
-                                [
-                                    {"label": fp.name, "value": str(fp)}
-                                    for fp in get_plugin_filepaths(
-                                        plugin_dir=plugin_dir
-                                    )
-                                ],
+                                get_suggested_plugin_options(
+                                    plugin_dir=plugin_dir
+                                ),
                                 id="plugin_paths",
                                 placeholder=(
                                     "Select a suggested plugin or type its URL"
@@ -218,13 +248,13 @@ class Plugins(Tab):
                                 style={"display": "none"},
                             ),
                             html.Button(
-                                "Load",
+                                "Install",
                                 id="plugin-submit-button",
                                 n_clicks=0,
                                 className="button",
                             ),
                         ),
-                        title="Load a Plugin",
+                        title="Install a Plugin",
                         css_class="dash-dropdown",
                     ),
                     html.Br(),
@@ -238,6 +268,43 @@ class Plugins(Tab):
                                 placeholder=(
                                     "Check the list of already loaded plugins"
                                 ),
+                            ),
+                            html.Button(
+                                "Reload χiplot",
+                                id="plugin-reload-button",
+                                n_clicks=0,
+                                className="button",
+                                disabled=True,
+                            ),
+                            dmc.Modal(
+                                title="Do you really want to reload χiplot?",
+                                id="plugin-reload-modal",
+                                zIndex=10000,
+                                children=[
+                                    dmc.Text(
+                                        "Please ensure that you have"
+                                        " downloaded your plots and data so"
+                                        " that nothing is lost. Any plugins"
+                                        " that you have installed will become"
+                                        " loaded after the reload."
+                                    ),
+                                    dmc.Space(h=20),
+                                    dmc.Group(
+                                        [
+                                            dmc.Button(
+                                                "Reload",
+                                                id="plugin-reload-accept",
+                                            ),
+                                            dmc.Button(
+                                                "Cancel",
+                                                color="red",
+                                                variant="outline",
+                                                id="plugin-reload-cancel",
+                                            ),
+                                        ],
+                                        position="right",
+                                    ),
+                                ],
                             ),
                         ),
                         title="Loaded Plugins",
@@ -314,6 +381,13 @@ def get_loaded_plugin_options():
     return plugin_options
 
 
+def get_suggested_plugin_options(plugin_dir=""):
+    return [
+        {"label": fp.name, "value": str(fp)}
+        for fp in get_plugin_filepaths(plugin_dir=plugin_dir)
+    ]
+
+
 def get_plugin_filepaths(plugin_dir=""):
     try:
         return sorted(
@@ -336,7 +410,7 @@ def install_local_plugin(plugin_path: str):
         import micropip
     except ImportError:
         raise NotImplementedError(
-            "Loading new plugins is only supported in WASM"
+            "Installing new plugins is only supported in WASM"
         )
 
     plugin_path = Path(plugin_path).resolve()
@@ -355,7 +429,7 @@ def install_remote_plugin(plugin_source: str):
         import micropip
     except ImportError:
         raise NotImplementedError(
-            "Loading new plugins is only supported in WASM"
+            "Installing new plugins is only supported in WASM"
         )
 
     # Protect against arbitrary local installs
@@ -371,8 +445,6 @@ def __micropip_install_callback(
     future: Future, try_remove_file: Optional[Path]
 ):
     import pyodide
-
-    get_plugins_cached.cache = dict()
 
     result = str(uuid.uuid4())
 

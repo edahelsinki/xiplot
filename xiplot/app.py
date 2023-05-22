@@ -1,10 +1,10 @@
 from collections import Counter
 
 import dash_mantine_components as dmc
-from dash import ALL, Input, Output, State, ctx, dcc, html
+from dash import ALL, Input, Output, ctx, dcc, html
 
 from xiplot.plugin import (
-    get_new_plugins_cached,
+    get_plugins_cached,
     is_dynamic_plugin_loading_supported,
 )
 from xiplot.tabs.cluster import Cluster
@@ -93,10 +93,7 @@ class XiPlot:
                     ),
                     PdfButton.create_global(),
                     html.Div(
-                        [
-                            g()
-                            for (_, _, g) in get_new_plugins_cached("global")
-                        ],
+                        [g() for (_, _, g) in get_plugins_cached("global")],
                         id="plugin-globals",
                     ),
                 ],
@@ -125,22 +122,8 @@ class XiPlot:
                 )
             )
 
-        for _, _, cb in get_new_plugins_cached("callback"):
+        for _, _, cb in get_plugins_cached("callback"):
             cb(app, df_from_store, df_to_store)
-
-        @app.callback(
-            Output("plugin-globals", "children"),
-            Input("loaded_plugins", "options"),
-            State("plugin-globals", "children"),
-        )
-        def update_plugin_globals_callbacks(plugins, loaded_globals):
-            for _, _, g in get_new_plugins_cached("global"):
-                loaded_globals.append(g())
-
-            for _, _, cb in get_new_plugins_cached("callback"):
-                cb(app, df_from_store, df_to_store)
-
-            return loaded_globals
 
         @app.callback(
             Output(

@@ -564,14 +564,6 @@ class Data(Tab):
                     None,
                 )
 
-        @app.callback(
-            Output(generate_id(WriteFormatDropdown), "options"),
-            Input("loaded_plugins", "options"),
-            prevent_initial_call=True,
-        )
-        def update_download_format_options(_plugins):
-            return [ext for _, ext, _ in write_functions()]
-
     @staticmethod
     def create_layout(data_dir=""):
         try:
