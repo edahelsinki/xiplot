@@ -81,7 +81,7 @@ def test_plot_plugin():
 
 def test_global_plugin():
     assert any(
-        g().children == "TEST PLUGIN"
+        "test_plugin_counter" in str(g().children)
         for (_, _, g) in get_plugins_cached("global")
     )
 
