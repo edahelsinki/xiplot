@@ -16,7 +16,10 @@ jobs:
           submodules: true
 
       - name: Build the WASM version
-        run: make -B deploy
+        run: |
+          pip install --upgrade pip
+          pip install --upgrade setuptools
+          make -B deploy
 
       - name: Deploy the WASM version
         uses: peaceiris/actions-gh-pages@v3
