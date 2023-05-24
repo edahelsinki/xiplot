@@ -77,7 +77,7 @@
 
 .Select-control,
 .Select-menu-outer,
-.Select-input,
+.Select-input:not([aria-disabled='true']),
 .Select-input input {
     background-color: white !important;
     background-color: var(--bg-color) !important;
@@ -107,11 +107,13 @@
     color: var(--placeholder-color) !important;
 }
 
-.tab.jsx-3201076643 {
+.tab.jsx-535771872, .tab.jsx-3201076643 {
     padding: 20px 25px 5px 25px;
 }
 
+.tab.jsx-535771872.tab,
 .tab.jsx-3201076643.tab,
+.tab.jsx-535771872:last-of-type,
 .tab.jsx-3201076643:last-of-type {
     background-color: transparent;
     border: none !important;
@@ -119,10 +121,12 @@
     border-bottom: 2px solid var(--tab-underline) !important;
 }
 
+.tab.jsx-535771872.tab:hover,
 .tab.jsx-3201076643.tab:hover {
     border-bottom: 4px solid #C5C6C7 !important;
 }
 
+.tab.jsx-535771872.tab.tab--selected,
 .tab.jsx-3201076643.tab.tab--selected {
     color: black !important;
     color: var(--font-color) !important;
@@ -130,6 +134,7 @@
     border-bottom: 4px solid var(--selected-tab-underline) !important;
 }
 
+.tab.jsx-535771872.tab.tab--selected:hover,
 .tab.jsx-3201076643.tab.tab--selected:hover {
     background-color: transparent;
 }
@@ -175,4 +180,8 @@
 .rc-slider-mark-text-active {
     color: black;
     color: var(--font-color)
+}
+
+.Select--single > .Select-control .Select-value, .Select-placeholder {
+    overflow-x: scroll;
 }
