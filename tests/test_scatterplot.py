@@ -1,26 +1,27 @@
 import time
-import pandas as pd
-import dash
 
-from xiplot.setup import setup_xiplot_dash_app
-from selenium.webdriver.common.keys import Keys
+import dash
+import pandas as pd
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 
 from tests.util_test import render_plot
 from xiplot.plots.scatterplot import Scatterplot
+from xiplot.setup import setup_xiplot_dash_app
 
 (
     tmp,
     handle_click_events,
     handle_hover_events,
     handle_cluster_drawing,
-) = Scatterplot.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)
+) = Scatterplot.register_callbacks(
+    dash.Dash(__name__), lambda x: x, lambda x: x
+)
 
 
 def test_tesc001_render_scatterplot(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -36,7 +37,7 @@ def test_tesc001_render_scatterplot(dash_duo):
 
 def test_tesc002_change_axis_value(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -46,7 +47,10 @@ def test_tesc002_change_axis_value(dash_duo):
 
     x = driver.find_element(
         By.XPATH,
-        "//div[@class='dd-double-left']/div[2]/div[1]/div[1]/div[1]/div[2]/input",
+        (
+            "//div[@class='dd-double-left']"
+            "/div[2]/div[1]/div[1]/div[1]/div[2]/input"
+        ),
     )
 
     x.send_keys("mpg")
@@ -62,7 +66,7 @@ def test_tesc002_change_axis_value(dash_duo):
 
 def test_tesc003_target_setting(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -70,7 +74,10 @@ def test_tesc003_target_setting(dash_duo):
 
     color = driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[3]/div[2]/div[1]/div[1]/div[1]/div[2]/input",
+        (
+            "//div[@class='plots']/div[3]/div[2]/"
+            "div[1]/div[1]/div[1]/div[2]/input"
+        ),
     )
 
     color.send_keys("PCA 1")
@@ -86,7 +93,7 @@ def test_tesc003_target_setting(dash_duo):
 
 def test_tesc004_jitter_setting(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -105,7 +112,17 @@ def test_tesc004_jitter_setting(dash_duo):
 def test_create_scatterplot():
     d = {"col1": [1, 2], "col2": [3, 4]}
     df = pd.DataFrame(data=d)
-    fig = tmp("col1", "col2", "Clusters", None, 0, [True, True], ["all", "all"], df, [])
+    fig = tmp(
+        "col1",
+        "col2",
+        "Clusters",
+        None,
+        0,
+        [True, True],
+        ["all", "all"],
+        df,
+        [],
+    )
 
     assert str(type(fig)) == "<class 'plotly.graph_objs._figure.Figure'>"
 
@@ -136,7 +153,9 @@ def test_handle_hover_events():
 
 def test_handle_cluster_drawing():
     selected_points = [{"points": [{"customdata": [{"index": 1}]}]}]
-    output = handle_cluster_drawing(selected_points, ["all", "all"], "c1", False)
+    output = handle_cluster_drawing(
+        selected_points, ["all", "all"], "c1", False
+    )
 
     cluster_column = output["clusters"]
 

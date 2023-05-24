@@ -1,38 +1,36 @@
 import base64
-import os
 import uuid
-
-import pandas as pd
-import numpy as np
-import dash
-import dash_mantine_components as dmc
-import jsonschema
-
 from collections import OrderedDict
 from io import BytesIO
 from pathlib import Path
 
-from dash import Output, Input, State, ctx, html, dcc, ALL
+import dash
+import dash_mantine_components as dmc
+import jsonschema
+import numpy as np
+import pandas as pd
+from dash import ALL, Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
-from xiplot.utils import generate_id
-from xiplot.utils.components import FlexRow, PlotData
 
+from xiplot.tabs import Tab
+from xiplot.utils import generate_id
+from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.components import FlexRow, PlotData
 from xiplot.utils.dataframe import (
-    read_dataframe_with_extension,
     get_data_filepaths,
+    read_dataframe_with_extension,
+    write_dataframe_and_metadata,
     write_functions,
     write_only_dataframe,
-    write_dataframe_and_metadata,
 )
-from xiplot.tabs import Tab
+from xiplot.utils.io import FinallyCloseBytesIO
 from xiplot.utils.layouts import layout_wrapper
-from xiplot.utils.cluster import cluster_colours
 
 
 class Data(Tab):
     @staticmethod
-    def register_callbacks(app, df_from_store, df_to_store, dir_path=""):
+    def register_callbacks(app, df_from_store, df_to_store, data_dir=""):
         try:
             import dash_uploader as du
 
@@ -54,7 +52,11 @@ class Data(Tab):
                 uploader = du.Upload(
                     id="file_uploader",
                     text="Drag and Drop or Select a File to upload",
-                    default_style={"minHeight": 1, "lineHeight": 4, "height": "85px"},
+                    default_style={
+                        "minHeight": 1,
+                        "lineHeight": 4,
+                        "height": "85px",
+                    },
                 )
 
                 try:
@@ -78,7 +80,10 @@ class Data(Tab):
                                     [
                                         f"The file {upload_path.name} ",
                                         html.I("(upload)"),
-                                        f" could not be loaded as a data frame: {err}.",
+                                        (
+                                            " could not be loaded as a data"
+                                            f" frame: {err}."
+                                        ),
                                     ]
                                 )
                             ],
@@ -93,7 +98,7 @@ class Data(Tab):
                     df_to_store(df),
                     df_to_store(aux),
                     meta,
-                    generate_dataframe_options(upload_path, dir_path),
+                    generate_dataframe_options(upload_path, data_dir),
                     str(Path("uploads") / upload_path.name),
                     [uploader],
                     None,
@@ -143,7 +148,10 @@ class Data(Tab):
                                     [
                                         f"The file {upload_name} ",
                                         html.I("(upload)"),
-                                        f" could not be loaded as a data frame: {err}.",
+                                        (
+                                            " could not be loaded as a data"
+                                            f" frame: {err}."
+                                        ),
                                     ]
                                 )
                             ],
@@ -156,7 +164,7 @@ class Data(Tab):
                     df_to_store(df),
                     df_to_store(aux),
                     meta,
-                    generate_dataframe_options(upload_name, dir_path),
+                    generate_dataframe_options(upload_name, data_dir),
                     str(Path("uploads") / upload_name.name),
                     None,
                     None,
@@ -231,7 +239,7 @@ class Data(Tab):
                         autoClose=5000,
                     )
                 else:
-                    filepath = Path(dir_path) / filepath.name
+                    filepath = Path(data_dir) / filepath.name
 
                     try:
                         df, aux, meta = read_dataframe_with_extension(
@@ -249,7 +257,10 @@ class Data(Tab):
                                 id=str(uuid.uuid4()),
                                 color="yellow",
                                 title="Warning",
-                                message=f"The file {filepath.name} could not be loaded as a data frame: {err}.",
+                                message=(
+                                    f"The file {filepath.name} could not be"
+                                    f" loaded as a data frame: {err}."
+                                ),
                                 action="show",
                                 autoClose=10000,
                             ),
@@ -261,7 +272,10 @@ class Data(Tab):
                         id=str(uuid.uuid4()),
                         color="green",
                         title="Success",
-                        message=f"The data file {meta['filename']} was loaded successfully!",
+                        message=(
+                            f"The data file {meta['filename']} was loaded"
+                            " successfully!"
+                        ),
                         action="show",
                         autoClose=5000,
                     )
@@ -320,7 +334,10 @@ class Data(Tab):
                         id=str(uuid.uuid4()),
                         color="yellow",
                         title="Warning",
-                        message=f"The file {filepath.name} has invalid metadata at meta{err.json_path[1:]}: {err.message}.",
+                        message=(
+                            f"The file {filepath.name} has invalid metadata at"
+                            f" meta{err.json_path[1:]}: {err.message}."
+                        ),
                         action="show",
                         autoClose=10000,
                     ),
@@ -341,7 +358,11 @@ class Data(Tab):
                             id=str(uuid.uuid4()),
                             color="yellow",
                             title="Warning",
-                            message=f'The file {filepath.name} could not be loaded as a data frame: auxiliary column "is_selected" is not of type bool.',
+                            message=(
+                                f"The file {filepath.name} could not be loaded"
+                                " as a data frame: auxiliary column"
+                                ' "is_selected" is not of type bool.'
+                            ),
                             action="show",
                             autoClose=10000,
                         ),
@@ -354,7 +375,9 @@ class Data(Tab):
             if "cluster" in aux:
                 clusters = list(aux["cluster"].values)
 
-                invalid_clusters = set(clusters) - set(cluster_colours().keys())
+                invalid_clusters = set(clusters) - set(
+                    cluster_colours().keys()
+                )
 
                 if len(invalid_clusters) > 0:
                     return (
@@ -368,7 +391,11 @@ class Data(Tab):
                             id=str(uuid.uuid4()),
                             color="yellow",
                             title="Warning",
-                            message=f'The file {filepath.name} could not be loaded as a data frame: auxiliary column "cluster" contains invalid values {invalid_clusters}.',
+                            message=(
+                                f"The file {filepath.name} could not be loaded"
+                                ' as a data frame: auxiliary column "cluster"'
+                                f" contains invalid values {invalid_clusters}."
+                            ),
                             action="show",
                             autoClose=10000,
                         ),
@@ -439,88 +466,106 @@ class Data(Tab):
 
             filepath = Path(filepath)
 
-            file = BytesIO()
+            with FinallyCloseBytesIO() as file:
+                if ctx.triggered_id == "download-data-file-button":
+                    try:
+                        filename, mime = write_only_dataframe(
+                            df, meta["filename"], file, file_extension
+                        )
+                    except Exception as err:
+                        return dash.no_update, dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message=[
+                                html.Div(
+                                    [
+                                        (
+                                            "Failed to download the data file"
+                                            f" for {filepath.name}"
+                                        ),
+                                        (
+                                            html.I(" (upload)")
+                                            if ctx.triggered_id
+                                            == "uploaded_data_file_store"
+                                            else None
+                                        ),
+                                        f": {err}.",
+                                    ]
+                                )
+                            ],
+                            action="show",
+                            autoClose=10000,
+                        )
 
-            if ctx.triggered_id == "download-data-file-button":
-                try:
-                    filename, mime = write_only_dataframe(
-                        df, meta["filename"], file, file_extension
-                    )
-                except Exception as err:
-                    return dash.no_update, dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="yellow",
-                        title="Warning",
-                        message=[
-                            html.Div(
-                                [
-                                    f"Failed to download the data file for {filepath.name}",
-                                    html.I(" (upload)")
-                                    if ctx.triggered_id == "uploaded_data_file_store"
-                                    else None,
-                                    f": {err}.",
-                                ]
+                if ctx.triggered_id == "download-plots-file-button":
+                    try:
+                        aux = dict()
+
+                        if clusters is not None:
+                            aux["cluster"] = clusters
+
+                        if selected_rows is not None:
+                            aux["is_selected"] = ~np.asarray(
+                                selected_rows, dtype=bool
                             )
-                        ],
-                        action="show",
-                        autoClose=10000,
-                    )
 
-            if ctx.triggered_id == "download-plots-file-button":
-                try:
-                    aux = dict()
+                        if pca_cols is not None:
+                            aux["pca_cols"] = pca_cols
 
-                    if clusters is not None:
-                        aux["cluster"] = clusters
+                        for data in plot_data:
+                            index = data["index"]
+                            del data["index"]
+                            meta["plots"][index] = data
 
-                    if selected_rows is not None:
-                        aux["is_selected"] = ~np.asarray(selected_rows, dtype=bool)
+                        filename, mime = write_dataframe_and_metadata(
+                            df,
+                            pd.DataFrame(aux),
+                            meta,
+                            meta["filename"],
+                            file,
+                            file_extension,
+                        )
+                    except Exception as err:
+                        return dash.no_update, dmc.Notification(
+                            id=str(uuid.uuid4()),
+                            color="yellow",
+                            title="Warning",
+                            message=[
+                                html.Div(
+                                    [
+                                        (
+                                            "Failed to download plots and data"
+                                            f" file for {filepath.name}"
+                                        ),
+                                        (
+                                            html.I(" (upload)")
+                                            if ctx.triggered_id
+                                            == "uploaded_data_file_store"
+                                            else None
+                                        ),
+                                        f": {err}.",
+                                    ]
+                                )
+                            ],
+                            action="show",
+                            autoClose=10000,
+                        )
 
-                    if pca_cols is not None:
-                        aux["pca_cols"] = pca_cols
+                encoded = base64.b64encode(file.getvalue()).decode("ascii")
 
-                    for data in plot_data:
-                        index = data["index"]
-                        del data["index"]
-                        meta["plots"][index] = data
-
-                    filename, mime = write_dataframe_and_metadata(
-                        df,
-                        pd.DataFrame(aux),
-                        meta,
-                        meta["filename"],
-                        file,
-                        file_extension,
-                    )
-                except Exception as err:
-                    return dash.no_update, dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="yellow",
-                        title="Warning",
-                        message=[
-                            html.Div(
-                                [
-                                    f"Failed to download plots and data file for {filepath.name}",
-                                    html.I(" (upload)")
-                                    if ctx.triggered_id == "uploaded_data_file_store"
-                                    else None,
-                                    f": {err}.",
-                                ]
-                            )
-                        ],
-                        action="show",
-                        autoClose=10000,
-                    )
-
-            encoded = base64.b64encode(file.getvalue()).decode("ascii")
-
-            return (
-                dict(base64=True, content=encoded, filename=filename, type=mime),
-                None,
-            )
+                return (
+                    dict(
+                        base64=True,
+                        content=encoded,
+                        filename=filename,
+                        type=mime,
+                    ),
+                    None,
+                )
 
     @staticmethod
-    def create_layout(dir_path=""):
+    def create_layout(data_dir=""):
         try:
             import dash_uploader as du
 
@@ -533,7 +578,11 @@ class Data(Tab):
             uploader = dcc.Upload(
                 id="file_uploader",
                 children=html.Div(
-                    ["Drag and Drop or ", html.A("Select a File"), " to upload"]
+                    [
+                        "Drag and Drop or ",
+                        html.A("Select a File"),
+                        " to upload",
+                    ]
                 ),
                 className="dcc-upload",
             )
@@ -546,7 +595,9 @@ class Data(Tab):
                             dcc.Dropdown(
                                 [
                                     {"label": fp.name, "value": str(fp)}
-                                    for fp in get_data_filepaths(dir_path=dir_path)
+                                    for fp in get_data_filepaths(
+                                        data_dir=data_dir
+                                    )
                                 ],
                                 id="data_files",
                             ),
@@ -589,7 +640,9 @@ class Data(Tab):
                 className="stretch",
             ),
             html.Div(
-                [uploader], id="file_uploader_container", className="dash-uploader"
+                [uploader],
+                id="file_uploader_container",
+                className="dash-uploader",
             ),
             id="control_data_content-container",
         )
@@ -601,12 +654,16 @@ class Data(Tab):
                 dcc.Store(id="uploaded_data_file_store"),
                 dcc.Store(id="uploaded_auxiliary_store"),
                 dcc.Store(id="uploaded_metadata_store"),
-                html.Div(id="data-tab-notify-container", style={"display": "none"}),
                 html.Div(
-                    id="data-tab-upload-notify-container", style={"display": "none"}
+                    id="data-tab-notify-container", style={"display": "none"}
                 ),
                 html.Div(
-                    id="data-tab-download-notify-container", style={"display": "none"}
+                    id="data-tab-upload-notify-container",
+                    style={"display": "none"},
+                ),
+                html.Div(
+                    id="data-tab-download-notify-container",
+                    style={"display": "none"},
                 ),
             ]
         )
@@ -624,7 +681,7 @@ class WriteFormatDropdown(dcc.Dropdown):
         )
 
 
-def generate_dataframe_options(upload_path, dir_path):
+def generate_dataframe_options(upload_path, data_dir):
     return [
         {
             "label": html.Div([upload_path.name, " ", html.I("(upload)")]),
@@ -632,5 +689,5 @@ def generate_dataframe_options(upload_path, dir_path):
         }
     ] + [
         {"label": fp.name, "value": str(fp)}
-        for fp in get_data_filepaths(dir_path=dir_path)
+        for fp in get_data_filepaths(data_dir=data_dir)
     ]

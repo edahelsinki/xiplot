@@ -25,16 +25,22 @@ button {
     padding: 0.45rem 1rem;
 }
 
-.button:hover,
-button:hover {
+.button:hover:enabled,
+button:hover:enabled {
     background-color: rgb(249, 250, 251);
     color: #1F2833;
 }
 
-.button:active,
-button:active {
+.button:active:enabled,
+button:active:enabled {
     background-color: rgb(192, 192, 192);
     color: #1F2833;
+}
+
+.button:disabled,
+button:disabled {
+    opacity: 0.5;
+    cursor: auto;
 }
 
 .button:focus,

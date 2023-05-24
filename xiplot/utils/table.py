@@ -39,10 +39,12 @@ def get_sort_by(sort_by, selected_rows, trigger):
 
 def get_updated_item(items, index, inputs_list):
     """
-    Return the of the item that has been updated among all items except a new item entry
+    Return the of the item that has been updated among all items except a new
+    item entry
 
     Parameters:
-        items: list of items (Input ALL gets list of all items that has same id type)
+        items: list of items (Input ALL gets list of all items that has same
+            id type)
         index: index of the item that has been updated
         inputs_list: list of all inputs of the callback
 

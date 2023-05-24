@@ -1,30 +1,30 @@
 """
-    This module exposes the parts of xiplot that are useful for implementing plugins.
-    Most of the members of this module are just imported from other places in xiplot.
-    But there are also some plugin-specific functions and objects.
+    This module exposes the parts of xiplot that are useful for implementing
+    plugins. Most of the members of this module are just imported from other
+    places in xiplot. But there are also some plugin-specific functions and
+    objects.
 """
 
-from typing import Any, Callable, Dict, List, Literal, Tuple, Union
 from importlib.metadata import entry_points as _entry_points
 from io import BytesIO
 from os import PathLike
+from typing import Any, Callable, Dict, List, Literal, Tuple, Union
 from warnings import warn
 
 import pandas as pd
-from dash.development.base_component import Component
 from dash import Dash
+from dash.development.base_component import Component
 
 # Export useful parts of xiplot:
-from xiplot.plots import APlot
-from xiplot.utils import generate_id
-from xiplot.utils.components import (
-    FlexRow,
-    PlotData,
+from xiplot.plots import APlot  # noqa: F401
+from xiplot.utils import generate_id  # noqa: F401
+from xiplot.utils.components import (  # noqa: F401
     DeleteButton,
-    PdfButton,
+    FlexRow,
     HelpButton,
+    PdfButton,
+    PlotData,
 )
-
 
 # IDs for important `dcc.Store` components:
 ID_DATAFRAME = STORE_DATAFRAME_ID = "data_frame_store"
@@ -34,7 +34,8 @@ ID_CLICKED = STORE_CLICKED_ID = "lastly_clicked_point_store"
 ID_SELECTED = STORE_SELECTED_ID = "selected_rows_store"
 # `dcc.Store` that is `True` if the dark mode is active
 ID_DARK_MODE = "light-dark-toggle-store"
-# `dcc.Store` that contains the current plotly template (used for the dark mode)
+# `dcc.Store` that contains the current plotly template
+#  (used for the dark mode)
 ID_PLOTLY_TEMPLATE = "plotly-template"
 
 # Useful CSS classes
@@ -48,7 +49,8 @@ AReadFunction = Callable[[Union[BytesIO, PathLike]], pd.DataFrame]
 # Read plugin return string: file extension
 AReadPlugin = Callable[[], Tuple[AReadFunction, str]]
 AWriteFunction = Callable[[pd.DataFrame, BytesIO], None]
-# Write plugin return strings: file extension, MIME type (ususally "application/octet-stream")
+# Write plugin return strings: file extension, MIME type
+#  (ususally "application/octet-stream")
 AWritePlugin = Callable[[], Tuple[AWriteFunction, str, str]]
 AGlobalPlugin = Callable[[], Component]
 # Callback plugin functions: parse_to_dataframe, serialise_from_dataframe
@@ -85,23 +87,18 @@ def placeholder_figure(text: str) -> Dict[str, Any]:
     }
 
 
-def get_plugins_cached(
-    plugin_type: Literal["read", "write", "plot", "global", "callback"]
-) -> List[Any]:
-    """Get a list of all plugins of the specified type (this call is cached for future reuse).
+def get_plugins(
+    plugin_type: Literal["read", "write", "plot", "global", "callback"],
+) -> List[Tuple[str, str, Any]]:
+    """Get a list of all plugins of the specified type.
 
     Args:
         plugin_type: The type of xiplot plugin.
 
     Returns:
-        A list of loaded `entry_points`.
+        A list of tuples of each plugin's name, path, and its
+        loaded `entry_point`.
     """
-    try:
-        if plugin_type in get_plugins_cached.cache:
-            return get_plugins_cached.cache[plugin_type]
-    except AttributeError:
-        get_plugins_cached.cache = dict()
-
     try:
         # Python 3.10+
         plugins = _entry_points(group=f"xiplot.plugin.{plugin_type}")
@@ -112,9 +109,83 @@ def get_plugins_cached(
     loaded_plugins = []
     for plugin in plugins:
         try:
-            loaded_plugins.append(plugin.load())
+            loaded_plugins.append((plugin.name, plugin.value, plugin.load()))
         except Exception as e:
             warn(f"Could not load plugin {plugin}: {e}")
 
-    get_plugins_cached.cache[plugin_type] = loaded_plugins
     return loaded_plugins
+
+
+def get_plugins_cached(
+    plugin_type: Literal["read", "write", "plot", "global", "callback"],
+) -> List[Tuple[str, str, Any]]:
+    """Get a list of all plugins of the specified type
+     (this call is cached for future reuse).
+
+    Args:
+        plugin_type: The type of xiplot plugin.
+
+    Returns:
+        A list of tuples of each plugin's name, path, and its
+        loaded `entry_point`.
+    """
+    if getattr(get_plugins_cached, "cache", None) is None:
+        get_plugins_cached.cache = dict()
+
+    cached_plugins_of_type = get_plugins_cached.cache.get(plugin_type, None)
+
+    if cached_plugins_of_type is not None:
+        return cached_plugins_of_type
+
+    loaded_plugins = get_plugins(plugin_type)
+    get_plugins_cached.cache[plugin_type] = loaded_plugins
+
+    return loaded_plugins
+
+
+def get_all_loaded_plugins() -> List[Tuple[str, str, str, Any]]:
+    """Collects the list of all loaded plugins and their types.
+
+    Returns:
+        A list of tuples of each plugin's type, name, path, and its
+        loaded `entry_point`.
+
+    """
+    plugins = []
+
+    for plugin_type in ["read", "write", "plot", "global", "callback"]:
+        for name, path, plugin in get_plugins(plugin_type):
+            plugins.append((plugin_type, name, path, plugin))
+
+    return plugins
+
+
+def get_all_loaded_plugins_cached() -> List[Tuple[str, str, str, Any]]:
+    """Collects the list of all cached loaded plugins and their types.
+
+    Returns:
+        A list of tuples of each plugin's type, name, path, and its
+        loaded `entry_point`.
+
+    """
+    plugins = []
+
+    for plugin_type in ["read", "write", "plot", "global", "callback"]:
+        for name, path, plugin in get_plugins_cached(plugin_type):
+            plugins.append((plugin_type, name, path, plugin))
+
+    return plugins
+
+
+def is_dynamic_plugin_loading_supported() -> bool:
+    """Checks if xiplot supports dynamically loading new plugins at runtime.
+
+    Returns:
+        `True` if dynamic loading is supported, `False` otherwise.
+    """
+    try:
+        import micropip  # noqa: F401
+    except ImportError:
+        return False
+
+    return True

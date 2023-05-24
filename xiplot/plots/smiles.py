@@ -4,7 +4,11 @@ import pandas as pd
 from dash import MATCH, Input, Output, State, dcc, html
 
 from xiplot.plots import APlot
-from xiplot.plugin import STORE_CLICKED_ID, STORE_DATAFRAME_ID, STORE_HOVERED_ID
+from xiplot.plugin import (
+    STORE_CLICKED_ID,
+    STORE_DATAFRAME_ID,
+    STORE_HOVERED_ID,
+)
 from xiplot.utils.components import FlexRow, InputText, PlotData
 from xiplot.utils.layouts import layout_wrapper
 
@@ -16,37 +20,42 @@ class Smiles(APlot):
 
     @classmethod
     def help(cls):
-        return "Render a molecule from a SMILES string\n\nOne column of the dataset must contain a molecule represented as a SMILES string (Simplified molecular-input line-entry system)."
+        return (
+            "Render a molecule from a SMILES string\n\nOne column of the"
+            " dataset must contain a molecule represented as a SMILES string"
+            " (Simplified molecular-input line-entry system)."
+        )
 
     @classmethod
     def register_callbacks(cls, app, df_from_store, df_to_store):
         app.clientside_callback(
             """
-            async function svgFromSMILES(smiles) {
-                if (!window.RDKit) {
-                    window.RDKit = await window.initRDKitModule();
-                }
-                const INVALID_SVG = `<?xml version='1.0' encoding='iso-8859-1'?>
-                    <svg version='1.1' baseProfile='full'
-                      xmlns='http://www.w3.org/2000/svg'
-                      xmlns:rdkit='http://www.rdkit.org/xml'
-                      xmlns:xlink='http://www.w3.org/1999/xlink'
-                      xml:space='preserve'
-                      width='250px' height='200px' viewBox='0 0 250 200'
-                    >
-                        <line x2='200' y2='175' x1='50' y1='25' stroke='#c0392b' stroke-width='5' />
-                        <line x2='50' y2='175' x1='200' y1='25' stroke='#c0392b' stroke-width='5' />
-                    </svg>
-                `;
-                const mol = window.RDKit.get_mol(smiles);
-                const svg = smiles && mol
-                    .get_svg()
-                    .replace(/<rect[^>]*>\\s*<\\/rect>/, "")
-                    .split(/\\s+/)
-                    .join(" ");
+async function svgFromSMILES(smiles) {
+    if (!window.RDKit) {
+        window.RDKit = await window.initRDKitModule();
+    }
+    const INVALID_SVG = `
+<?xml version='1.0' encoding='iso-8859-1'?>
+<svg version='1.1' baseProfile='full'
+    xmlns='http://www.w3.org/2000/svg'
+    xmlns:rdkit='http://www.rdkit.org/xml'
+    xmlns:xlink='http://www.w3.org/1999/xlink'
+    xml:space='preserve'
+    width='250px' height='200px' viewBox='0 0 250 200'
+>
+    <line x2='200' y2='175' x1='50' y1='25' stroke='#c0392b' stroke-width='5'/>
+    <line x2='50' y2='175' x1='200' y1='25' stroke='#c0392b' stroke-width='5'/>
+</svg>
+    `;
+    const mol = window.RDKit.get_mol(smiles);
+    const svg = smiles && mol
+        .get_svg()
+        .replace(/<rect[^>]*>\\s*<\\/rect>/, "")
+        .split(/\\s+/)
+        .join(" ");
 
-                return "data:image/svg+xml;base64," + btoa(svg || INVALID_SVG);
-            }
+    return "data:image/svg+xml;base64," + btoa(svg || INVALID_SVG);
+}
             """,
             Output(cls.get_id(MATCH, "display"), "src"),
             Input(cls.get_id(MATCH, "string"), "value"),
@@ -80,7 +89,7 @@ class Smiles(APlot):
                 if old != new:
                     return new
                 return dash.no_update
-            except:
+            except Exception:
                 return dash.no_update
 
         PlotData.register_callback(

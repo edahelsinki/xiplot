@@ -1,5 +1,7 @@
 black
 build
 dash[testing]
+isort
+pyproject-flake8
 webdriver-manager
 selenium

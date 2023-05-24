@@ -1,21 +1,22 @@
 import time
-import pandas as pd
-import dash
 
-from xiplot.setup import setup_xiplot_dash_app
-from selenium.webdriver.common.keys import Keys
+import dash
+import pandas as pd
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.keys import Keys
 
 from tests.util_test import render_plot
 from xiplot.plots.barplot import Barplot
+from xiplot.setup import setup_xiplot_dash_app
 
-tmp = Barplot.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)[0]
+tmp = Barplot.register_callbacks(
+    dash.Dash(__name__), lambda x: x, lambda x: x
+)[0]
 
 
 def test_teba001_render_barplot(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -31,7 +32,7 @@ def test_teba001_render_barplot(dash_duo):
 
 def test_teba002_change_axis_value(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -41,7 +42,10 @@ def test_teba002_change_axis_value(dash_duo):
 
     x = driver.find_element(
         By.XPATH,
-        "//div[@class='dd-double-left']/div[2]/div[1]/div[1]/div[1]/div[2]/input",
+        (
+            "//div[@class='dd-double-left']"
+            "/div[2]/div[1]/div[1]/div[1]/div[2]/input"
+        ),
     )
 
     x.send_keys("model-year")
@@ -57,7 +61,7 @@ def test_teba002_change_axis_value(dash_duo):
 
 def test_teba003_set_cluster(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -72,7 +76,8 @@ def test_teba003_set_cluster(dash_duo):
     time.sleep(1)
 
     driver.find_element(
-        By.XPATH, "//div[@class='ReactVirtualized__Grid__innerScrollContainer']/div[3]"
+        By.XPATH,
+        "//div[@class='ReactVirtualized__Grid__innerScrollContainer']/div[3]",
     ).click()
 
     time.sleep(1)
@@ -90,7 +95,7 @@ def test_teba003_set_cluster(dash_duo):
 
 def test_teba004_set_order(dash_duo):
     driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(dir_path="data"))
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     time.sleep(1)
     dash_duo.wait_for_page()
 
@@ -106,7 +111,10 @@ def test_teba004_set_order(dash_duo):
 
     dropdown_input = driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]/div[1]/div[@class='Select-input']/input",
+        (
+            "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]/div[1]/"
+            "div[@class='Select-input']/input"
+        ),
     )
     dropdown_input.send_keys("total", Keys.RETURN)
 

@@ -1,33 +1,41 @@
-import dash_mantine_components as dmc
-
 from collections import Counter
 
-from dash import html, dcc, Input, Output, ALL, ctx
-from xiplot.plugin import get_plugins_cached
+import dash_mantine_components as dmc
+from dash import ALL, Input, Output, ctx, dcc, html
 
-from xiplot.tabs.data import Data
-from xiplot.tabs.plots import Plots
+from xiplot.plugin import (
+    get_plugins_cached,
+    is_dynamic_plugin_loading_supported,
+)
 from xiplot.tabs.cluster import Cluster
-from xiplot.tabs.settings import Settings
+from xiplot.tabs.data import Data
 from xiplot.tabs.embedding import Embedding
-
-from xiplot.utils.cluster import cluster_colours
+from xiplot.tabs.plots import Plots
+from xiplot.tabs.plugins import Plugins
+from xiplot.tabs.settings import Settings
 from xiplot.utils.components import PdfButton
 
 
 class XiPlot:
-    def __init__(self, app, df_from_store, df_to_store, dir_path="") -> None:
+    def __init__(
+        self, app, df_from_store, df_to_store, data_dir="", plugin_dir=""
+    ) -> None:
         self.app = app
         self.app.title = "χiplot"
 
         try:
             import dash_uploader as du
 
-            du.configure_upload(app=self.app, folder="uploads", use_upload_id=False)
+            du.configure_upload(
+                app=self.app, folder="uploads", use_upload_id=False
+            )
         except (ImportError, AttributeError):
             pass
 
         TABS = [Data, Plots, Cluster, Embedding, Settings]
+
+        if is_dynamic_plugin_loading_supported():
+            TABS.insert(-1, Plugins)
 
         self.app.layout = dmc.NotificationsProvider(
             html.Div(
@@ -39,12 +47,24 @@ class XiPlot:
                                 [
                                     dcc.Tab(
                                         [
-                                            t.create_layout(dir_path)
-                                            if t == Data
-                                            else t.create_layout()
+                                            (
+                                                t.create_layout(
+                                                    data_dir=data_dir
+                                                )
+                                                if t == Data
+                                                else (
+                                                    t.create_layout(
+                                                        plugin_dir=plugin_dir
+                                                    )
+                                                    if t == Plugins
+                                                    else t.create_layout()
+                                                )
+                                            )
                                         ],
                                         label=t.name(),
-                                        value=f"control-{t.name().lower()}-tab",
+                                        value=(
+                                            f"control-{t.name().lower()}-tab"
+                                        ),
                                     )
                                     for t in TABS
                                 ],
@@ -61,7 +81,8 @@ class XiPlot:
                     dcc.Store(id="clusters_column_store"),
                     dcc.Store(id="pca_column_store"),
                     html.Div(
-                        id="clusters_column_store_reset", style={"display": "none"}
+                        id="clusters_column_store_reset",
+                        style={"display": "none"},
                     ),
                     dcc.Store(id="selected_rows_store"),
                     dcc.Store(id="lastly_clicked_point_store"),
@@ -71,25 +92,43 @@ class XiPlot:
                         id="globals",
                     ),
                     PdfButton.create_global(),
-                ]
-                + [g() for g in get_plugins_cached("global")],
+                    html.Div(
+                        [g() for (_, _, g) in get_plugins_cached("global")],
+                        id="plugin-globals",
+                    ),
+                ],
                 id="main",
             ),
             position="top-right",
         )
 
         for tab in TABS:
-            tab.register_callbacks(
-                app, df_from_store, df_to_store, dir_path
-            ) if tab == Data else tab.register_callbacks(
-                app, df_from_store, df_to_store
+            (
+                tab.register_callbacks(
+                    app, df_from_store, df_to_store, data_dir=data_dir
+                )
+                if tab == Data
+                else (
+                    tab.register_callbacks(
+                        app,
+                        df_from_store,
+                        df_to_store,
+                        plugin_dir=plugin_dir,
+                    )
+                    if tab == Plugins
+                    else tab.register_callbacks(
+                        app, df_from_store, df_to_store
+                    )
+                )
             )
 
-        for cb in get_plugins_cached("callback"):
+        for _, _, cb in get_plugins_cached("callback"):
             cb(app, df_from_store, df_to_store)
 
         @app.callback(
-            Output({"type": "cluster-dropdown-count", "index": ALL}, "children"),
+            Output(
+                {"type": "cluster-dropdown-count", "index": ALL}, "children"
+            ),
             Input("clusters_column_store", "data"),
             prevent_initial_call=False,
         )

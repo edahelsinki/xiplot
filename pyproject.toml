@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "black", "dash[testing]", "webdriver-manager", "selenium"]
+dev = ["pytest", "black", "dash[testing]", "isort", "pyproject-flake8", "webdriver-manager", "selenium"]
 
 [project.urls]
 homepage = "https://github.com/edahelsinki/xiplot"
@@ -51,3 +51,15 @@ where = ["."]
 include = ["xiplot*"]
 exclude = ["tests", "test_plugin"]
 namespaces = true
+
+[tool.black]
+target-version = ['py37']
+line-length = 79
+preview = true
+
+[tool.isort]
+py_version = 37
+profile = "black"
+line_length = 79
+
+[tool.flake8]

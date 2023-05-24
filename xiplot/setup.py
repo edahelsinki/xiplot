@@ -1,18 +1,19 @@
-import pandas as pd
 import dash_extensions.enrich as enrich
-
+import pandas as pd
 from dash_extensions.enrich import (
-    DashProxy,
-    ServersideOutputTransform,
-    MultiplexerTransform,
     CycleBreakerTransform,
+    DashProxy,
+    MultiplexerTransform,
+    ServersideOutputTransform,
 )
 
 from xiplot.app import XiPlot
 from xiplot.utils.store import ServerSideStoreBackend
 
 
-def setup_xiplot_dash_app(unsafe_local_server=False, dir_path="", **kwargs):
+def setup_xiplot_dash_app(
+    unsafe_local_server=False, data_dir="", plugin_dir="", **kwargs
+):
     dash_transforms = [
         MultiplexerTransform(),
         CycleBreakerTransform(),
@@ -21,7 +22,9 @@ def setup_xiplot_dash_app(unsafe_local_server=False, dir_path="", **kwargs):
     if unsafe_local_server:
         dash_transforms.append(
             ServersideOutputTransform(
-                backend=ServerSideStoreBackend(), session_check=False, arg_check=False
+                backend=ServerSideStoreBackend(),
+                session_check=False,
+                arg_check=False,
             )
         )
 
@@ -49,11 +52,12 @@ def setup_xiplot_dash_app(unsafe_local_server=False, dir_path="", **kwargs):
         **kwargs,
     )
 
-    app = XiPlot(
+    _app = XiPlot(  # noqa: F841
         app=dash,
         df_from_store=df_from_store,
         df_to_store=df_to_store,
-        dir_path=dir_path,
+        data_dir=data_dir,
+        plugin_dir=plugin_dir,
     )
 
     return dash

@@ -1,6 +1,6 @@
 import uuid
 
-from dash import html, dcc
+from dash import dcc, html
 
 from xiplot.utils.cluster import cluster_colours
 
@@ -49,7 +49,8 @@ def cluster_dropdown(
         id_name: name of the id
         id_index: index of the id
         multi (boolean): if True, the user can set multiple values
-        clearable (boolean): if True, the user can clear all the values of the dropdown
+        clearable (boolean): if True, the user can clear all the values of the
+            dropdown
         value: initial value of the dropdown when it's created
         style: style of the html.Div element
         title: title of the dropdown
@@ -76,7 +77,11 @@ def cluster_dropdown(
                                 className="color-rect",
                             ),
                             html.Div(
-                                "everything" if cluster == "all" else f"cluster #{i}",
+                                (
+                                    "everything"
+                                    if cluster == "all"
+                                    else f"cluster #{i}"
+                                ),
                                 style={
                                     "display": "inline-block",
                                     "padding-left": 10,
@@ -84,7 +89,7 @@ def cluster_dropdown(
                             ),
                             html.Div(
                                 id={
-                                    "type": f"cluster-dropdown-count",
+                                    "type": "cluster-dropdown-count",
                                     "index": f"{cluster}-{uuid.uuid4()}",
                                 },
                                 style={
@@ -99,7 +104,9 @@ def cluster_dropdown(
                     ),
                     "value": cluster,
                 }
-                for i, (cluster, colour) in enumerate(cluster_colours().items())
+                for i, (cluster, colour) in enumerate(
+                    cluster_colours().items()
+                )
             ],
         ),
         title=title,

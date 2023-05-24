@@ -1,18 +1,16 @@
 import dash
-import plotly.express as px
 import jsonschema
-
-from dash import html, dcc, Output, Input, State, MATCH, ALL, ctx
+import plotly.express as px
+from dash import MATCH, Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
-from xiplot.utils.components import DeleteButton, PdfButton, PlotData
 
-from xiplot.utils.cluster import KMeans
-from xiplot.utils.components import FlexRow
-from xiplot.utils.layouts import layout_wrapper
-from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
-from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.plots import APlot
+from xiplot.utils.cluster import KMeans
+from xiplot.utils.components import FlexRow, PdfButton, PlotData
+from xiplot.utils.dataframe import get_numeric_columns
+from xiplot.utils.embedding import add_pca_columns_to_df
+from xiplot.utils.layouts import layout_wrapper
+from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 
 
 class Heatmap(APlot):
@@ -23,7 +21,9 @@ class Heatmap(APlot):
         @app.callback(
             Output({"type": "heatmap", "index": MATCH}, "figure"),
             Input({"type": "heatmap_cluster_amount", "index": MATCH}, "value"),
-            Input({"type": "heatmap_feature_dropdown", "index": MATCH}, "value"),
+            Input(
+                {"type": "heatmap_feature_dropdown", "index": MATCH}, "value"
+            ),
             Input("data_frame_store", "data"),
             Input("pca_column_store", "data"),
             Input("plotly-template", "data"),
@@ -36,7 +36,7 @@ class Heatmap(APlot):
                     raise PreventUpdate()
             except PreventUpdate:
                 raise
-            except:
+            except Exception:
                 pass
 
             return Heatmap.render(
@@ -44,19 +44,32 @@ class Heatmap(APlot):
             )
 
         @app.callback(
-            Output({"type": "heatmap_feature_dropdown", "index": MATCH}, "options"),
-            Output({"type": "heatmap_feature_dropdown", "index": MATCH}, "value"),
             Output(
-                {"type": "heatmap_feature_dropdown", "index": MATCH}, "search_value"
+                {"type": "heatmap_feature_dropdown", "index": MATCH}, "options"
+            ),
+            Output(
+                {"type": "heatmap_feature_dropdown", "index": MATCH}, "value"
+            ),
+            Output(
+                {"type": "heatmap_feature_dropdown", "index": MATCH},
+                "search_value",
             ),
             Input("data_frame_store", "data"),
             Input("pca_column_store", "data"),
-            Input({"type": "heatmap_regex-button", "index": MATCH}, "n_clicks"),
-            Input({"type": "heatmap_feature_dropdown", "index": MATCH}, "value"),
-            State({"type": "heatmap_feature_dropdown", "index": MATCH}, "options"),
+            Input(
+                {"type": "heatmap_regex-button", "index": MATCH}, "n_clicks"
+            ),
+            Input(
+                {"type": "heatmap_feature_dropdown", "index": MATCH}, "value"
+            ),
+            State(
+                {"type": "heatmap_feature_dropdown", "index": MATCH}, "options"
+            ),
             State({"type": "heatmap_feature-input", "index": MATCH}, "value"),
         )
-        def add_features_by_regex(df, pca_cols, n_clicks, features, options, keyword):
+        def add_features_by_regex(
+            df, pca_cols, n_clicks, features, options, keyword
+        ):
             df = df_from_store(df)
 
             if ctx.triggered_id == "data_frame_store":
@@ -91,7 +104,10 @@ class Heatmap(APlot):
 
         @app.callback(
             Output({"type": "heatmap_feature-input", "index": MATCH}, "value"),
-            Input({"type": "heatmap_feature_dropdown", "index": MATCH}, "search_value"),
+            Input(
+                {"type": "heatmap_feature_dropdown", "index": MATCH},
+                "search_value",
+            ),
         )
         def sync_with_input(keyword):
             if keyword == "":
@@ -140,7 +156,9 @@ class Heatmap(APlot):
     def create_layout(index, df, columns, config=dict()):
         jsonschema.validate(
             instance=config,
-            schema=dict(type="object", properties=dict(clusters=dict(type="integer"))),
+            schema=dict(
+                type="object", properties=dict(clusters=dict(type="integer"))
+            ),
         )
 
         n_clusters = config.get("clusters", 5)
@@ -152,7 +170,10 @@ class Heatmap(APlot):
                     component=dcc.Dropdown(
                         options=num_columns,
                         multi=True,
-                        id={"type": "heatmap_feature_dropdown", "index": index},
+                        id={
+                            "type": "heatmap_feature_dropdown",
+                            "index": index,
+                        },
                         clearable=False,
                     ),
                     title="Features",
@@ -180,5 +201,5 @@ class Heatmap(APlot):
                     title="Number of clusters",
                     css_class="dash-dropdown",
                 ),
-            )
+            ),
         ]

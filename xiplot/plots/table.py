@@ -1,20 +1,31 @@
+import jsonschema
 import numpy as np
 import pandas as pd
-import re
-
-import dash
-import jsonschema
-
-from dash import html, dcc, Output, Input, State, MATCH, ALL, dash_table, ctx, no_update
+from dash import (
+    ALL,
+    MATCH,
+    Input,
+    Output,
+    State,
+    ctx,
+    dash_table,
+    dcc,
+    html,
+    no_update,
+)
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
-from xiplot.utils.components import DeleteButton, PlotData
 
-from xiplot.utils.layouts import layout_wrapper
-from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.table import get_sort_by, get_updated_item, get_updated_item_id
-from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 from xiplot.plots import APlot
+from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.components import DeleteButton, PlotData
+from xiplot.utils.layouts import layout_wrapper
+from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
+from xiplot.utils.table import (
+    get_sort_by,
+    get_updated_item,
+    get_updated_item_id,
+)
 
 
 class Table(APlot):
@@ -43,7 +54,7 @@ class Table(APlot):
                     raise PreventUpdate()
             except PreventUpdate:
                 raise
-            except:
+            except Exception:
                 trigger = "selected_rows_store"
 
             table_data = []
@@ -82,7 +93,10 @@ class Table(APlot):
             State("data_frame_store", "data"),
         )
         def update_selected_rows_store(selected_rows_checkbox, df):
-            if selected_rows_checkbox == [None] or len(selected_rows_checkbox) == 0:
+            if (
+                selected_rows_checkbox == [None]
+                or len(selected_rows_checkbox) == 0
+            ):
                 raise PreventUpdate()
 
             df = df_from_store(df)
@@ -95,7 +109,7 @@ class Table(APlot):
                     ctx.triggered_id["index"],
                     ctx.inputs_list[0],
                 )
-            except:
+            except Exception:
                 selected_rows_checkbox = selected_rows_checkbox[0]
 
             result = [True] * df.shape[0]
@@ -105,7 +119,9 @@ class Table(APlot):
             return result
 
         @app.callback(
-            output=dict(table=Output({"type": "table", "index": ALL}, "selected_rows")),
+            output=dict(
+                table=Output({"type": "table", "index": ALL}, "selected_rows")
+            ),
             inputs=[
                 CycleBreakerInput("selected_rows_store", "data"),
                 Input("clusters_column_store", "data"),
@@ -124,7 +140,7 @@ class Table(APlot):
             # Try branch for testing
             try:
                 table_amount = len(ctx.outputs_grouping["table"])
-            except:
+            except Exception:
                 table_amount = 1
 
             return dict(table=[result for _ in range(table_amount)])
@@ -132,11 +148,15 @@ class Table(APlot):
         @app.callback(
             output=dict(
                 cell_store=Output("lastly_clicked_point_store", "data"),
-                active_cell=Output({"type": "table", "index": ALL}, "active_cell"),
+                active_cell=Output(
+                    {"type": "table", "index": ALL}, "active_cell"
+                ),
             ),
             inputs=[
                 Input({"type": "table", "index": ALL}, "active_cell"),
-                Input({"type": "table", "index": ALL}, "derived_viewport_indices"),
+                Input(
+                    {"type": "table", "index": ALL}, "derived_viewport_indices"
+                ),
                 State("data_frame_store", "data"),
             ],
         )
@@ -148,7 +168,6 @@ class Table(APlot):
             for cell, indices in zip(active_cells, table_row_indices):
                 if cell:
                     row = indices[cell["row"]]
-                    column = cell["column_id"]
                     break
 
             return dict(cell_store=row, active_cell=[None] * len(active_cells))
@@ -156,7 +175,10 @@ class Table(APlot):
         @app.callback(
             Output({"type": "table", "index": ALL}, "data"),
             Output({"type": "table", "index": ALL}, "columns"),
-            Input({"type": "table_columns_submit-button", "index": ALL}, "n_clicks"),
+            Input(
+                {"type": "table_columns_submit-button", "index": ALL},
+                "n_clicks",
+            ),
             State({"type": "table_columns-dd", "index": ALL}, "value"),
             State({"type": "table", "index": ALL}, "columns"),
             State({"type": "table", "index": ALL}, "data"),
@@ -165,7 +187,13 @@ class Table(APlot):
             State("pca_column_store", "data"),
         )
         def update_table_columns(
-            n_clicks, dropdown_columns, columns, table_df, df, kmeans_col, pca_cols
+            n_clicks,
+            dropdown_columns,
+            columns,
+            table_df,
+            df,
+            kmeans_col,
+            pca_cols,
         ):
             if not ctx.triggered_id:
                 raise PreventUpdate()
@@ -191,7 +219,8 @@ class Table(APlot):
                         df.columns.to_list(), dropdown_columns[id]
                     )
                     columns[id] = [
-                        {"name": c, "id": c, "hideable": True} for c in new_columns
+                        {"name": c, "id": c, "hideable": True}
+                        for c in new_columns
                     ]
                     table_df[id] = df[new_columns].to_dict("records")
                     break
@@ -199,8 +228,12 @@ class Table(APlot):
             return table_df, columns
 
         @app.callback(
-            Output({"type": "table_columns_regex-input", "index": MATCH}, "value"),
-            Input({"type": "table_columns-dd", "index": MATCH}, "search_value"),
+            Output(
+                {"type": "table_columns_regex-input", "index": MATCH}, "value"
+            ),
+            Input(
+                {"type": "table_columns-dd", "index": MATCH}, "search_value"
+            ),
         )
         def sync_with_input(keyword):
             if keyword == "":
@@ -211,10 +244,15 @@ class Table(APlot):
             Output({"type": "table_columns-dd", "index": ALL}, "options"),
             Output({"type": "table_columns-dd", "index": ALL}, "value"),
             Output({"type": "table_columns-dd", "index": ALL}, "search_value"),
-            Input({"type": "table_columns_regex-button", "index": ALL}, "n_clicks"),
+            Input(
+                {"type": "table_columns_regex-button", "index": ALL},
+                "n_clicks",
+            ),
             Input({"type": "table_columns-dd", "index": ALL}, "value"),
             Input("pca_column_store", "data"),
-            State({"type": "table_columns_regex-input", "index": ALL}, "value"),
+            State(
+                {"type": "table_columns_regex-input", "index": ALL}, "value"
+            ),
             State({"type": "table_columns-dd", "index": ALL}, "options"),
             State("data_frame_store", "data"),
             State("clusters_column_store", "data"),
@@ -244,7 +282,7 @@ class Table(APlot):
                 id = get_updated_item_id(
                     n_clicks_all, ctx.triggered_id["index"], ctx.inputs_list[0]
                 )
-            except:
+            except Exception:
                 id = 0
 
             keyword = keyword_all[id]
@@ -255,14 +293,18 @@ class Table(APlot):
             try:
                 try:
                     trigger = ctx.triggered_id["type"]
-                except:
+                except Exception:
                     trigger = ctx.triggered_id
-            except:
+            except Exception:
                 trigger = "table_columns_regex-button"
 
             if trigger == "pca_column_store":
-                columns_all = [df.columns.to_list() for i in range(len(columns_all))]
-                selected_columns_all = [[] for i in range(len(selected_columns_all))]
+                columns_all = [
+                    df.columns.to_list() for i in range(len(columns_all))
+                ]
+                selected_columns_all = [
+                    [] for i in range(len(selected_columns_all))
+                ]
 
                 return (
                     columns_all,
@@ -294,7 +336,11 @@ class Table(APlot):
             columns_all[id] = columns
             selected_columns_all[id] = selected_columns
 
-            return columns_all, selected_columns_all, [None] * len(n_clicks_all)
+            return (
+                columns_all,
+                selected_columns_all,
+                [None] * len(n_clicks_all),
+            )
 
         PlotData.register_callback(
             cls.name(),
@@ -303,7 +349,9 @@ class Table(APlot):
                 page=Input({"type": "table", "index": ALL}, "page_current"),
                 query=Input({"type": "table", "index": ALL}, "filter_query"),
                 sort_by=Input({"type": "table", "index": ALL}, "sort_by"),
-                hidden=Input({"type": "table", "index": ALL}, "hidden_columns"),
+                hidden=Input(
+                    {"type": "table", "index": ALL}, "hidden_columns"
+                ),
                 columns=Input({"type": "table", "index": ALL}, "columns"),
             ),
             lambda inputs: dict(
@@ -368,7 +416,9 @@ class Table(APlot):
         if "columns" in config:
             columns = list(config["columns"].keys())
             hidden_columns = [
-                c for c, v in config["columns"].items() if v.get("hidden", False)
+                c
+                for c, v in config["columns"].items()
+                if v.get("hidden", False)
             ]
             sort_by = [
                 dict(column_id=c, direction=v["sorting"])
@@ -395,7 +445,9 @@ class Table(APlot):
                 DeleteButton(index),
                 dash_table.DataTable(
                     id={"type": "table", "index": index},
-                    columns=[{"name": c, "id": c, "hideable": True} for c in columns],
+                    columns=[
+                        {"name": c, "id": c, "hideable": True} for c in columns
+                    ],
                     hidden_columns=hidden_columns,
                     data=df[columns].to_dict("records"),
                     editable=False,
@@ -448,7 +500,8 @@ class Table(APlot):
                     style={"display": "none"},
                 ),
                 html.Button(
-                    "Select", id={"type": "table_columns_submit-button", "index": index}
+                    "Select",
+                    id={"type": "table_columns_submit-button", "index": index},
                 ),
                 PlotData(index, cls.name()),
             ],

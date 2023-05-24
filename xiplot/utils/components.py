@@ -1,10 +1,20 @@
-from typing import Any, Callable, Dict, Optional, Sequence, Tuple, Union
 import base64
 from io import BytesIO
+from typing import Any, Callable, Dict, Optional, Sequence, Union
 
 import plotly as po
-import dash
-from dash import dcc, html, Dash, Input, Output, State, ALL, ctx, no_update, MATCH
+from dash import (
+    ALL,
+    MATCH,
+    Dash,
+    Input,
+    Output,
+    State,
+    ctx,
+    dcc,
+    html,
+    no_update,
+)
 
 from xiplot.utils import generate_id
 
@@ -13,11 +23,16 @@ class FlexRow(html.Div):
     """
     Create a Div with a "display: flex" style.
     This makes the children appear on one line (with wrapping if necessary).
-    Any child with a `className="stretch"` will fill all the empty space of the line.
-    `dcc.Dropdown` automatically stretch with a minimum length (see `html_components.css`).
+    Any child with a `className="stretch"` will fill all the empty space of
+    the line. `dcc.Dropdown` automatically stretch with a minimum length
+    (see `html_components.css`).
 
     Example:
-        row = FlexRow(dcc.Dropown(["A", "B"]), html.Button("Accept"), id="example")
+        row = FlexRow(
+            dcc.Dropown(["A", "B"]),
+            html.Button("Accept"),
+            id="example",
+        )
     """
 
     def __init__(self, *children, className: Optional[str] = None, **kwargs):
@@ -25,7 +40,9 @@ class FlexRow(html.Div):
             className = "flex-row"
         else:
             className = className + " flex-row"
-        super().__init__(children=list(children), className=className, **kwargs)
+        super().__init__(
+            children=list(children), className=className, **kwargs
+        )
 
 
 class InputText(html.Div):
@@ -37,11 +54,13 @@ class InputText(html.Div):
         div_kws: Dict[str, Any] = {},
         **kwargs,
     ):
-        """Create a `dcc.Input` wrapped in a `html.Div` with `className`s to make it match `dcc.Dropdown`.
+        """Create a `dcc.Input` wrapped in a `html.Div` with `className`s to
+        make it match `dcc.Dropdown`.
 
         Args:
             *args: Arguments forwarded to `dcc.Input`.
-            className: Additional classnames for the `html.Div`. Defaults to None.
+            className: Additional classnames for the `html.Div`. Defaults to
+                None.
             type: Type of `dcc.Input`. Defaults to "text".
             div_kws: Additional arguments to the `html.Div`. Defaults to {}.
             **kwargs: Keyword arguments forwarded to `dcc.Input`.
@@ -74,7 +93,7 @@ class DeleteButton(html.Button):
 
 
 try:
-    import kaleido
+    import kaleido  # noqa: F401
 
     class PdfButton(html.Button):
         def __init__(
@@ -84,7 +103,8 @@ try:
 
             Args:
                 index: Which plot should be downloaded.
-                children: The text of the button. Defaults to "Download as pdf".
+                children: The text of the button. Defaults to
+                    "Download as pdf".
                 **kwargs: additional arguments forwarded to `html.Button`.
             """
             super().__init__(
@@ -93,14 +113,17 @@ try:
 
         @classmethod
         def create_global(cls) -> Any:
-            """Create the `dcc.Download` component needed for the pdf button (add it to your layout)."""
+            """Create the `dcc.Download` component needed for the pdf button
+            (add it to your layout)."""
             return dcc.Download(id=generate_id(cls, None, "download"))
 
         @classmethod
         def register_callback(cls, app: Dash, graph_id: Dict[str, Any]):
             """Register callbacks.
-            NOTE: Currently this method has to be called separately for every type of graph.
-            This is because Dash cannot match based on properties (i.e., select only the `State`s with a "figure" property).
+            NOTE: Currently this method has to be called separately for every
+            type of graph.
+            This is because Dash cannot match based on properties (i.e.,
+            select only the `State`s with a "figure" property).
 
             Args:
                 app: Xiplot app.
@@ -187,13 +210,22 @@ class PlotData(dcc.Store):
         Args:
             plot_name: The plot name (`APlot.name()`).
             app: The xiplot app.
-            inputs: Dictionary of `Input`s that control the plot. Note that index must be `MATCH`. Example: `dict(var=Input({"type": "var-dropdown", "index": MATCH}, "value"))`.
-            process: Optional function that processes the `inputs` into a storable dictionary. Defaults to None.
+            inputs: Dictionary of `Input`s that control the plot. Note that
+                index must be `MATCH`. Example: ```
+                dict(
+                    var=Input({
+                        "type": "var-dropdown", "index": MATCH
+                    }, "value")
+                )
+                ```
+            process: Optional function that processes the `inputs` into a
+                storable dictionary. Defaults to None.
         """
         # This assert does not verify that 'process' returns a dict
-        assert callable(process) or isinstance(
-            inputs, dict
-        ), "'inputs' must be a `dict` or 'process' must be a function returning a `dict`"
+        assert callable(process) or isinstance(inputs, dict), (
+            "'inputs' must be a `dict` or 'process' must be a function"
+            " returning a `dict`"
+        )
 
         # Try to enforce MATCH on the "index"
         if isinstance(inputs, dict):
@@ -222,7 +254,8 @@ class PlotData(dcc.Store):
 
 class HelpButton(dcc.ConfirmDialogProvider):
     def __init__(self, text: str, btn_kws: Dict[str, Any] = {}, **kwargs):
-        """Create a button that shows a text on hover, and the same text in a dialog when clicked.
+        """Create a button that shows a text on hover, and the same text in a
+        dialog when clicked.
 
         Args:
             text: The (help) text to be shown.

@@ -13,7 +13,8 @@ def dropdown_regex(options: list, selected: list, keyword=None):
 
     Returns:
 
-        new_options: options with the keyword which replaces the original values which were found by the keyword
+        new_options: options with the keyword which replaces the original
+            values which were found by the keyword
         selected: selected values of the dropdown
         hits: amount of found values with the keyword
 
@@ -38,7 +39,8 @@ def dropdown_regex(options: list, selected: list, keyword=None):
 
         found = False
         for o in unselected_options:
-            # if value matched with the keyword, set found True and increase hits by 1
+            # if value matched with the keyword, set found True and increase
+            #  hits by 1
             if re.search(keyword, o):
                 found = True
                 hits += 1
@@ -46,7 +48,8 @@ def dropdown_regex(options: list, selected: list, keyword=None):
             else:
                 new_options.append(o)
 
-        # if found any amount of values, add keyword to the new options and to the selected values
+        # if found any amount of values, add keyword to the new options and
+        #  to the selected values
         if found:
             selected.append(keyword + " (regex)")
             new_options.append(keyword + " (regex)")
@@ -64,7 +67,9 @@ def dropdown_regex(options: list, selected: list, keyword=None):
     # if any regex keywords are selected
     for s in selected:
         if " (regex)" in s:
-            options, sub_selected, hits = dropdown_regex(options, sub_selected, s[:-8])
+            options, sub_selected, hits = dropdown_regex(
+                options, sub_selected, s[:-8]
+            )
     return options, sub_selected or None, hits
 
 

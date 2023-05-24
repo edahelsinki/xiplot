@@ -1,8 +1,9 @@
-import pytest
+import site
 import subprocess
 import sys
 from pathlib import Path
-import site
+
+import pytest
 
 from xiplot.plugin import get_plugins_cached
 from xiplot.utils.dataframe import read_functions, write_functions
@@ -14,18 +15,32 @@ def install_the_test_plugin():
         # Remember to update this if anything new is added to the test_plugin
         from xiplot_test_plugin import (
             Plot,
+            create_global,
             plugin_load,
             plugin_write,
-            create_global,
-            register_callbacks as reg_cb,
         )
+        from xiplot_test_plugin import register_callbacks as reg_cb
 
-        assert any(plugin == Plot for plugin in get_plugins_cached("plot"))
-        assert any(plugin == plugin_load for plugin in get_plugins_cached("read"))
-        assert any(plugin == plugin_write for plugin in get_plugins_cached("write"))
-        assert any(plugin == create_global for plugin in get_plugins_cached("global"))
-        assert any(plugin == reg_cb for plugin in get_plugins_cached("callback"))
-    except:
+        assert any(
+            plugin == Plot for (_, _, plugin) in get_plugins_cached("plot")
+        )
+        assert any(
+            plugin == plugin_load
+            for (_, _, plugin) in get_plugins_cached("read")
+        )
+        assert any(
+            plugin == plugin_write
+            for (_, _, plugin) in get_plugins_cached("write")
+        )
+        assert any(
+            plugin == create_global
+            for (_, _, plugin) in get_plugins_cached("global")
+        )
+        assert any(
+            plugin == reg_cb
+            for (_, _, plugin) in get_plugins_cached("callback")
+        )
+    except Exception:
         subprocess.check_call(
             [
                 sys.executable,
@@ -42,6 +57,7 @@ def install_the_test_plugin():
         site.main()
 
         from importlib import reload
+
         import xiplot_test_plugin
 
         reload(xiplot_test_plugin)
@@ -57,14 +73,21 @@ def test_write_plugin():
 
 
 def test_plot_plugin():
-    assert any(plot.name() == "  TEST PLUGIN" for plot in get_plugins_cached("plot"))
+    assert any(
+        plot.name() == "  TEST PLUGIN"
+        for (_, _, plot) in get_plugins_cached("plot")
+    )
 
 
 def test_global_plugin():
-    assert any(g().children == "TEST PLUGIN" for g in get_plugins_cached("global"))
+    assert any(
+        "test_plugin_counter" in str(g().children)
+        for (_, _, g) in get_plugins_cached("global")
+    )
 
 
 def test_callback_plugin():
     assert any(
-        cb.__module__ == "xiplot_test_plugin" for cb in get_plugins_cached("callback")
+        cb.__module__ == "xiplot_test_plugin"
+        for (_, _, cb) in get_plugins_cached("callback")
     )

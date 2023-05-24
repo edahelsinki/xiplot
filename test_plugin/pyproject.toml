@@ -16,16 +16,16 @@ exclude = []
 namespaces = true
 
 [project.entry-points."xiplot.plugin.read"]
-callback = "xiplot_test_plugin:plugin_load"
+test-plugin-read = "xiplot_test_plugin:plugin_load"
 
 [project.entry-points."xiplot.plugin.write"]
-callback = "xiplot_test_plugin:plugin_write"
+test-plugin-write = "xiplot_test_plugin:plugin_write"
 
 [project.entry-points."xiplot.plugin.global"]
-callback = "xiplot_test_plugin:create_global"
+test-plugin-global = "xiplot_test_plugin:create_global"
 
 [project.entry-points."xiplot.plugin.callback"]
-callback = "xiplot_test_plugin:register_callbacks"
+test-plugin-callback = "xiplot_test_plugin:register_callbacks"
 
 [project.entry-points."xiplot.plugin.plot"]
-class = "xiplot_test_plugin:Plot"
+test-plugin-plot = "xiplot_test_plugin:Plot"

@@ -1,16 +1,15 @@
 import sys
 import uuid
+
 import dash
-
-from dash import html, Input, Output, State, dcc, ctx
-
 import dash_mantine_components as dmc
+from dash import Input, Output, State, dcc, html
 
 from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
-from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.embedding import get_pca_columns
+from xiplot.utils.layouts import layout_wrapper
 
 
 class Embedding(Tab):
@@ -59,7 +58,7 @@ class Embedding(Tab):
                         id=process_id or str(uuid.uuid4()),
                         color="green",
                         title="Success",
-                        message=f"The data was embedded successfully!",
+                        message="The data was embedded successfully!",
                         action="update" if process_id else "show",
                         autoClose=5000,
                         disallowClose=False,
@@ -75,7 +74,10 @@ class Embedding(Tab):
                         id=process_id or str(uuid.uuid4()),
                         color="red",
                         title="Error",
-                        message=f"The embedding failed with an internal error. Please report the following bug: {err}",
+                        message=(
+                            "The embedding failed with an internal error."
+                            f" Please report the following bug: {err}"
+                        ),
                         action="update" if process_id else "show",
                         autoClose=False,
                     )
@@ -94,13 +96,17 @@ class Embedding(Tab):
             State("embedding-tab-compute-done", "children"),
             State("embedding-button", "value"),
         )
-        def compute_embeddings(n_clicks, embedding_type, features, done, doing):
+        def compute_embeddings(
+            n_clicks, embedding_type, features, done, doing
+        ):
             if done != doing:
                 return dash.no_update, dmc.Notification(
                     id=str(uuid.uuid4()),
                     color="yellow",
                     title="Warning",
-                    message="The k-means clustering process has not yet finished.",
+                    message=(
+                        "The k-means clustering process has not yet finished."
+                    ),
                     action="show",
                     autoClose=10000,
                 )
@@ -149,7 +155,9 @@ class Embedding(Tab):
                         id=str(uuid.uuid4()),
                         color="yellow",
                         title="Warning",
-                        message="You have not selected any features to embed by.",
+                        message=(
+                            "You have not selected any features to embed by."
+                        ),
                         action="show",
                         autoClose=10000,
                     )
@@ -199,7 +207,10 @@ class Embedding(Tab):
         return FlexRow(
             layout_wrapper(
                 dcc.Dropdown(
-                    id="embedding_type", options=["PCA"], value="PCA", clearable=False
+                    id="embedding_type",
+                    options=["PCA"],
+                    value="PCA",
+                    clearable=False,
                 ),
                 css_class="dash-dropdown",
                 title="Embedding type",
@@ -229,7 +240,9 @@ class Embedding(Tab):
                     id="embedding-tab-compute-notify-container",
                     style={"display": "none"},
                 ),
-                html.Div(id="embedding-tab-compute-done", style={"display": "none"}),
+                html.Div(
+                    id="embedding-tab-compute-done", style={"display": "none"}
+                ),
             ],
             style={"display": "none"},
         )
