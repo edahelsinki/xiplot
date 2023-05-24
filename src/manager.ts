@@ -172,6 +172,27 @@ export class WorkerManager {
       return;
     }
 
+    // Evaluate raw JavaScript coming from the Python dash app
+    if (event.data.jsEval) {
+      try {
+        eval(event.data.jsEval)
+      } catch (err) {
+        const statusBar = document.querySelector(".status");
+
+        if (statusBar) {
+          const error = document.createElement("div");
+          error.className = "stderr";
+          error.innerText = err.toString();
+
+          statusBar.appendChild(error);
+        } else {
+          console.error(err);
+        }
+      }
+
+      return;
+    }
+
     const callback = this.callbacks.get(event.data.uuid);
 
     // Unpaired responses are unexpected
