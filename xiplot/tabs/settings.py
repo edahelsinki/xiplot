@@ -5,7 +5,7 @@ import plotly.io as pio
 from dash import Dash, Input, Output, State, dcc, html
 
 from xiplot.plugin import (
-    get_all_loaded_plugins,
+    get_all_loaded_plugins_cached,
     is_dynamic_plugin_loading_supported,
 )
 from xiplot.tabs import Tab
@@ -163,7 +163,7 @@ def get_installed_plugin_options():
         name,
         path,
         plugin,
-    ) in get_all_loaded_plugins():
+    ) in get_all_loaded_plugins_cached():
         plugins[path.split(":")[0].split(".")[0]].add(kind)
 
     plugin_options = []

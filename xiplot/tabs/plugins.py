@@ -9,7 +9,11 @@ import dash
 import dash_mantine_components as dmc
 from dash import Input, Output, State, ctx, dcc, html
 
-from xiplot.plugin import get_all_loaded_plugins, get_plugins_cached
+from xiplot.plugin import (
+    get_all_loaded_plugins,
+    get_all_loaded_plugins_cached,
+    get_plugins_cached,
+)
 from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
 from xiplot.utils.layouts import layout_wrapper
@@ -58,9 +62,9 @@ class Plugins(Tab):
                             color="yellow",
                             title="Information",
                             message=(
-                                "You can now activate the newly installed plugin"
-                                " by clicking the 'Reload χiplot' button in"
-                                " the 'Plugins' tab."
+                                "You can now activate the newly installed"
+                                " plugin by clicking the 'Reload χiplot'"
+                                " button in the 'Plugins' tab."
                             ),
                             action="show",
                             autoClose=False,
@@ -192,6 +196,7 @@ class Plugins(Tab):
 
         @app.callback(
             Output("plugin-reload-modal", "opened"),
+            Output("plugin-reload-activations", "children"),
             Input("plugin-reload-button", "n_clicks"),
             Input("plugin-reload-accept", "n_clicks"),
             Input("plugin-reload-cancel", "n_clicks"),
@@ -208,9 +213,37 @@ class Plugins(Tab):
                     'self.postMessage({ jsEval: "window.web_dash.reload()" })'
                 )
 
-                return dash.no_update
+                return dash.no_update, dash.no_update
 
-            return not opened
+            plugins = defaultdict(set)
+
+            for (
+                kind,
+                name,
+                path,
+                plugin,
+            ) in get_all_loaded_plugins():
+                plugins[path.split(":")[0].split(".")[0]].add(kind)
+
+            for (
+                kind,
+                name,
+                path,
+                plugin,
+            ) in get_all_loaded_plugins_cached():
+                plugins[path.split(":")[0].split(".")[0]].discard(kind)
+
+            new_plugins = []
+
+            for plugin, kinds in plugins.items():
+                if len(kinds) == 0:
+                    continue
+
+                new_plugins.append(
+                    dmc.ListItem(f"{plugin}: {', '.join(kinds)}")
+                )
+
+            return not opened, new_plugins
 
     @staticmethod
     def create_layout(plugin_dir=""):
@@ -284,9 +317,15 @@ class Plugins(Tab):
                                     dmc.Text(
                                         "Please ensure that you have"
                                         " downloaded your plots and data so"
-                                        " that nothing is lost. Any plugins"
-                                        " that you have installed will become"
-                                        " activated after the reload."
+                                        " that nothing is lost. The following"
+                                        " recently installed plugins will"
+                                        " become activated after the reload:"
+                                    ),
+                                    dmc.Space(h=10),
+                                    dmc.List(
+                                        [],
+                                        id="plugin-reload-activations",
+                                        withPadding=True,
                                     ),
                                     dmc.Space(h=20),
                                     dmc.Group(
@@ -359,7 +398,7 @@ def get_loaded_plugin_options():
         name,
         path,
         plugin,
-    ) in get_all_loaded_plugins():
+    ) in get_all_loaded_plugins_cached():
         plugins[path.split(":")[0].split(".")[0]].add(kind)
 
     plugin_options = []
