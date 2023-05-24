@@ -58,7 +58,7 @@ class Plugins(Tab):
                             color="yellow",
                             title="Information",
                             message=(
-                                "You can now load the newly installed plugin"
+                                "You can now activate the newly installed plugin"
                                 " by clicking the 'Reload χiplot' button in"
                                 " the 'Plugins' tab."
                             ),
