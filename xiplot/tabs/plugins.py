@@ -266,7 +266,7 @@ class Plugins(Tab):
                                 clearable=False,
                                 searchable=False,
                                 placeholder=(
-                                    "Check the list of already loaded plugins"
+                                    "Check the list of activated plugins"
                                 ),
                             ),
                             html.Button(
@@ -286,7 +286,7 @@ class Plugins(Tab):
                                         " downloaded your plots and data so"
                                         " that nothing is lost. Any plugins"
                                         " that you have installed will become"
-                                        " loaded after the reload."
+                                        " activated after the reload."
                                     ),
                                     dmc.Space(h=20),
                                     dmc.Group(
@@ -307,7 +307,7 @@ class Plugins(Tab):
                                 ],
                             ),
                         ),
-                        title="Loaded Plugins",
+                        title="Active Plugins",
                         css_class="dash-dropdown",
                     ),
                 ],
