@@ -2,11 +2,11 @@
 
 Go to "Data" tab and select a data file in the dropdown.
 
-![load](https://github.com/edahelsinki/xiplot/blob/main/docs/images/load_data_file.png)
+![load](../images/load_data_file.png)
 
 Click "Load the data file" button.
 
-![load_click](https://github.com/edahelsinki/xiplot/blob/main/docs/images/load_data_file_after.png)
+![load_click](../images/load_data_file_after.png)
 
 There will appear a notification in the right top corner wether the loading succeeded or were there any errors on the way.
 
@@ -20,13 +20,15 @@ There will appear a notification in the right top corner wether the uploading su
 
 Uploaded files will be added to the data-file-selection-dropdown with "upload" in parentheses and italic.
 
-![upload](https://github.com/edahelsinki/xiplot/blob/main/docs/images/upload_data_file.png)
+![upload](../images/upload_data_file.png)
 
 
 
 # Download the data file which is open
 
-Click "Download only the data file" button on "Data" tab.
+Click "Download only the data file" button on "Data" tab to downlad the data file which is open.
+
+You can change the file format from the dropdown next to it.
 
 There will appear a notification in the right top corner wether the downloading succeeded or were there any errors on the way.
 
@@ -35,7 +37,7 @@ There will appear a notification in the right top corner wether the downloading 
 
 Click "Download the combined plots-and-data file" button
 
-![download_plots_and_data_file](https://github.com/edahelsinki/xiplot/blob/main/docs/images/download_plots_and_data_file.png)
+![download_plots_and_data_file](../images/download_plots_and_data_file.png)
 
 There will appear a notification in the right top corner wether the downloading succeeded or were there any errors on the way.
 
@@ -44,7 +46,7 @@ The plots and the data file will be downloaded as a .tar file. It can be restore
 
 ## Dataframe loading and saving
 
-`xiplot` uses `pandas` to load dataframes from `.csv`, `.json`, `.pkl`, and &ndash; if `feather-format` is available &ndash; `.ft` files. If you are running `xiplot` locally, you can simply copy your datasets into the `data/` folder. If you are accessing `xiplot` remotely or you do not want to pollute the `data/` folder, you can upload the dataset into memory directly inside `xiplot`: navigate to the data tab and either click the upload button to the right or drag the file into it.
+`xiplot` uses `pandas` to load dataframes from `.csv`, `.json`, `.ft` (feather format) and `.parquet` files. If you are running `xiplot` locally, you can simply copy your datasets into the `data/` folder. If you are accessing `xiplot` remotely or you do not want to pollute the `data/` folder, you can upload the dataset into memory directly inside `xiplot`: navigate to the data tab and either click the upload button to the right or drag the file into it.
 
 To save the currently loaded dataset, you can navigate to the data tab and press the "Download only the data file" button. The downloaded file will contain the unmodified content of the original dataset.
 

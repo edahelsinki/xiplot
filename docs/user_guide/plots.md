@@ -111,31 +111,23 @@ As written [above](#click-on-points), all the selected rows get a check mark and
 
 ![table_row_selec](../images/table_select_row.png)
 
-
-## Active cell
-
-When the table has a SMILES column, the user can select any cell on the SMILES column to display it on a SMILES plot.
-
-![table_smiles](../images/table_active_cell.png)
-
-
 # SMILES plot
 
 SMILES plot is connected with scatterplots and tables.
 
 ## Control of SMILES plot
 
-There is one input and one dropdown in the control of a SMILES plot.
+There are two dropdowns and one input field in the control of a SMILES plot.
 
 The input gets a SMILES string and convert it to a stick structure. If the input is invalid, the plot displays a red X mark.
 
-The dropdown has three values: "hover", "click" and "lock".
+"SMILES column" dropdown has a list of all columns of the given dataset that have string items. The user can set the column that has SMILES strings in order to use the SMILES plot with scatterplots.
+
+"Selection mode" dropdown has two options: "hover" and "click".
 
 - On "hover" mode, SMILES plot is displayed when the user hovers over the points on scatterplots or clicks a cell on the SMILES column of a table.
 
 - On "click" mode, SMILES plot is displayed when the user clicks a point on a scatterplot or clicks a cell on the SMILES column of a table.
-
-- On "lock" mode, SMILES plot is not displayed by scatterplots or tables.
 
 SMILES plots can be displayed from the input with any mode.
 
