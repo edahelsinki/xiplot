@@ -1,10 +1,10 @@
 # Plugin documentation
 
-Check out the example plugin package [`test_plugin`](https://github.com/edahelsinki/xiplot/tree/plugin_docs/test_plugin) for getting a better grasp of creating your own plugin packages.
+Check out the example plugin package [`test_plugin`](../../test_plugin/) for getting a better grasp of creating your own plugin packages.
 
 ## Package: Read unsupported file extension
 
-A plugin package for reading data file with unsupported extensions. ([example](https://github.com/edahelsinki/xiplot/blob/plugin_docs/test_plugin/xiplot_test_plugin/__init__.py#L5-L10))
+A plugin package for reading data file with unsupported extensions. ([example](../../test_plugin/xiplot_test_plugin/__init__.py#L5-L10))
 
 ### API requirements
 
@@ -52,7 +52,7 @@ There are few steps to register a plugin package for reading unsupported data fi
 
 ## Package: Write unsupported data file extension
 
-A plugin package for writing and downloading unsupported file extensions. ([example](https://github.com/edahelsinki/xiplot/blob/plugin_docs/test_plugin/xiplot_test_plugin/__init__.py#L13-L17))
+A plugin package for writing and downloading unsupported file extensions. ([example](../../test_plugin/xiplot_test_plugin/__init__.py#L13-L17))
 
 ### API requirements
 
@@ -106,7 +106,7 @@ The registeration steps are similar to the registeration of the previous plugin 
 
 ## Package: New plot type
 
-A plugin package for rendering a new plot type. ([example](https://github.com/edahelsinki/xiplot/blob/plugin_docs/test_plugin/xiplot_test_plugin/__init__.py#L28-L31))
+A plugin package for rendering a new plot type. ([example](../../test_plugin/xiplot_test_plugin/__init__.py#L45-L72))
 
 ### API requirements
 
@@ -182,7 +182,7 @@ The plugin API requires a class with a classmethod `name` and two static methods
 
 ## Package: Add a html component to the global layout
 
-A plugin package for adding new html component to the global layout on &chi;iplot. ([example](https://github.com/edahelsinki/xiplot/blob/plugin_docs/test_plugin/xiplot_test_plugin/__init__.py#L20-L21))
+A plugin package for adding new html component to the global layout on &chi;iplot. ([example](../../test_plugin/xiplot_test_plugin/__init__.py#L20-L31))
 
 ### API requirements
 
@@ -230,7 +230,7 @@ The registeration steps are similar to the registeration of the previous plugin 
 
 ## Package: Add @app.callback decorators
 
-A plugin package for adding @app.callback decorators of `dash.Dash` instance. The main use case would be to add user interactive actions, which are not inside of plots' instances. ([example](https://github.com/edahelsinki/xiplot/blob/plugin_docs/test_plugin/xiplot_test_plugin/__init__.py#L24-L25))
+A plugin package for adding @app.callback decorators of `dash.Dash` instance. The main use case would be to add user interactive actions, which are not inside of plots' instances. ([example](../../test_plugin/xiplot_test_plugin/__init__.py#L34-L42))
 
 ### API requirements
 
