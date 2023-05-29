@@ -446,7 +446,10 @@ class Scatterplot(APlot):
         df["__Auxiliary__"] = [{"index": i} for i in range(len(df))]
 
         return [
-            dcc.Graph(id={"type": "scatterplot", "index": index}),
+            dcc.Graph(
+                id={"type": "scatterplot", "index": index},
+                config={"displaylogo": False},
+            ),
             layout_wrapper(
                 component=dcc.Dropdown(
                     id={"type": "scatter_x_axis", "index": index},

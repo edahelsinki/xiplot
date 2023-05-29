@@ -163,7 +163,10 @@ class Histogram(APlot):
         classes = config.get("classes", [])
 
         return [
-            dcc.Graph(id={"type": "histogram", "index": index}),
+            dcc.Graph(
+                id={"type": "histogram", "index": index},
+                config={"displaylogo": False},
+            ),
             layout_wrapper(
                 component=dcc.Dropdown(
                     id={"type": "x_axis_histo", "index": index},

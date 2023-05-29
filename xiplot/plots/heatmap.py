@@ -164,7 +164,10 @@ class Heatmap(APlot):
         n_clusters = config.get("clusters", 5)
         num_columns = get_numeric_columns(df, columns)
         return [
-            dcc.Graph(id={"type": "heatmap", "index": index}),
+            dcc.Graph(
+                id={"type": "heatmap", "index": index},
+                config={"displaylogo": False},
+            ),
             FlexRow(
                 layout_wrapper(
                     component=dcc.Dropdown(

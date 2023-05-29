@@ -362,7 +362,10 @@ class Barplot(APlot):
         order = config.get("order", "reldiff")
 
         return [
-            dcc.Graph(id={"type": "barplot", "index": index}),
+            dcc.Graph(
+                id={"type": "barplot", "index": index},
+                config={"displaylogo": False},
+            ),
             layout_wrapper(
                 component=dcc.Dropdown(
                     id={"type": "barplot_x_axis", "index": index},
