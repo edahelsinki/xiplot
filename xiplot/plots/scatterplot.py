@@ -448,7 +448,7 @@ class Scatterplot(APlot):
         return [
             dcc.Graph(
                 id={"type": "scatterplot", "index": index},
-                config={"displaylogo": False},
+                config={"displaylogo": False, "responsive": True},
             ),
             layout_wrapper(
                 component=dcc.Dropdown(

@@ -364,7 +364,7 @@ class Barplot(APlot):
         return [
             dcc.Graph(
                 id={"type": "barplot", "index": index},
-                config={"displaylogo": False},
+                config={"displaylogo": False, "responsive": True},
             ),
             layout_wrapper(
                 component=dcc.Dropdown(

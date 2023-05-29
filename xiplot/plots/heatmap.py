@@ -166,7 +166,7 @@ class Heatmap(APlot):
         return [
             dcc.Graph(
                 id={"type": "heatmap", "index": index},
-                config={"displaylogo": False},
+                config={"displaylogo": False, "responsive": True},
             ),
             FlexRow(
                 layout_wrapper(

@@ -165,7 +165,7 @@ class Histogram(APlot):
         return [
             dcc.Graph(
                 id={"type": "histogram", "index": index},
-                config={"displaylogo": False},
+                config={"displaylogo": False, "responsive": True},
             ),
             layout_wrapper(
                 component=dcc.Dropdown(
