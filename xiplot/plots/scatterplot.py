@@ -190,9 +190,9 @@ class Scatterplot(APlot):
                     try:
                         if selection_mode:
                             for p in trigger["value"]["points"]:
-                                kmeans_col[
-                                    p["customdata"][0]["index"]
-                                ] = cluster_id
+                                kmeans_col[p["customdata"][0]["index"]] = (
+                                    cluster_id
+                                )
                         else:
                             for p in trigger["value"]["points"]:
                                 kmeans_col[p["customdata"][0]["index"]] = "c1"
@@ -209,9 +209,9 @@ class Scatterplot(APlot):
                 try:
                     if selection_mode:
                         for p in trigger["value"]["points"]:
-                            kmeans_col[
-                                p["customdata"][0]["index"]
-                            ] = cluster_id
+                            kmeans_col[p["customdata"][0]["index"]] = (
+                                cluster_id
+                            )
                     else:
                         for p in trigger["value"]["points"]:
                             kmeans_col[p["customdata"][0]["index"]] = "c1"
