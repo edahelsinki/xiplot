@@ -319,8 +319,17 @@ class Scatterplot(APlot):
                 Z = df[[x_axis, y_axis]].to_numpy("float64")
                 Z = np.random.normal(Z, jitter)
                 jitter_df = pd.DataFrame(Z, columns=[x_axis, y_axis])
-                df[["jitter-x", "jitter-y"]] = jitter_df[[x_axis, y_axis]]
+
+                # Distinguish axes' names if identical
+                if x_axis == y_axis:
+                    jitter_df.columns = [x_axis + "(1)", x_axis + "(2)"]
+
+                df[["jitter-x", "jitter-y"]] = jitter_df
+
+                # Set jitter results to the axes but keep the title of the axes
+                x_title, y_title = x_axis, y_axis
                 x_axis, y_axis = "jitter-x", "jitter-y"
+
         sizes = [0.5] * df.shape[0]
         colors = df.copy().loc[:, color]
         row_ids = []
@@ -360,6 +369,10 @@ class Scatterplot(APlot):
         )
         fig.update(layout_coloraxis_showscale=False)
         fig.update_traces(marker={"line": {"width": 0}})
+
+        if jitter:
+            fig.update_xaxes(title=x_title)
+            fig.update_yaxes(title=y_title)
 
         return fig
 
