@@ -214,7 +214,7 @@ class Data(Tab):
             if trigger == "submit-button":
                 if str(list(filepath.parents)[0]) == "uploads":
                     df_store = uploaded_data
-                    aux = df_from_store(uploaded_aux)
+                    aux_store = uploaded_aux
                     meta = uploaded_meta
 
                     notification = dmc.Notification(
@@ -262,6 +262,7 @@ class Data(Tab):
                         )
 
                     df_store = df_to_store(df)
+                    aux_store = df_to_store(aux)
 
                     notification = dmc.Notification(
                         id=str(uuid.uuid4()),
@@ -276,7 +277,7 @@ class Data(Tab):
                     )
             elif trigger == "uploaded_data_file_store":
                 df_store = uploaded_data
-                aux = df_from_store(uploaded_aux)
+                aux_store = uploaded_aux
                 meta = uploaded_meta
 
                 notification = dmc.Notification(
@@ -339,6 +340,7 @@ class Data(Tab):
                 )
 
             df = df_from_store(df_store)
+            aux = df_from_store(aux_store)
 
             if "is_selected" in aux:
                 if aux.dtypes["is_selected"] != bool:
@@ -415,10 +417,10 @@ class Data(Tab):
             Input("download-plots-file-button", "n_clicks"),
             State("data_files", "value"),
             State("data_frame_store", "data"),
+            State("auxiliary_store", "data"),
             State("metadata_store", "data"),
             State("clusters_column_store", "data"),
             State("selected_rows_store", "data"),
-            State("auxiliary_store", "data"),
             State(PlotData.get_id(ALL, ALL), "data"),
             State(generate_id(WriteFormatDropdown), "value"),
             prevent_initial_call=True,
@@ -428,14 +430,15 @@ class Data(Tab):
             p_clicks,
             filepath,
             df,
+            aux,
             meta,
             clusters,
             selected_rows,
-            aux,
             plot_data,
             file_extension,
         ):
             df = df_from_store(df)
+            aux = df_from_store(aux)
 
             if filepath is None or df is None:
                 return dash.no_update, dmc.Notification(

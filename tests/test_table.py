@@ -15,8 +15,6 @@ from xiplot.setup import setup_xiplot_dash_app
     update_table_checkbox,
     update_lastly_activated_cell,
     update_table_columns,
-    sync_with_input,
-    add_matching_values,
 ) = Table.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)
 
 
@@ -49,17 +47,15 @@ def test_teta002_select_columns(dash_duo):
 
     column_dropdown = driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[2]/div[2]",
+        "//div[@class='plots']/div[2]/div[0]",
     )
     column_dropdown.click()
 
     time.sleep(1)
     column_dropdown_input = driver.find_element(
         By.XPATH,
-        (
-            "//div[@class='plots']/div[2]/div[2]"
-            "/div[1]/div[1]/div[1]/div[2]/input"
-        ),
+        "//div[@class='plots']/div[2]/div[0]"
+        "/div[1]/div[1]/div[1]/div[2]/input",
     )
     column_dropdown_input.send_keys("PCA 2", Keys.RETURN)
     time.sleep(1)
@@ -119,9 +115,7 @@ def test_teta003_toggle_columns(dash_duo):
 def test_create_table():
     d = {"col1": [1, 2], "col2": [3, 4]}
     df = pd.DataFrame(data=d)
-    output = update_table_data(
-        ["all", "all"], [True, True], df, [df], [[]], []
-    )
+    output = update_table_data(["all", "all"], [True, True], [df], [[]])
     table_df = output[0][0][0]
     sort_by = output[1][0]
 
@@ -166,18 +160,3 @@ def test_update_lastly_activated_cell():
 
     assert lastly_activated_cell_row == 1
     assert updated_active_cell == [None]
-
-
-def test_add_matching_values():
-    d = {"col1": [1, 2], "col2": [3, 4]}
-    df = pd.DataFrame(data=d)
-    output = add_matching_values(
-        [1], [[]], [], ["col.*"], [["col1", "col2"]], df, ["all", "all"]
-    )
-    selected_columns_options = output[0][0]
-    selected_columns_values = output[1][0]
-    update_search_value = output[2][0]
-
-    assert selected_columns_options == ["col.* (regex)"]
-    assert selected_columns_values == ["col.* (regex)"]
-    assert update_search_value is None

@@ -42,10 +42,8 @@ def test_teba002_change_axis_value(dash_duo):
 
     x = driver.find_element(
         By.XPATH,
-        (
-            "//div[@class='dd-double-left']"
-            "/div[2]/div[1]/div[1]/div[1]/div[2]/input"
-        ),
+        "//div[@class='dd-double-left']"
+        "/div[2]/div[1]/div[1]/div[1]/div[2]/input",
     )
 
     x.send_keys("model-year")
@@ -111,10 +109,8 @@ def test_teba004_set_order(dash_duo):
 
     dropdown_input = driver.find_element(
         By.XPATH,
-        (
-            "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]/div[1]/"
-            "div[@class='Select-input']/input"
-        ),
+        "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]/div[1]/"
+        "div[@class='Select-input']/input",
     )
     dropdown_input.send_keys("total", Keys.RETURN)
 
@@ -132,7 +128,9 @@ def test_teba004_set_order(dash_duo):
 def test_create_barplot():
     d = {"col1": [1, 2], "col2": [3, 4]}
     df = pd.DataFrame(data=d)
-    output = tmp("col1", "col2", ["all"], "reldiff", ["all", "all"], df, [])
+    output = tmp(
+        "col1", "col2", ["all"], "reldiff", ["all", "all"], df, pd.DataFrame()
+    )
     fig = output[0]
 
     assert str(type(fig)) == "<class 'plotly.graph_objs._figure.Figure'>"

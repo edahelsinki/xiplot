@@ -1,5 +1,3 @@
-import dash
-import jsonschema
 import pandas as pd
 import plotly.express as px
 from dash import MATCH, Input, Output, ctx, dcc, html
@@ -65,7 +63,8 @@ class Heatmap(APlot):
             dict(
                 clusters=Input(
                     {"type": "heatmap_cluster_amount", "index": MATCH}, "value"
-                )
+                ),
+                columns=Input(cls.get_id(MATCH, "columns_dropdown"), "value"),
             ),
         )
 
@@ -99,13 +98,6 @@ class Heatmap(APlot):
 
     @classmethod
     def create_layout(cls, index, df, columns, config=dict()):
-        jsonschema.validate(
-            instance=config,
-            schema=dict(
-                type="object", properties=dict(clusters=dict(type="integer"))
-            ),
-        )
-
         n_clusters = config.get("clusters", 5)
         num_columns = get_numeric_columns(df, columns)
         return [
@@ -117,6 +109,7 @@ class Heatmap(APlot):
                         options=num_columns,
                         multi=True,
                         clearable=False,
+                        value=config.get("columns", None),
                     ),
                     title="Features",
                     css_class="dash-dropdown",

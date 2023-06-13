@@ -1,4 +1,3 @@
-import jsonschema
 import numpy as np
 import pandas as pd
 from dash import ALL, MATCH, Input, Output, State, ctx, dash_table, dcc, html
@@ -27,15 +26,11 @@ class Table(APlot):
             ],
             State("clusters_column_store", "data"),
             Input("selected_rows_store", "data"),
-            Input("data_frame_store", "data"),
-            Input("auxiliary_store", "data"),
             State({"type": "table", "index": ALL}, "data"),
             Input({"type": "table", "index": ALL}, "sort_by"),
             prevent_initial_call=False,
         )
-        def update_table_data(
-            kmeans_col, selected_rows, df, aux, table_df, sort_by
-        ):
+        def update_table_data(kmeans_col, selected_rows, table_df, sort_by):
             # Try branch for testing
             try:
                 trigger = ctx.triggered_id
@@ -59,12 +54,6 @@ class Table(APlot):
                     table_df["Clusters"] = kmeans_col
 
                 sort_by = get_sort_by(sort_by, selected_rows, trigger)
-
-                aux = df_from_store(aux)
-                if "Xiplot_PCA_1" in aux:
-                    table_df["Xiplot_PCA_1"] = aux["Xiplot_PCA_1"]
-                if "Xiplot_PCA_2" in aux:
-                    table_df["Xiplot_PCA_2"] = aux["Xiplot_PCA_2"]
 
                 columns = table_df.columns.to_list()
 
@@ -227,6 +216,7 @@ class Table(APlot):
                     {"type": "table", "index": ALL}, "hidden_columns"
                 ),
                 columns=Input({"type": "table", "index": ALL}, "columns"),
+                dropdown=Input(cls.get_id(MATCH, "columns_dropdown"), "value"),
             ),
             lambda inputs: dict(
                 columns={
@@ -242,6 +232,7 @@ class Table(APlot):
                 },
                 query=inputs["query"] or "",
                 page=inputs["page"] or 0,
+                dropdown=inputs["dropdown"],
             ),
         )
 
@@ -257,33 +248,6 @@ class Table(APlot):
     def create_new_layout(cls, index, df, columns, config=dict()):
         df = df.rename_axis("index_copy")
         columns = df.columns.to_list()
-
-        jsonschema.validate(
-            instance=config,
-            schema=dict(
-                type="object",
-                properties=dict(
-                    columns=dict(
-                        type="object",
-                        properties={
-                            c: dict(
-                                type="object",
-                                properties=dict(
-                                    hidden=dict(type="boolean"),
-                                    sorting=dict(enum=["asc", "desc"]),
-                                ),
-                            )
-                            for c in columns
-                        },
-                    ),
-                    query=dict(type="string"),
-                    page=dict(
-                        type="integer",
-                        minimum=0,
-                    ),
-                ),
-            ),
-        )
 
         if "columns" in config:
             columns = list(config["columns"].keys())
@@ -360,6 +324,7 @@ class Table(APlot):
                         multi=True,
                         options=df.columns,
                         placeholder="Select Columns...",
+                        value=config.get("dropdown", None),
                     ),
                     html.Button(
                         "Add columns by regex",
