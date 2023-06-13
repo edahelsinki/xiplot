@@ -4,12 +4,28 @@ import uuid
 import dash
 import dash_mantine_components as dmc
 from dash import Input, Output, State, dcc, html
+from dash_extensions.enrich import ServersideOutput
 
 from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
 from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.embedding import get_pca_columns
 from xiplot.utils.layouts import layout_wrapper
+
+
+def get_pca_columns(df, features):
+    from sklearn.decomposition import PCA
+    from sklearn.impute import SimpleImputer
+    from sklearn.preprocessing import StandardScaler
+
+    x = df[features]
+    x = StandardScaler().fit_transform(x)
+
+    mean_imputer = SimpleImputer(strategy="mean")
+    x = mean_imputer.fit_transform(x)
+
+    pca = PCA(n_components=2)
+    pca.fit(x)
+    return pca.transform(x)
 
 
 class Embedding(Tab):
@@ -20,20 +36,21 @@ class Embedding(Tab):
         )
         def initialize_dropdown(df):
             df = df_from_store(df)
-
-            options = get_numeric_columns(df, df.columns.to_list())
+            options = get_numeric_columns(df)
             return options
 
         @app.callback(
-            Output("pca_column_store", "data"),
+            ServersideOutput("auxiliary_store", "data"),
             Output("embedding-tab-main-notify-container", "children"),
             Output("embedding-tab-compute-done", "children"),
             Input("embedding-button", "value"),
             State("data_frame_store", "data"),
+            State("auxiliary_store", "data"),
             State("embedding_feature", "value"),
         )
-        def compute_embedding(process_id, df, features):
+        def compute_embedding(process_id, df, aux, features):
             df = df_from_store(df)
+            aux = df_from_store(aux)
             if df is None:
                 return (
                     dash.no_update,
@@ -52,6 +69,8 @@ class Embedding(Tab):
 
             try:
                 pca_cols = get_pca_columns(df, features)
+                aux["Xiplot_PCA_1"] = pca_cols[:, 0]
+                aux["Xiplot_PCA_2"] = pca_cols[:, 1]
 
                 notifications.append(
                     dmc.Notification(
@@ -85,7 +104,7 @@ class Embedding(Tab):
 
                 return (dash.no_update, notifications, process_id)
 
-            return pca_cols, notifications, process_id
+            return df_to_store(aux), notifications, process_id
 
         @app.callback(
             Output("embedding-button", "value"),

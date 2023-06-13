@@ -2,7 +2,6 @@ import json
 import uuid
 
 import dash
-import jsonschema
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -11,9 +10,8 @@ from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
 from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.components import PdfButton, PlotData
+from xiplot.utils.components import ColumnDropdown, PdfButton, PlotData
 from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.scatterplot import get_row
 
@@ -25,15 +23,15 @@ class Scatterplot(APlot):
 
         @app.callback(
             Output({"type": "scatterplot", "index": MATCH}, "figure"),
-            Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
-            Input({"type": "scatter_y_axis", "index": MATCH}, "value"),
-            Input({"type": "scatter_target_color", "index": MATCH}, "value"),
-            Input({"type": "scatter_target_symbol", "index": MATCH}, "value"),
+            Input(cls.get_id(MATCH, "x_axis_dropdown"), "value"),
+            Input(cls.get_id(MATCH, "y_axis_dropdown"), "value"),
+            Input(cls.get_id(MATCH, "color_dropdown"), "value"),
+            Input(cls.get_id(MATCH, "symbol_dropdown"), "value"),
             Input({"type": "jitter-slider", "index": MATCH}, "value"),
             Input("selected_rows_store", "data"),
             Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
-            Input("pca_column_store", "data"),
+            Input("auxiliary_store", "data"),
             Input("plotly-template", "data"),
             prevent_initial_call=False,
         )
@@ -46,7 +44,7 @@ class Scatterplot(APlot):
             selected_rows,
             kmeans_col,
             df,
-            pca_cols,
+            aux,
             template=None,
         ):
             # Try branch for testing
@@ -58,9 +56,9 @@ class Scatterplot(APlot):
             except Exception:
                 pass
 
-            df = df_from_store(df)
             fig = Scatterplot.render(
-                df,
+                df_from_store(df),
+                df_from_store(aux),
                 x_axis,
                 y_axis,
                 color,
@@ -68,7 +66,6 @@ class Scatterplot(APlot):
                 jitter,
                 selected_rows,
                 kmeans_col,
-                pca_cols,
                 template,
             )
 
@@ -79,7 +76,7 @@ class Scatterplot(APlot):
 
         @app.callback(
             Output({"type": "jitter-slider", "index": MATCH}, "max"),
-            Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
+            Input({"type": "x_axis_dropdown", "index": MATCH}, "value"),
             State("data_frame_store", "data"),
         )
         def update_jitter_max(x_axis, df):
@@ -190,9 +187,9 @@ class Scatterplot(APlot):
                     try:
                         if selection_mode:
                             for p in trigger["value"]["points"]:
-                                kmeans_col[p["customdata"][0]["index"]] = (
-                                    cluster_id
-                                )
+                                kmeans_col[
+                                    p["customdata"][0]["index"]
+                                ] = cluster_id
                         else:
                             for p in trigger["value"]["points"]:
                                 kmeans_col[p["customdata"][0]["index"]] = "c1"
@@ -209,9 +206,9 @@ class Scatterplot(APlot):
                 try:
                     if selection_mode:
                         for p in trigger["value"]["points"]:
-                            kmeans_col[p["customdata"][0]["index"]] = (
-                                cluster_id
-                            )
+                            kmeans_col[
+                                p["customdata"][0]["index"]
+                            ] = cluster_id
                     else:
                         for p in trigger["value"]["points"]:
                             kmeans_col[p["customdata"][0]["index"]] = "c1"
@@ -227,14 +224,10 @@ class Scatterplot(APlot):
             cls.name(),
             app,
             (
-                Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
-                Input({"type": "scatter_y_axis", "index": MATCH}, "value"),
-                Input(
-                    {"type": "scatter_target_color", "index": MATCH}, "value"
-                ),
-                Input(
-                    {"type": "scatter_target_symbol", "index": MATCH}, "value"
-                ),
+                Input(cls.get_id(MATCH, "x_axis_dropdown"), "value"),
+                Input(cls.get_id(MATCH, "y_axis_dropdown"), "value"),
+                Input(cls.get_id(MATCH, "color_dropdown"), "value"),
+                Input(cls.get_id(MATCH, "symbol_dropdown"), "value"),
                 Input({"type": "jitter-slider", "index": MATCH}, "value"),
             ),
             lambda i: dict(
@@ -245,42 +238,29 @@ class Scatterplot(APlot):
             ),
         )
 
-        @app.callback(
-            output=dict(
-                scatter_x=Output(
-                    {"type": "scatter_x_axis", "index": ALL}, "options"
-                ),
-                scatter_y=Output(
-                    {"type": "scatter_y_axis", "index": ALL}, "options"
-                ),
-            ),
-            inputs=[
-                Input("pca_column_store", "data"),
-                State("data_frame_store", "data"),
-                State({"type": "scatter_y_axis", "index": ALL}, "options"),
-                Input({"type": "scatterplot", "index": ALL}, "figure"),
-            ],
+        ColumnDropdown.register_callback(
+            app,
+            cls.get_id(ALL, "x_axis_dropdown"),
+            df_from_store,
+            numeric=True,
         )
-        def update_columns(pca_cols, df, all_options, fig):
-            df = df_from_store(df)
-
-            if all_options:
-                options = all_options[0]
-            else:
-                return dash.no_update
-
-            if (
-                pca_cols
-                and len(pca_cols) == df.shape[0]
-                and "Xiplot_PCA_1" not in options
-                and "Xiplot_PCA_2" not in options
-            ):
-                options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
-
-            return dict(
-                scatter_x=[options] * len(all_options),
-                scatter_y=[options] * len(all_options),
-            )
+        ColumnDropdown.register_callback(
+            app,
+            cls.get_id(ALL, "y_axis_dropdown"),
+            df_from_store,
+            numeric=True,
+        )
+        ColumnDropdown.register_callback(
+            app,
+            cls.get_id(ALL, "color_dropdown"),
+            df_from_store,
+        )
+        ColumnDropdown.register_callback(
+            app,
+            cls.get_id(ALL, "symbol_dropdown"),
+            df_from_store,
+            category=True,
+        )
 
         return [
             tmp,
@@ -292,6 +272,7 @@ class Scatterplot(APlot):
     @staticmethod
     def render(
         df,
+        aux,
         x_axis,
         y_axis,
         color=None,
@@ -299,18 +280,13 @@ class Scatterplot(APlot):
         jitter=None,
         selected_rows=None,
         kmeans_col=[],
-        pca_cols=[],
         template=None,
     ):
-        if x_axis in ["Xiplot_PCA_1", "Xiplot_PCA_2"] and not pca_cols:
-            return None
-
+        df = pd.concat((df, aux), axis=1)
         if len(kmeans_col) == df.shape[0]:
             df["Clusters"] = kmeans_col
         else:
             df["Clusters"] = ["all"] * df.shape[0]
-
-        df = add_pca_columns_to_df(df, pca_cols)
 
         if jitter:
             jitter = float(jitter)
@@ -376,42 +352,9 @@ class Scatterplot(APlot):
 
         return fig
 
-    @staticmethod
-    def create_layout(index, df, columns, config=dict()):
+    @classmethod
+    def create_layout(cls, index, df, columns, config=dict()):
         num_columns = get_numeric_columns(df, columns)
-
-        try:
-            if config["axes"]["x"] in (
-                "Xiplot_PCA_1",
-                "Xiplot_PCA_2",
-            ) or config["axes"]["y"] in (
-                "Xiplot_PCA_1",
-                "Xiplot_PCA_2",
-            ):
-                num_columns.append("Xiplot_PCA_1")
-                num_columns.append("Xiplot_PCA_2")
-
-        except Exception:
-            pass
-
-        jsonschema.validate(
-            instance=config,
-            schema=dict(
-                type="object",
-                properties=dict(
-                    axes=dict(
-                        type="object",
-                        properties=dict(
-                            x=dict(enum=num_columns),
-                            y=dict(enum=num_columns),
-                        ),
-                    ),
-                    colour=dict(enum=columns + [None]),
-                    symbol=dict(enum=columns + [None]),
-                    jitter=dict(type="number", minimum=0.0),
-                ),
-            ),
-        )
 
         try:
             x_axis = config["axes"]["x"]
@@ -448,8 +391,8 @@ class Scatterplot(APlot):
         return [
             dcc.Graph(id={"type": "scatterplot", "index": index}),
             layout_wrapper(
-                component=dcc.Dropdown(
-                    id={"type": "scatter_x_axis", "index": index},
+                component=ColumnDropdown(
+                    cls.get_id(index, "x_axis_dropdown"),
                     options=num_columns,
                     value=x_axis,
                     clearable=False,
@@ -458,8 +401,8 @@ class Scatterplot(APlot):
                 title="x",
             ),
             layout_wrapper(
-                component=dcc.Dropdown(
-                    id={"type": "scatter_y_axis", "index": index},
+                component=ColumnDropdown(
+                    cls.get_id(index, "y_axis_dropdown"),
                     options=num_columns,
                     value=y_axis,
                     clearable=False,
@@ -468,8 +411,8 @@ class Scatterplot(APlot):
                 title="y",
             ),
             layout_wrapper(
-                component=dcc.Dropdown(
-                    id={"type": "scatter_target_color", "index": index},
+                component=ColumnDropdown(
+                    cls.get_id(index, "color_dropdown"),
                     options=columns,
                     value=scatter_colour,
                     clearable=False,
@@ -478,8 +421,8 @@ class Scatterplot(APlot):
                 title="target (color)",
             ),
             layout_wrapper(
-                component=dcc.Dropdown(
-                    id={"type": "scatter_target_symbol", "index": index},
+                component=ColumnDropdown(
+                    cls.get_id(index, "symbol_dropdown"),
                     options=columns,
                     value=scatter_symbol,
                 ),

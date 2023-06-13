@@ -8,7 +8,6 @@ import dash
 import dash_mantine_components as dmc
 import jsonschema
 import numpy as np
-import pandas as pd
 from dash import ALL, Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
@@ -80,10 +79,8 @@ class Data(Tab):
                                     [
                                         f"The file {upload_path.name} ",
                                         html.I("(upload)"),
-                                        (
-                                            " could not be loaded as a data"
-                                            f" frame: {err}."
-                                        ),
+                                        " could not be loaded as a data"
+                                        f" frame: {err}.",
                                     ]
                                 )
                             ],
@@ -148,10 +145,8 @@ class Data(Tab):
                                     [
                                         f"The file {upload_name} ",
                                         html.I("(upload)"),
-                                        (
-                                            " could not be loaded as a data"
-                                            f" frame: {err}."
-                                        ),
+                                        " could not be loaded as a data"
+                                        f" frame: {err}.",
                                     ]
                                 )
                             ],
@@ -173,10 +168,10 @@ class Data(Tab):
 
         @app.callback(
             ServersideOutput("data_frame_store", "data"),
+            ServersideOutput("auxiliary_store", "data"),
             Output("metadata_store", "data"),
             Output("clusters_column_store", "data"),
             Output("selected_rows_store", "data"),
-            Output("pca_column_store", "data"),
             Output("clusters_column_store_reset", "children"),
             Output("data-tab-notify-container", "children"),
             Input("submit-button", "n_clicks"),
@@ -403,24 +398,12 @@ class Data(Tab):
             else:
                 clusters = ["all"] * df.shape[0]
 
-            if "pca_cols" in aux:
-                pca_cols = [
-                    (
-                        float(i.strip("][").split(", ")[0]),
-                        (float(i.strip("][").split(", ")[1])),
-                    )
-                    for i in list(aux["pca_cols"].values)
-                ]
-
-            else:
-                pca_cols = None
-
             return (
                 df_store,
+                df_to_store(aux),
                 meta,
                 clusters,
                 selected_rows,
-                pca_cols,
                 str(uuid.uuid4()),
                 notification,
             )
@@ -435,7 +418,7 @@ class Data(Tab):
             State("metadata_store", "data"),
             State("clusters_column_store", "data"),
             State("selected_rows_store", "data"),
-            State("pca_column_store", "data"),
+            State("auxiliary_store", "data"),
             State(PlotData.get_id(ALL, ALL), "data"),
             State(generate_id(WriteFormatDropdown), "value"),
             prevent_initial_call=True,
@@ -448,7 +431,7 @@ class Data(Tab):
             meta,
             clusters,
             selected_rows,
-            pca_cols,
+            aux,
             plot_data,
             file_extension,
         ):
@@ -480,10 +463,8 @@ class Data(Tab):
                             message=[
                                 html.Div(
                                     [
-                                        (
-                                            "Failed to download the data file"
-                                            f" for {filepath.name}"
-                                        ),
+                                        "Failed to download the data file"
+                                        f" for {filepath.name}",
                                         (
                                             html.I(" (upload)")
                                             if ctx.triggered_id
@@ -500,7 +481,6 @@ class Data(Tab):
 
                 if ctx.triggered_id == "download-plots-file-button":
                     try:
-                        aux = dict()
 
                         if clusters is not None:
                             aux["cluster"] = clusters
@@ -510,9 +490,6 @@ class Data(Tab):
                                 selected_rows, dtype=bool
                             )
 
-                        if pca_cols is not None:
-                            aux["pca_cols"] = pca_cols
-
                         for data in plot_data:
                             index = data["index"]
                             del data["index"]
@@ -520,7 +497,7 @@ class Data(Tab):
 
                         filename, mime = write_dataframe_and_metadata(
                             df,
-                            pd.DataFrame(aux),
+                            aux,
                             meta,
                             meta["filename"],
                             file,
@@ -534,10 +511,8 @@ class Data(Tab):
                             message=[
                                 html.Div(
                                     [
-                                        (
-                                            "Failed to download plots and data"
-                                            f" file for {filepath.name}"
-                                        ),
+                                        "Failed to download plots and data"
+                                        f" file for {filepath.name}",
                                         (
                                             html.I(" (upload)")
                                             if ctx.triggered_id

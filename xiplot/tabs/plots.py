@@ -5,6 +5,7 @@ import dash_mantine_components as dmc
 import jsonschema
 from dash import ALL, Input, Output, State, ctx, dcc, html
 from dash_extensions.enrich import CycleBreakerInput
+import pandas as pd
 
 from xiplot.plots.barplot import Barplot
 from xiplot.plots.heatmap import Heatmap
@@ -46,7 +47,7 @@ class Plots(Tab):
             State("plot_type", "value"),
             State("data_frame_store", "data"),
             State("clusters_column_store", "data"),
-            State("pca_column_store", "data"),
+            State("auxiliary_store", "data"),
             CycleBreakerInput("metadata_store", "data"),
             State("plots-tab-settings-session", "children"),
         )
@@ -57,7 +58,7 @@ class Plots(Tab):
             plot_type,
             df,
             kmeans_col,
-            pca_cols,
+            aux,
             meta,
             last_meta_session,
         ):
@@ -180,14 +181,12 @@ class Plots(Tab):
 
                 # read df from store
                 df = df_from_store(df)
+                aux = df_from_store(aux)
+                df = pd.concat((df, aux), axis=1)
 
                 # create column for clusters if needed
                 if len(kmeans_col) == df.shape[0]:
                     df["Clusters"] = kmeans_col
-
-                if pca_cols and len(pca_cols) == df.shape[0]:
-                    df["Xiplot_PCA_1"] = [i[0] for i in pca_cols]
-                    df["Xiplot_PCA_2"] = [i[1] for i in pca_cols]
 
                 columns = df.columns.to_list()
 

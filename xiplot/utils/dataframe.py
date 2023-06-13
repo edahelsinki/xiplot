@@ -300,7 +300,7 @@ def write_only_dataframe(
     raise Exception(f"Unsupported dataframe format '{file_extension}'")
 
 
-def get_numeric_columns(df, columns):
+def get_numeric_columns(df, columns=None):
     """
     Return only columns, which are numeric
 
@@ -313,4 +313,6 @@ def get_numeric_columns(df, columns):
 
         columns: numeric columns
     """
-    return df[columns].select_dtypes("number").columns.to_list()
+    if columns is not None:
+        df = df[columns]
+    return df.select_dtypes("number").columns.to_list()

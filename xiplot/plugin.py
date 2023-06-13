@@ -21,6 +21,7 @@ from xiplot.utils import generate_id  # noqa: F401
 from xiplot.utils.components import (  # noqa: F401
     DeleteButton,
     FlexRow,
+    ColumnDropdown,
     HelpButton,
     PdfButton,
     PlotData,
@@ -29,6 +30,7 @@ from xiplot.utils.components import (  # noqa: F401
 # IDs for important `dcc.Store` components:
 ID_DATAFRAME = STORE_DATAFRAME_ID = "data_frame_store"
 ID_METADATA = STORE_METADATA_ID = "metadata_store"
+ID_AUXILIARY = "auxiliary_store"
 ID_HOVERED = STORE_HOVERED_ID = "lastly_hovered_point_store"
 ID_CLICKED = STORE_CLICKED_ID = "lastly_clicked_point_store"
 ID_SELECTED = STORE_SELECTED_ID = "selected_rows_store"

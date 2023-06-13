@@ -77,9 +77,9 @@ class XiPlot:
                     ),
                     html.Div(id="plots"),
                     dcc.Store(id="data_frame_store"),
+                    dcc.Store(id="auxiliary_store"),
                     dcc.Store(id="metadata_store"),
                     dcc.Store(id="clusters_column_store"),
-                    dcc.Store(id="pca_column_store"),
                     html.Div(
                         id="clusters_column_store_reset",
                         style={"display": "none"},

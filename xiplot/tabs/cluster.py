@@ -7,10 +7,11 @@ import jsonschema
 from dash import Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
+import pandas as pd
 
 from xiplot.tabs import Tab
 from xiplot.utils.cluster import KMeans, cluster_colours
-from xiplot.utils.components import FlexRow
+from xiplot.utils.components import ColumnDropdown, FlexRow
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.layouts import cluster_dropdown, layout_wrapper
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
@@ -24,6 +25,7 @@ class Cluster(Tab):
             Output("cluster-tab-main-notify-container", "children"),
             Output("cluster-tab-compute-done", "children"),
             State("data_frame_store", "data"),
+            State("auxiliary_store", "data"),
             Input("cluster-button", "value"),
             State("cluster-tab-compute-done", "children"),
             Input("clusters_reset-button", "n_clicks"),
@@ -34,6 +36,7 @@ class Cluster(Tab):
         )
         def set_clusters(
             df,
+            aux,
             process_id,
             done,
             n_clicks,
@@ -91,8 +94,11 @@ class Cluster(Tab):
                 notifications = []
 
                 try:
+                    df2 = pd.concat(
+                        (df_from_store(df), df_from_store(aux)), axis=1
+                    )
                     kmeans_col = Cluster.create_by_input(
-                        df_from_store(df),
+                        df2,
                         features,
                         n_clusters,
                         kmeans_col,
@@ -190,12 +196,13 @@ class Cluster(Tab):
             Output("cluster_feature", "search_value"),
             Output("cluster-tab-regex-notify-container", "children"),
             Input("data_frame_store", "data"),
+            Input("auxiliary_store", "data"),
             Input("add_by_keyword-button", "n_clicks"),
             Input("cluster_feature", "value"),
             State("feature_keyword-input", "value"),
             State("cluster_feature", "options"),
         )
-        def add_matching_values(df, n_clicks, features, keyword, options):
+        def add_matching_values(df, aux, n_clicks, features, keyword, options):
             if df is None:
                 if ctx.triggered_id == "add_by_keyword-button":
                     return (
@@ -215,9 +222,13 @@ class Cluster(Tab):
                     return ([], None, dash.no_update, dash.no_update)
 
             df = df_from_store(df)
+            aux = df_from_store(aux)
             if ctx.triggered_id == "data_frame_store":
-                options = get_numeric_columns(df, df.columns.to_list())
-                return options, None, dash.no_update, None
+                options = ColumnDropdown.get_columns(df, aux, numeric=True)
+                return options, None, dash.no_update, []
+            if ctx.triggered_id == "auxiliary_store":
+                options = ColumnDropdown.get_columns(df, aux, numeric=True)
+                return options, dash.no_update, dash.no_update, dash.no_update
             if ctx.triggered_id == "add_by_keyword-button":
                 options, features, hits = dropdown_regex(
                     options or [], features, keyword
@@ -271,7 +282,7 @@ class Cluster(Tab):
 
                 return options, features, None, notification
             if ctx.triggered_id == "cluster_feature":
-                options = get_numeric_columns(df, df.columns.to_list())
+                options = ColumnDropdown.get_columns(df, aux, numeric=True)
                 options, features, hits = dropdown_regex(options, features)
                 return options, features, dash.no_update, None
 
@@ -480,7 +491,7 @@ class Cluster(Tab):
 
         scaler = StandardScaler()
 
-        columns = get_numeric_columns(df, df.columns.to_list())
+        columns = get_numeric_columns(df)
         new_features = get_columns_by_regex(columns, features)
         scale = scaler.fit_transform(df[new_features])
 
@@ -508,7 +519,7 @@ class Cluster(Tab):
                 FlexRow(
                     layout_wrapper(
                         component=FlexRow(
-                            dcc.Dropdown(id="cluster_feature", multi=True),
+                            ColumnDropdown(id="cluster_feature", multi=True),
                             html.Button(
                                 "Add features by regex",
                                 id="add_by_keyword-button",

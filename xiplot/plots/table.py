@@ -1,31 +1,20 @@
 import jsonschema
 import numpy as np
 import pandas as pd
-from dash import (
-    ALL,
-    MATCH,
-    Input,
-    Output,
-    State,
-    ctx,
-    dash_table,
-    dcc,
-    html,
-    no_update,
-)
+from dash import ALL, MATCH, Input, Output, State, ctx, dash_table, dcc, html
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.plots import APlot
 from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.components import DeleteButton, PlotData
-from xiplot.utils.layouts import layout_wrapper
-from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
-from xiplot.utils.table import (
-    get_sort_by,
-    get_updated_item,
-    get_updated_item_id,
+from xiplot.utils.components import (
+    ColumnDropdown,
+    DeleteButton,
+    FlexRow,
+    PlotData,
 )
+from xiplot.utils.regex import get_columns_by_regex
+from xiplot.utils.table import get_sort_by, get_updated_item
 
 
 class Table(APlot):
@@ -39,13 +28,13 @@ class Table(APlot):
             State("clusters_column_store", "data"),
             Input("selected_rows_store", "data"),
             Input("data_frame_store", "data"),
+            Input("auxiliary_store", "data"),
             State({"type": "table", "index": ALL}, "data"),
             Input({"type": "table", "index": ALL}, "sort_by"),
-            Input("pca_column_store", "data"),
             prevent_initial_call=False,
         )
         def update_table_data(
-            kmeans_col, selected_rows, df, table_df, sort_by, pca_cols
+            kmeans_col, selected_rows, df, aux, table_df, sort_by
         ):
             # Try branch for testing
             try:
@@ -60,10 +49,6 @@ class Table(APlot):
             table_data = []
             sort_bys = []
 
-            if pca_cols:
-                pca1 = [row[0] for row in pca_cols]
-                pca2 = [row[1] for row in pca_cols]
-
             for table_df, sort_by in zip(table_df, sort_by):
                 table_df = pd.DataFrame(table_df)
                 table_df.rename_axis("index_copy")
@@ -75,10 +60,11 @@ class Table(APlot):
 
                 sort_by = get_sort_by(sort_by, selected_rows, trigger)
 
-                if pca_cols:
-                    if len(pca_cols) == table_df.shape[0]:
-                        table_df["Xiplot_PCA_1"] = pca1
-                        table_df["Xiplot_PCA_2"] = pca2
+                aux = df_from_store(aux)
+                if "Xiplot_PCA_1" in aux:
+                    table_df["Xiplot_PCA_1"] = aux["Xiplot_PCA_1"]
+                if "Xiplot_PCA_2" in aux:
+                    table_df["Xiplot_PCA_2"] = aux["Xiplot_PCA_2"]
 
                 columns = table_df.columns.to_list()
 
@@ -179,12 +165,12 @@ class Table(APlot):
                 {"type": "table_columns_submit-button", "index": ALL},
                 "n_clicks",
             ),
-            State({"type": "table_columns-dd", "index": ALL}, "value"),
+            State(cls.get_id(ALL, "columns_dropdown"), "value"),
             State({"type": "table", "index": ALL}, "columns"),
             State({"type": "table", "index": ALL}, "data"),
             State("data_frame_store", "data"),
+            State("auxiliary_store", "data"),
             State("clusters_column_store", "data"),
-            State("pca_column_store", "data"),
         )
         def update_table_columns(
             n_clicks,
@@ -192,24 +178,19 @@ class Table(APlot):
             columns,
             table_df,
             df,
+            aux,
             kmeans_col,
-            pca_cols,
         ):
             if not ctx.triggered_id:
                 raise PreventUpdate()
 
             trigger_id = ctx.triggered_id["index"]
             df = df_from_store(df)
+            aux = df_from_store(aux)
+            df = pd.concat((df, aux), axis=1)
 
             if len(kmeans_col) == df.shape[0]:
                 df["Clusters"] = kmeans_col
-
-            if pca_cols and len(pca_cols) == df.shape[0]:
-                pca1 = [row[0] for row in pca_cols]
-                pca2 = [row[1] for row in pca_cols]
-
-                df["Xiplot_PCA_1"] = pca1
-                df["Xiplot_PCA_2"] = pca2
 
             for id, item in enumerate(ctx.inputs_list[0]):
                 if item["id"]["index"] == trigger_id:
@@ -227,120 +208,13 @@ class Table(APlot):
 
             return table_df, columns
 
-        @app.callback(
-            Output(
-                {"type": "table_columns_regex-input", "index": MATCH}, "value"
-            ),
-            Input(
-                {"type": "table_columns-dd", "index": MATCH}, "search_value"
-            ),
+        ColumnDropdown.register_callback(
+            app,
+            cls.get_id(MATCH, "columns_dropdown"),
+            df_from_store,
+            regex_button_id=cls.get_id(MATCH, "regex_button"),
+            regex_input_id=cls.get_id(MATCH, "regex_input"),
         )
-        def sync_with_input(keyword):
-            if keyword == "":
-                raise PreventUpdate()
-            return keyword
-
-        @app.callback(
-            Output({"type": "table_columns-dd", "index": ALL}, "options"),
-            Output({"type": "table_columns-dd", "index": ALL}, "value"),
-            Output({"type": "table_columns-dd", "index": ALL}, "search_value"),
-            Input(
-                {"type": "table_columns_regex-button", "index": ALL},
-                "n_clicks",
-            ),
-            Input({"type": "table_columns-dd", "index": ALL}, "value"),
-            Input("pca_column_store", "data"),
-            State(
-                {"type": "table_columns_regex-input", "index": ALL}, "value"
-            ),
-            State({"type": "table_columns-dd", "index": ALL}, "options"),
-            State("data_frame_store", "data"),
-            State("clusters_column_store", "data"),
-        )
-        def add_matching_values(
-            n_clicks_all,
-            selected_columns_all,
-            pca_cols,
-            keyword_all,
-            columns_all,
-            df,
-            kmeans_col,
-        ):
-            df = df_from_store(df)
-            if len(kmeans_col) == df.shape[0]:
-                df["Clusters"] = kmeans_col
-
-            if pca_cols and len(pca_cols) == df.shape[0]:
-                pca1 = [row[0] for row in pca_cols]
-                pca2 = [row[1] for row in pca_cols]
-
-                df["Xiplot_PCA_1"] = pca1
-                df["Xiplot_PCA_2"] = pca2
-
-            # Try branch for testing
-            try:
-                id = get_updated_item_id(
-                    n_clicks_all, ctx.triggered_id["index"], ctx.inputs_list[0]
-                )
-            except Exception:
-                id = 0
-
-            keyword = keyword_all[id]
-            columns = columns_all[id]
-            selected_columns = selected_columns_all[id]
-
-            # Try branch for testing
-            try:
-                try:
-                    trigger = ctx.triggered_id["type"]
-                except Exception:
-                    trigger = ctx.triggered_id
-            except Exception:
-                trigger = "table_columns_regex-button"
-
-            if trigger == "pca_column_store":
-                columns_all = [
-                    df.columns.to_list() for i in range(len(columns_all))
-                ]
-                selected_columns_all = [
-                    [] for i in range(len(selected_columns_all))
-                ]
-
-                return (
-                    columns_all,
-                    selected_columns_all,
-                    [no_update] * len(n_clicks_all),
-                )
-
-            if trigger == "table_columns-dd":
-                columns = df.columns.to_list()
-                columns, selected_columns, hits = dropdown_regex(
-                    columns, selected_columns
-                )
-                columns_all[id] = columns
-                selected_columns_all[id] = selected_columns
-
-                return (
-                    columns_all,
-                    selected_columns_all,
-                    [no_update] * len(n_clicks_all),
-                )
-
-            if trigger == "table_columns_regex-button":
-                columns, selected_columns, hits = dropdown_regex(
-                    columns or [], selected_columns, keyword
-                )
-            if keyword is None or hits == 0:
-                raise PreventUpdate()
-
-            columns_all[id] = columns
-            selected_columns_all[id] = selected_columns
-
-            return (
-                columns_all,
-                selected_columns_all,
-                [None] * len(n_clicks_all),
-            )
 
         PlotData.register_callback(
             cls.name(),
@@ -377,8 +251,6 @@ class Table(APlot):
             update_table_checkbox,
             update_lastly_activated_cell,
             update_table_columns,
-            sync_with_input,
-            add_matching_values,
         ]
 
     @classmethod
@@ -482,26 +354,30 @@ class Table(APlot):
                         for cluster, colour in cluster_colours().items()
                     ],
                 ),
-                layout_wrapper(
-                    component=dcc.Dropdown(
-                        id={"type": "table_columns-dd", "index": index},
+                FlexRow(
+                    ColumnDropdown(
+                        cls.get_id(index, "columns_dropdown"),
                         multi=True,
                         options=df.columns,
+                        placeholder="Select Columns...",
                     ),
-                    css_class="dd-double-right",
-                    title="Select columns",
-                ),
-                html.Button(
-                    "Add columns by regex",
-                    id={"type": "table_columns_regex-button", "index": index},
+                    html.Button(
+                        "Add columns by regex",
+                        id=cls.get_id(index, "regex_button"),
+                        className="button",
+                    ),
+                    html.Button(
+                        "Update table",
+                        id={
+                            "type": "table_columns_submit-button",
+                            "index": index,
+                        },
+                        className="button",
+                    ),
                 ),
                 dcc.Input(
-                    id={"type": "table_columns_regex-input", "index": index},
+                    id=cls.get_id(index, "regex_input"),
                     style={"display": "none"},
-                ),
-                html.Button(
-                    "Select",
-                    id={"type": "table_columns_submit-button", "index": index},
                 ),
                 PlotData(index, cls.name()),
             ],

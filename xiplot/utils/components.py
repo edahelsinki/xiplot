@@ -1,7 +1,8 @@
 import base64
 from io import BytesIO
-from typing import Any, Callable, Dict, Optional, Sequence, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
+import pandas as pd
 import plotly as po
 from dash import (
     ALL,
@@ -17,6 +18,7 @@ from dash import (
 )
 
 from xiplot.utils import generate_id
+from xiplot.utils.regex import dropdown_regex
 
 
 class FlexRow(html.Div):
@@ -73,6 +75,164 @@ class InputText(html.Div):
         else:
             className = "Select"
         super().__init__(children=inp, className=className, **div_kws)
+
+
+class ColumnDropdown(dcc.Dropdown):
+    def __init__(
+        self,
+        id: Dict,
+        *args,
+        **kwargs,
+    ):
+        """Create a `dcc.Dropdown` for selecting columns from the data frame
+        and auxiliary data frame.
+
+        Args:
+            id: Element id.
+            *args: Arguments forwarded to `dcc.Dropdown`.
+            regex: Add a hidden synced input field for regex matching.
+            *kwargs: Keyword arguments forwarded to `dcc.Dropdown`.
+        """
+        super().__init__(
+            *args,
+            id=id,
+            **kwargs,
+        )
+
+    @classmethod
+    def get_columns(
+        cls,
+        df: pd.DataFrame,
+        aux: pd.DataFrame,
+        options: List[str] = [],
+        numeric: bool = False,
+        category: bool = False,
+    ) -> List[str]:
+        """Get column names from the data frame and auxiliary data frame.
+
+        Args:
+            df: Data frame.
+            aux: Auxiliary data frame.
+            options: Additional options to add to the column names. Defaults to [].
+            numeric: Only select numeric columns. Defaults to False.
+            category: Only select categorical (and integer, and object) columns. Defaults to False.
+
+        Returns:
+            List of column names
+        """
+        if numeric:
+            return (
+                options
+                + df.select_dtypes("number").columns.to_list()
+                + aux.select_dtypes("number").columns.to_list()
+            )
+        elif category:
+            return (
+                options
+                + df.select_dtypes(
+                    ["number", "category", "object"], "float"
+                ).columns.to_list()
+                + aux.select_dtypes(
+                    ["number", "category", "object"], "float"
+                ).columns.to_list()
+            )
+        else:
+            return options + df.columns.to_list() + aux.columns.to_list()
+
+    @classmethod
+    def register_callback(
+        cls,
+        app: Dash,
+        id: Dict,
+        df_from_store: Callable,
+        options: List[str] = [],
+        numeric: bool = False,
+        category: bool = False,
+        regex_button_id: Optional[Dict] = None,
+        regex_input_id: Optional[Dict] = None,
+    ):
+        """Register callbacks for the dropdowns.
+        Call this once per unique id (ignoring index).
+
+        Args:
+            app: Dash app.
+            id: Dropdown id.
+            df_from_store: Function for extracting dataframes from store.
+            options: See `ColumnDropdown.get_columns()`. Defaults to [].
+            numeric: See `ColumnDropdown.get_columns()`. Defaults to False.
+            category: See `ColumnDropdown.get_columns()`. Defaults to False.
+            regex_button_id: Id for the "add regex" button, if this dropdown
+              accepts regex. Defaults to None.
+            regex_input_id: Id for a hidden input (that will be synced to the
+              dropdown), if this dropdown accepts regex. Defaults to None.
+        """
+        if regex_button_id is None or regex_input_id is None:
+            if isinstance(id, dict) and "index" in id:
+                id["index"] = ALL
+
+            @app.callback(
+                Output(id, "options"),
+                Input("data_frame_store", "data"),
+                Input("auxiliary_store", "data"),
+                State(id, "value"),
+                prevent_initial_call=False,
+            )
+            def update_columns(df, aux, dds):
+                df = df_from_store(df)
+                aux = df_from_store(aux)
+                columns = cls.get_columns(df, aux, options, numeric, category)
+                if isinstance(id, dict) and "index" in id:
+                    return [columns] * len(dds)
+                else:
+                    return columns
+
+        else:
+            if isinstance(id, dict) and "index" in id:
+                id["index"] = MATCH
+                regex_button_id["index"] = MATCH
+                regex_input_id["index"] = MATCH
+
+            # Sync `dropdown.search_value` and "regex_input"
+            app.clientside_callback(
+                """
+                function (input) {
+                if (input == "") {
+                    return window.dash_clientside.no_update;
+                }
+                return input;
+                }
+                """,
+                Output(regex_input_id, "value"),
+                Input(id, "search_value"),
+            )
+
+            @app.callback(
+                Output(id, "options"),
+                Output(id, "value"),
+                Output(id, "search_value"),
+                Input("data_frame_store", "data"),
+                Input("auxiliary_store", "data"),
+                Input(regex_button_id, "n_clicks"),
+                Input(id, "value"),
+                State(regex_input_id, "value"),
+                prevent_initial_call=False,
+            )
+            def update_columns_regex(df, aux, _nc, selected, regex):
+                df = df_from_store(df)
+                aux = df_from_store(aux)
+                columns = cls.get_columns(df, aux, options, numeric, category)
+
+                if ctx.triggered_id == regex_button_id or (
+                    isinstance(ctx.triggered_id, dict)
+                    and ctx.triggered_id["type"] == regex_button_id["type"]
+                ):
+                    new_search = ""
+                else:
+                    regex = None
+                    new_search = no_update
+
+                columns, selected, _ = dropdown_regex(columns, selected, regex)
+                return columns, selected, new_search
 
 
 class DeleteButton(html.Button):
