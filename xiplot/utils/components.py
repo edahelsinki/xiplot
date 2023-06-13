@@ -178,6 +178,8 @@ class ColumnDropdown(dcc.Dropdown):
                 prevent_initial_call=False,
             )
             def update_columns(df, aux, dds):
+                if df is None:
+                    return no_update
                 df = df_from_store(df)
                 aux = df_from_store(aux)
                 columns = cls.get_columns(df, aux, options, numeric, category)
@@ -218,6 +220,8 @@ class ColumnDropdown(dcc.Dropdown):
                 prevent_initial_call=False,
             )
             def update_columns_regex(df, aux, _nc, selected, regex):
+                if df is None:
+                    return no_update, no_update, no_update
                 df = df_from_store(df)
                 aux = df_from_store(aux)
                 columns = cls.get_columns(df, aux, options, numeric, category)

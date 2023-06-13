@@ -3,13 +3,14 @@ import uuid
 
 import dash
 import dash_mantine_components as dmc
+import pandas as pd
 from dash import Input, Output, State, dcc, html
 from dash_extensions.enrich import ServersideOutput
 
 from xiplot.tabs import Tab
-from xiplot.utils.components import FlexRow
-from xiplot.utils.dataframe import get_numeric_columns
+from xiplot.utils.components import ColumnDropdown, FlexRow
 from xiplot.utils.layouts import layout_wrapper
+from xiplot.utils.regex import get_columns_by_regex
 
 
 def get_pca_columns(df, features):
@@ -31,15 +32,6 @@ def get_pca_columns(df, features):
 class Embedding(Tab):
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
-            Output("embedding_feature", "options"),
-            Input("data_frame_store", "data"),
-        )
-        def initialize_dropdown(df):
-            df = df_from_store(df)
-            options = get_numeric_columns(df)
-            return options
-
-        @app.callback(
             ServersideOutput("auxiliary_store", "data"),
             Output("embedding-tab-main-notify-container", "children"),
             Output("embedding-tab-compute-done", "children"),
@@ -47,10 +39,9 @@ class Embedding(Tab):
             State("data_frame_store", "data"),
             State("auxiliary_store", "data"),
             State("embedding_feature", "value"),
+            State("embedding_type", "value"),
         )
-        def compute_embedding(process_id, df, aux, features):
-            df = df_from_store(df)
-            aux = df_from_store(aux)
+        def compute_embedding(process_id, df, aux, features, embedding_type):
             if df is None:
                 return (
                     dash.no_update,
@@ -65,10 +56,21 @@ class Embedding(Tab):
                     dash.no_update,
                 )
 
+            df = df_from_store(df)
+            aux = df_from_store(aux)
+            columns = ColumnDropdown.get_columns(df, aux, numeric=True)
+            features = get_columns_by_regex(columns, features)
+
             notifications = []
+            if not Embedding.validate_embedding_params(
+                embedding_type, features, notifications, process_id
+            ):
+                return dash.no_update, notifications, process_id
 
             try:
-                pca_cols = get_pca_columns(df, features)
+                pca_cols = get_pca_columns(
+                    pd.concat((df, aux), axis=1), features
+                )
                 aux["Xiplot_PCA_1"] = pca_cols[:, 0]
                 aux["Xiplot_PCA_2"] = pca_cols[:, 1]
 
@@ -132,11 +134,6 @@ class Embedding(Tab):
 
             notifications = []
 
-            if not Embedding.validate_embedding_params(
-                embedding_type, features, notifications=notifications
-            ):
-                return dash.no_update, notifications
-
             process_id = str(uuid.uuid4())
 
             message = "The embedding process has started."
@@ -154,6 +151,15 @@ class Embedding(Tab):
                 autoClose=False,
                 disallowClose=True,
             )
+
+        ColumnDropdown.register_callback(
+            app,
+            "embedding_feature",
+            df_from_store,
+            numeric=True,
+            regex_button_id="embedding-regex-button",
+            regex_input_id="embedding-regex-input",
+        )
 
     @staticmethod
     def validate_embedding_params(
@@ -235,9 +241,15 @@ class Embedding(Tab):
                 title="Embedding type",
             ),
             layout_wrapper(
-                component=dcc.Dropdown(id="embedding_feature", multi=True),
+                component=ColumnDropdown(id="embedding_feature", multi=True),
                 css_class="dash-dropdown",
                 title="Features",
+            ),
+            dcc.Input(id="embedding-regex-input", style={"display": "none"}),
+            html.Button(
+                "Add features by regex",
+                id="embedding-regex-button",
+                className="button",
             ),
             html.Button(
                 "Compute the embedding",
