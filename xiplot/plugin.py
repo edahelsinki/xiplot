@@ -19,21 +19,21 @@ from dash.development.base_component import Component
 from xiplot.plots import APlot  # noqa: F401
 from xiplot.utils import generate_id  # noqa: F401
 from xiplot.utils.components import (  # noqa: F401
+    ColumnDropdown,
     DeleteButton,
     FlexRow,
-    ColumnDropdown,
     HelpButton,
     PdfButton,
     PlotData,
 )
 
 # IDs for important `dcc.Store` components:
-ID_DATAFRAME = STORE_DATAFRAME_ID = "data_frame_store"
-ID_METADATA = STORE_METADATA_ID = "metadata_store"
-ID_AUXILIARY = "auxiliary_store"
-ID_HOVERED = STORE_HOVERED_ID = "lastly_hovered_point_store"
-ID_CLICKED = STORE_CLICKED_ID = "lastly_clicked_point_store"
-ID_SELECTED = STORE_SELECTED_ID = "selected_rows_store"
+ID_DATAFRAME = "data_frame_store"  # Main dataframe (readonly)
+ID_AUXILIARY = "auxiliary_store"  # Additional dataframe (editable)
+ID_METADATA = "metadata_store"
+ID_HOVERED = "lastly_hovered_point_store"
+ID_CLICKED = "lastly_clicked_point_store"
+ID_SELECTED = "selected_rows_store"
 # `dcc.Store` that is `True` if the dark mode is active
 ID_DARK_MODE = "light-dark-toggle-store"
 # `dcc.Store` that contains the current plotly template

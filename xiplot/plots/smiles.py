@@ -4,11 +4,7 @@ import pandas as pd
 from dash import MATCH, Input, Output, State, dcc, html
 
 from xiplot.plots import APlot
-from xiplot.plugin import (
-    STORE_CLICKED_ID,
-    STORE_DATAFRAME_ID,
-    STORE_HOVERED_ID,
-)
+from xiplot.plugin import ID_CLICKED, ID_DATAFRAME, ID_HOVERED
 from xiplot.utils.components import FlexRow, InputText, PlotData
 from xiplot.utils.layouts import layout_wrapper
 
@@ -64,12 +60,12 @@ async function svgFromSMILES(smiles) {
 
         @app.callback(
             Output(cls.get_id(MATCH, "string"), "value"),
-            Input(STORE_CLICKED_ID, "data"),
-            Input(STORE_HOVERED_ID, "data"),
+            Input(ID_CLICKED, "data"),
+            Input(ID_HOVERED, "data"),
             State(cls.get_id(MATCH, "mode"), "value"),
             State(cls.get_id(MATCH, "col"), "value"),
             State(cls.get_id(MATCH, "string"), "value"),
-            State(STORE_DATAFRAME_ID, "data"),
+            State(ID_DATAFRAME, "data"),
             prevent_initial_call=True,
         )
         def update_smiles(rowc, rowh, mode, col, old, df):
