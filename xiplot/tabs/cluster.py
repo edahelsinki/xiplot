@@ -189,110 +189,14 @@ class Cluster(Tab):
                 disallowClose=True,
             )
 
-        @app.callback(
-            Output("cluster_feature", "options"),
-            Output("cluster_feature", "value"),
-            Output("cluster_feature", "search_value"),
-            Output("cluster-tab-regex-notify-container", "children"),
-            Input("data_frame_store", "data"),
-            Input("auxiliary_store", "data"),
-            Input("add_by_keyword-button", "n_clicks"),
-            Input("cluster_feature", "value"),
-            State("feature_keyword-input", "value"),
-            State("cluster_feature", "options"),
+        ColumnDropdown.register_callback(
+            app,
+            "cluster_feature",
+            df_from_store,
+            numeric=True,
+            regex_button_id="add_by_keyword-button",
+            regex_input_id="feature_keyword-input",
         )
-        def add_matching_values(df, aux, n_clicks, features, keyword, options):
-            if df is None:
-                if ctx.triggered_id == "add_by_keyword-button":
-                    return (
-                        [],
-                        None,
-                        dash.no_update,
-                        dmc.Notification(
-                            id=str(uuid.uuid4()),
-                            color="yellow",
-                            title="Warning",
-                            message="You have not yet loaded any data file.",
-                            action="show",
-                            autoClose=10000,
-                        ),
-                    )
-                else:
-                    return ([], None, dash.no_update, dash.no_update)
-
-            df = df_from_store(df)
-            aux = df_from_store(aux)
-            if ctx.triggered_id == "data_frame_store":
-                options = ColumnDropdown.get_columns(df, aux, numeric=True)
-                return options, None, dash.no_update, []
-            if ctx.triggered_id == "auxiliary_store":
-                options = ColumnDropdown.get_columns(df, aux, numeric=True)
-                return options, dash.no_update, dash.no_update, dash.no_update
-            if ctx.triggered_id == "add_by_keyword-button":
-                options, features, hits = dropdown_regex(
-                    options or [], features, keyword
-                )
-
-                if keyword is None:
-                    notification = dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="yellow",
-                        title="Warning",
-                        message="No regular expression was given.",
-                        action="show",
-                        autoClose=10000,
-                    )
-                elif hits == 0:
-                    notification = dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="yellow",
-                        title="Warning",
-                        message=(
-                            "No new features matched the regular expression"
-                            f' r"{keyword}".'
-                        ),
-                        action="show",
-                        autoClose=10000,
-                    )
-                elif hits == 1:
-                    notification = dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="blue",
-                        title="Info",
-                        message=(
-                            "One new feature matched the regular expression"
-                            f' r"{keyword}".'
-                        ),
-                        action="show",
-                        autoClose=5000,
-                    )
-                else:
-                    notification = dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="blue",
-                        title="Info",
-                        message=(
-                            f"{hits} new features matched the regular"
-                            f' expression r"{keyword}".'
-                        ),
-                        action="show",
-                        autoClose=5000,
-                    )
-
-                return options, features, None, notification
-            if ctx.triggered_id == "cluster_feature":
-                options = ColumnDropdown.get_columns(df, aux, numeric=True)
-                options, features, hits = dropdown_regex(options, features)
-                return options, features, dash.no_update, None
-
-        @app.callback(
-            Output("feature_keyword-input", "value"),
-            Input("cluster_feature", "search_value"),
-        )
-        def sync_with_input(keyword):
-            if keyword == "":
-                raise PreventUpdate()
-            return keyword
 
         @app.callback(
             Output("selection_cluster_dropdown", "value"),
