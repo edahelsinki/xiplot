@@ -4,6 +4,7 @@ from dash import ALL, MATCH, Input, Output, ctx, dcc
 from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
+from xiplot.tabs.cluster import get_clusters
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import ColumnDropdown, PdfButton, PlotData
 from xiplot.utils.dataframe import get_numeric_columns
@@ -22,13 +23,12 @@ class Histogram(APlot):
                 {"type": "hg_cluster_comparison_dropdown", "index": MATCH},
                 "value",
             ),
-            Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
             Input("auxiliary_store", "data"),
             Input("plotly-template", "data"),
             prevent_initial_call=False,
         )
-        def tmp(x_axis, selected_clusters, kmeans_col, df, aux, template=None):
+        def tmp(x_axis, selected_clusters, df, aux, template=None):
             # Try branch for testing
             try:
                 if ctx.triggered_id == "data_frame_store":
@@ -41,7 +41,6 @@ class Histogram(APlot):
             return Histogram.render(
                 x_axis,
                 selected_clusters,
-                kmeans_col,
                 df_from_store(df),
                 df_from_store(aux),
                 template,
@@ -72,16 +71,56 @@ class Histogram(APlot):
         return [tmp]
 
     @staticmethod
-    def render(x_axis, selected_clusters, kmeans_col, df, aux, template=None):
+    def render(x_axis, selected_clusters, df, aux, template=None):
         df = pd.concat((df, aux), axis=1)
-        if len(kmeans_col) == df.shape[0]:
-            df["Clusters"] = kmeans_col
+        clusters = get_clusters(aux, df.shape[0])
+        if type(selected_clusters) == str:
+            selected_clusters = [selected_clusters]
+        if not selected_clusters:
+            selected_clusters = clusters.categories
 
-        fig = make_fig_property(
-            df, x_axis, selected_clusters, kmeans_col, template
+        props_dict = {"all": []}
+        for s in selected_clusters:
+            if s != "all":
+                props_dict[s] = []
+
+        for c, p in zip(clusters, df[x_axis]):
+            if c != "all" and c in selected_clusters:
+                props_dict[c].append(p)
+            props_dict["all"].append(p)
+
+        clusters_col = []
+        x = []
+        for s in selected_clusters:
+            clusters_col += [s for _ in props_dict[s]]
+            x += props_dict[s]
+
+        dff = pd.DataFrame({"Clusters": clusters_col, x_axis: x})
+
+        fig_property = px.histogram(
+            dff,
+            x=x_axis,
+            color="Clusters",
+            hover_data={
+                "Clusters": False,
+                x_axis: False,
+            },
+            color_discrete_map=cluster_colours(),
+            opacity=0.5,
+            histnorm="probability density",
+            template=template,
         )
 
-        return fig
+        fig_property.update_layout(
+            hovermode="x unified",
+            showlegend=False,
+            barmode="overlay",
+            yaxis=dict(
+                tickformat=".2%",
+            ),
+        )
+
+        return fig_property
 
     @classmethod
     def create_layout(cls, index, df, columns, config=dict()):
@@ -98,7 +137,6 @@ class Histogram(APlot):
         if x_axis is None:
             raise Exception("The dataframe contains no numeric columns")
 
-        _groupby = config.get("groupby", "Clusters")  # noqa: F841
         classes = config.get("classes", [])
 
         return [
@@ -123,54 +161,3 @@ class Histogram(APlot):
                 css_class="dd-single",
             ),
         ]
-
-
-def make_fig_property(df, x_axis, selected_clusters, clusters, template=None):
-    if type(selected_clusters) == str:
-        selected_clusters = [selected_clusters]
-
-    if not selected_clusters:
-        selected_clusters = sorted(set(clusters))
-
-    props_dict = {"all": []}
-    for s in selected_clusters:
-        if s != "all":
-            props_dict[s] = []
-
-    for c, p in zip(clusters, df[x_axis]):
-        if c != "all" and c in selected_clusters:
-            props_dict[c].append(p)
-        props_dict["all"].append(p)
-
-    clusters_col = []
-    x = []
-    for s in selected_clusters:
-        clusters_col += [s for _ in props_dict[s]]
-        x += props_dict[s]
-
-    dff = pd.DataFrame({"Clusters": clusters_col, x_axis: x})
-
-    fig_property = px.histogram(
-        dff,
-        x=x_axis,
-        color="Clusters",
-        hover_data={
-            "Clusters": False,
-            x_axis: False,
-        },
-        color_discrete_map=cluster_colours(),
-        opacity=0.5,
-        histnorm="probability density",
-        template=template,
-    )
-
-    fig_property.update_layout(
-        hovermode="x unified",
-        showlegend=False,
-        barmode="overlay",
-        yaxis=dict(
-            tickformat=".2%",
-        ),
-    )
-
-    return fig_property

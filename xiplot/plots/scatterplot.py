@@ -7,8 +7,10 @@ import pandas as pd
 import plotly.express as px
 from dash import ALL, MATCH, Input, Output, State, ctx, dcc
 from dash.exceptions import PreventUpdate
+from dash_extensions.enrich import ServersideOutput
 
 from xiplot.plots import APlot
+from xiplot.tabs.cluster import CLUSTER_COLUMN_NAME, get_clusters
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import ColumnDropdown, PdfButton, PlotData
 from xiplot.utils.dataframe import get_numeric_columns
@@ -29,7 +31,6 @@ class Scatterplot(APlot):
             Input(cls.get_id(MATCH, "symbol_dropdown"), "value"),
             Input({"type": "jitter-slider", "index": MATCH}, "value"),
             Input("selected_rows_store", "data"),
-            Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
             Input("auxiliary_store", "data"),
             Input("plotly-template", "data"),
@@ -42,7 +43,6 @@ class Scatterplot(APlot):
             symbol,
             jitter,
             selected_rows,
-            kmeans_col,
             df,
             aux,
             template=None,
@@ -65,7 +65,6 @@ class Scatterplot(APlot):
                 symbol,
                 jitter,
                 selected_rows,
-                kmeans_col,
                 template,
             )
 
@@ -152,26 +151,32 @@ class Scatterplot(APlot):
 
         @app.callback(
             output=dict(
-                clusters=Output("clusters_column_store", "data"),
+                aux=ServersideOutput("auxiliary_store", "data"),
                 reset=Output("clusters_column_store_reset", "children"),
             ),
             inputs=[
                 Input({"type": "scatterplot", "index": ALL}, "selectedData"),
-                State("clusters_column_store", "data"),
+                State("auxiliary_store", "data"),
                 State("selection_cluster_dropdown", "value"),
                 State("cluster_selection_mode", "value"),
             ],
         )
         def handle_cluster_drawing(
-            selected_data, kmeans_col, cluster_id, selection_mode
+            selected_data, aux, cluster_id, selection_mode
         ):
             if not selected_data:
                 return dash.no_update
 
             updated = False
 
+            aux = df_from_store(aux)
+            clusters = get_clusters(aux)
             if not selection_mode:
-                kmeans_col = ["c2"] * len(kmeans_col)
+                clusters = clusters.set_categories(["c1", "c2"])
+                clusters[:] = "c2"
+            else:
+                if cluster_id not in clusters.categories:
+                    clusters = clusters.add_categories([cluster_id])
 
             try:
                 for trigger in ctx.triggered:
@@ -187,12 +192,12 @@ class Scatterplot(APlot):
                     try:
                         if selection_mode:
                             for p in trigger["value"]["points"]:
-                                kmeans_col[
+                                clusters[
                                     p["customdata"][0]["index"]
                                 ] = cluster_id
                         else:
                             for p in trigger["value"]["points"]:
-                                kmeans_col[p["customdata"][0]["index"]] = "c1"
+                                clusters[p["customdata"][0]["index"]] = "c1"
                     except Exception:
                         return dash.no_update
             # Try branch for testing
@@ -206,19 +211,18 @@ class Scatterplot(APlot):
                 try:
                     if selection_mode:
                         for p in trigger["value"]["points"]:
-                            kmeans_col[
-                                p["customdata"][0]["index"]
-                            ] = cluster_id
+                            clusters[p["customdata"][0]["index"]] = cluster_id
                     else:
                         for p in trigger["value"]["points"]:
-                            kmeans_col[p["customdata"][0]["index"]] = "c1"
+                            clusters[p["customdata"][0]["index"]] = "c1"
                 except Exception:
                     return dash.no_update
 
             if not updated:
                 return dash.no_update
 
-            return dict(clusters=kmeans_col, reset=str(uuid.uuid4()))
+            aux[CLUSTER_COLUMN_NAME] = clusters
+            return dict(aux=df_to_store(aux), reset=str(uuid.uuid4()))
 
         PlotData.register_callback(
             cls.name(),
@@ -279,15 +283,9 @@ class Scatterplot(APlot):
         symbol=None,
         jitter=None,
         selected_rows=None,
-        kmeans_col=[],
         template=None,
     ):
         df = pd.concat((df, aux), axis=1)
-        if len(kmeans_col) == df.shape[0]:
-            df["Clusters"] = kmeans_col
-        else:
-            df["Clusters"] = ["all"] * df.shape[0]
-
         if jitter:
             jitter = float(jitter)
         if type(jitter) == float:
@@ -366,7 +364,7 @@ class Scatterplot(APlot):
         except Exception:
             y_axis = None
 
-        scatter_colour = config.get("colour", "Clusters")
+        scatter_colour = config.get("colour", CLUSTER_COLUMN_NAME)
         scatter_symbol = config.get("symbol", None)
         jitter_slider = config.get("jitter", 0.0)
 

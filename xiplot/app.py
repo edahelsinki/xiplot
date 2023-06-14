@@ -7,7 +7,7 @@ from xiplot.plugin import (
     get_plugins_cached,
     is_dynamic_plugin_loading_supported,
 )
-from xiplot.tabs.cluster import Cluster
+from xiplot.tabs.cluster import Cluster, get_clusters
 from xiplot.tabs.data import Data
 from xiplot.tabs.embedding import Embedding
 from xiplot.tabs.plots import Plots
@@ -79,11 +79,6 @@ class XiPlot:
                     dcc.Store(id="data_frame_store"),
                     dcc.Store(id="auxiliary_store"),
                     dcc.Store(id="metadata_store"),
-                    dcc.Store(id="clusters_column_store"),
-                    html.Div(
-                        id="clusters_column_store_reset",
-                        style={"display": "none"},
-                    ),
                     dcc.Store(id="selected_rows_store"),
                     dcc.Store(id="lastly_clicked_point_store"),
                     dcc.Store(id="lastly_hovered_point_store"),
@@ -129,14 +124,15 @@ class XiPlot:
             Output(
                 {"type": "cluster-dropdown-count", "index": ALL}, "children"
             ),
-            Input("clusters_column_store", "data"),
+            Input("auxiliary_store", "data"),
             prevent_initial_call=False,
         )
-        def cluster_dropdown_count_callback(kmeans_store):
-            if kmeans_store is None:
-                kmeans_store = []
-
-            counter = Counter(kmeans_store)
+        def cluster_dropdown_count_callback(aux):
+            if aux is None:
+                clusters = []
+            else:
+                clusters = get_clusters(df_from_store(aux))
+            counter = Counter(clusters)
 
             counts = []
 
@@ -144,7 +140,10 @@ class XiPlot:
                 cluster = output["id"]["index"].split("-")[0]
 
                 if cluster == "all":
-                    counts.append(len(kmeans_store))
+                    if len(clusters) == 0:
+                        counts.append("all")
+                    else:
+                        counts.append(len(clusters))
                 else:
                     counts.append(counter[cluster])
 

@@ -13,6 +13,7 @@ from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
 
 from xiplot.tabs import Tab
+from xiplot.tabs.cluster import CLUSTER_COLUMN_NAME, get_clusters
 from xiplot.utils import generate_id
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import FlexRow, PlotData
@@ -170,7 +171,6 @@ class Data(Tab):
             ServersideOutput("data_frame_store", "data"),
             ServersideOutput("auxiliary_store", "data"),
             Output("metadata_store", "data"),
-            Output("clusters_column_store", "data"),
             Output("selected_rows_store", "data"),
             Output("clusters_column_store_reset", "children"),
             Output("data-tab-notify-container", "children"),
@@ -325,7 +325,6 @@ class Data(Tab):
                     dash.no_update,
                     dash.no_update,
                     dash.no_update,
-                    dash.no_update,
                     dmc.Notification(
                         id=str(uuid.uuid4()),
                         color="yellow",
@@ -350,7 +349,6 @@ class Data(Tab):
                         dash.no_update,
                         dash.no_update,
                         dash.no_update,
-                        dash.no_update,
                         dmc.Notification(
                             id=str(uuid.uuid4()),
                             color="yellow",
@@ -369,42 +367,30 @@ class Data(Tab):
             else:
                 selected_rows = [True] * df.shape[0]
 
-            if "cluster" in aux:
-                clusters = list(aux["cluster"].values)
-
-                invalid_clusters = set(clusters) - set(
+            if CLUSTER_COLUMN_NAME in aux:
+                invalid_clusters = set(get_clusters(aux).categories) - set(
                     cluster_colours().keys()
                 )
-
                 if len(invalid_clusters) > 0:
-                    return (
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dmc.Notification(
-                            id=str(uuid.uuid4()),
-                            color="yellow",
-                            title="Warning",
-                            message=(
-                                f"The file {filepath.name} could not be loaded"
-                                ' as a data frame: auxiliary column "cluster"'
-                                f" contains invalid values {invalid_clusters}."
-                            ),
-                            action="show",
-                            autoClose=10000,
-                        ),
+                    message = (
+                        f"The file {filepath.name} has been loaded"
+                        f' but the auxiliary column "{CLUSTER_COLUMN_NAME}"'
+                        f" contained invalid values {invalid_clusters}."
                     )
-            else:
-                clusters = ["all"] * df.shape[0]
+                    notification = dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message=message,
+                        action="show",
+                        autoClose=10000,
+                    )
+                    del aux[CLUSTER_COLUMN_NAME]
 
             return (
                 df_store,
                 df_to_store(aux),
                 meta,
-                clusters,
                 selected_rows,
                 str(uuid.uuid4()),
                 notification,
@@ -419,7 +405,6 @@ class Data(Tab):
             State("data_frame_store", "data"),
             State("auxiliary_store", "data"),
             State("metadata_store", "data"),
-            State("clusters_column_store", "data"),
             State("selected_rows_store", "data"),
             State(PlotData.get_id(ALL, ALL), "data"),
             State(generate_id(WriteFormatDropdown), "value"),
@@ -432,7 +417,6 @@ class Data(Tab):
             df,
             aux,
             meta,
-            clusters,
             selected_rows,
             plot_data,
             file_extension,
@@ -484,9 +468,6 @@ class Data(Tab):
 
                 if ctx.triggered_id == "download-plots-file-button":
                     try:
-
-                        if clusters is not None:
-                            aux["cluster"] = clusters
 
                         if selected_rows is not None:
                             aux["is_selected"] = ~np.asarray(

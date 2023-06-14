@@ -12,6 +12,7 @@ from dash import MATCH, Input, Output, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
+from xiplot.tabs.cluster import get_clusters
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import ColumnDropdown, PdfButton, PlotData
 from xiplot.utils.layouts import cluster_dropdown, layout_wrapper
@@ -35,7 +36,6 @@ class Barplot(APlot):
                 "value",
             ),
             Input({"type": "order_dropdown", "index": MATCH}, "value"),
-            Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
             Input("auxiliary_store", "data"),
             Input("plotly-template", "data"),
@@ -46,7 +46,6 @@ class Barplot(APlot):
             y_axis,
             selected_clusters,
             order,
-            kmeans_col,
             df,
             aux,
             template=None,
@@ -66,7 +65,6 @@ class Barplot(APlot):
                         y_axis,
                         selected_clusters,
                         order,
-                        kmeans_col,
                         df_from_store(df),
                         df_from_store(aux),
                         template,
@@ -125,25 +123,21 @@ class Barplot(APlot):
         y_axis,
         selected_clusters,
         order,
-        kmeans_col,
         df,
         aux,
         template=None,
     ):
-        if len(kmeans_col) == df.shape[0]:
-            df["Clusters"] = kmeans_col
+        df = pd.concat((df, aux), axis=1)
         if "frequency" not in df.columns:
             df["frequency"] = [1 for _ in range(len(df))]
-
-        df = pd.concat((df, aux), axis=1)
 
         if x_axis == y_axis:
             raise Exception("The x and y axis must be different")
 
+        clusters = get_clusters(aux, df.shape[0])
         if not selected_clusters:
-            selected_clusters = sorted(set(kmeans_col))
-        else:
-            selected_clusters = set(selected_clusters)
+            selected_clusters = clusters.categories
+        selected_clusters = set(selected_clusters)
 
         Xs = []
         Ys = []
@@ -156,7 +150,7 @@ class Barplot(APlot):
                     for f, xs in zip(df["frequency"], df[x_axis])
                 ]
 
-            for xs, y, c in zip(df[x_axis], df[y_axis], df["Clusters"]):
+            for xs, y, c in zip(df[x_axis], df[y_axis], clusters):
                 for x in xs:
                     if c in selected_clusters:
                         Xs.append(x)
@@ -168,7 +162,7 @@ class Barplot(APlot):
                         Ys.append(y)
                         Cs.append("all")
         else:
-            for x, y, c in zip(df[x_axis], df[y_axis], df["Clusters"]):
+            for x, y, c in zip(df[x_axis], df[y_axis], clusters):
                 if c in selected_clusters:
                     Xs.append(x)
                     Ys.append(y)

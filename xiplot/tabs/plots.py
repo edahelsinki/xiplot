@@ -46,7 +46,6 @@ class Plots(Tab):
             State("plots", "children"),
             State("plot_type", "value"),
             State("data_frame_store", "data"),
-            State("clusters_column_store", "data"),
             State("auxiliary_store", "data"),
             CycleBreakerInput("metadata_store", "data"),
             State("plots-tab-settings-session", "children"),
@@ -57,7 +56,6 @@ class Plots(Tab):
             children,
             plot_type,
             df,
-            kmeans_col,
             aux,
             meta,
             last_meta_session,
@@ -94,7 +92,7 @@ class Plots(Tab):
                 "new_plot-button",
                 "metadata_store_data_breaker",
             ]:
-                if kmeans_col is None:
+                if df is None:
                     return (
                         meta["session"],
                         dash.no_update,
@@ -183,10 +181,6 @@ class Plots(Tab):
                 df = df_from_store(df)
                 aux = df_from_store(aux)
                 df = pd.concat((df, aux), axis=1)
-
-                # create column for clusters if needed
-                if len(kmeans_col) == df.shape[0]:
-                    df["Clusters"] = kmeans_col
 
                 columns = df.columns.to_list()
 

@@ -6,7 +6,7 @@ import dash_mantine_components as dmc
 import jsonschema
 from dash import Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
-from dash_extensions.enrich import CycleBreakerInput
+from dash_extensions.enrich import CycleBreakerInput, ServersideOutput
 import pandas as pd
 
 from xiplot.tabs import Tab
@@ -16,12 +16,22 @@ from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.layouts import cluster_dropdown, layout_wrapper
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 
+CLUSTER_COLUMN_NAME = "Xiplot_cluster"
+
+
+def get_clusters(aux: pd.DataFrame, n: int = -1) -> pd.Categorical:
+    if CLUSTER_COLUMN_NAME in aux:
+        return pd.Categorical(aux[CLUSTER_COLUMN_NAME])
+    if n == -1:
+        n = aux.shape[0]
+    return pd.Categorical(["all"]).repeat(n)
+
 
 class Cluster(Tab):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
-            Output("clusters_column_store", "data"),
+            ServersideOutput("auxiliary_store", "data"),
             Output("cluster-tab-main-notify-container", "children"),
             Output("cluster-tab-compute-done", "children"),
             State("data_frame_store", "data"),
@@ -31,7 +41,6 @@ class Cluster(Tab):
             Input("clusters_reset-button", "n_clicks"),
             State("cluster_amount", "value"),
             State("cluster_feature", "value"),
-            CycleBreakerInput("clusters_column_store", "data"),
             Input("clusters_column_store_reset", "children"),
         )
         def set_clusters(
@@ -42,7 +51,6 @@ class Cluster(Tab):
             n_clicks,
             n_clusters,
             features,
-            kmeans_col,
             reset,
         ):
             if ctx.triggered_id == "clusters_reset-button":
@@ -88,23 +96,28 @@ class Cluster(Tab):
                         )
                     )
 
-                return ["all"] * df.shape[0], notifications, process_id
+                if CLUSTER_COLUMN_NAME in aux:
+                    del aux[CLUSTER_COLUMN_NAME]
+                    return df_to_store(aux), notifications, process_id
+                return dash.no_update, notifications, process_id
 
             if ctx.triggered_id == "cluster-button":
                 notifications = []
 
                 try:
-                    df2 = pd.concat(
-                        (df_from_store(df), df_from_store(aux)), axis=1
-                    )
+                    aux = df_from_store(aux)
+                    df2 = pd.concat((df_from_store(df), aux), axis=1)
                     kmeans_col = Cluster.create_by_input(
                         df2,
                         features,
                         n_clusters,
-                        kmeans_col,
                         notifications,
                         process_id,
                     )
+
+                    if kmeans_col != dash.no_update:
+                        aux[CLUSTER_COLUMN_NAME] = pd.Categorical(kmeans_col)
+                        return df_to_store(aux), notifications, process_id
                 except ImportError as err:
                     raise err
                 except Exception as err:
@@ -122,10 +135,7 @@ class Cluster(Tab):
                             autoClose=False,
                         )
                     )
-
-                    return dash.no_update, notifications, process_id
-
-                return kmeans_col, notifications, process_id
+                return dash.no_update, notifications, process_id
 
             notifications = []
 
@@ -478,14 +488,13 @@ class Cluster(Tab):
         df,
         features,
         n_clusters,
-        kmeans_col,
         notifications=None,
         process_id=None,
     ):
         if not Cluster.validate_cluster_params(
             features, n_clusters, notifications, process_id
         ):
-            return kmeans_col
+            return dash.no_update
 
         from sklearn.preprocessing import StandardScaler
 
@@ -603,6 +612,10 @@ class Cluster(Tab):
                 ),
                 html.Div(
                     id="cluster-tab-settings-session",
+                    style={"display": "none"},
+                ),
+                html.Div(
+                    id="clusters_column_store_reset",
                     style={"display": "none"},
                 ),
             ],

@@ -5,6 +5,7 @@ from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.plots import APlot
+from xiplot.tabs.cluster import CLUSTER_COLUMN_NAME
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import (
     ColumnDropdown,
@@ -24,13 +25,12 @@ class Table(APlot):
                 Output({"type": "table", "index": ALL}, "data"),
                 Output({"type": "table", "index": ALL}, "sort_by"),
             ],
-            State("clusters_column_store", "data"),
             Input("selected_rows_store", "data"),
             State({"type": "table", "index": ALL}, "data"),
             Input({"type": "table", "index": ALL}, "sort_by"),
             prevent_initial_call=False,
         )
-        def update_table_data(kmeans_col, selected_rows, table_df, sort_by):
+        def update_table_data(selected_rows, table_df, sort_by):
             # Try branch for testing
             try:
                 trigger = ctx.triggered_id
@@ -50,8 +50,6 @@ class Table(APlot):
 
                 if len(selected_rows) == table_df.shape[0]:
                     table_df["Selection"] = selected_rows
-                if len(kmeans_col) == table_df.shape[0]:
-                    table_df["Clusters"] = kmeans_col
 
                 sort_by = get_sort_by(sort_by, selected_rows, trigger)
 
@@ -99,11 +97,10 @@ class Table(APlot):
             ),
             inputs=[
                 CycleBreakerInput("selected_rows_store", "data"),
-                Input("clusters_column_store", "data"),
             ],
             prevent_initial_call=False,
         )
-        def update_table_checkbox(selected_rows, kmeans_col):
+        def update_table_checkbox(selected_rows):
             if not selected_rows:
                 raise PreventUpdate()
 
@@ -159,7 +156,6 @@ class Table(APlot):
             State({"type": "table", "index": ALL}, "data"),
             State("data_frame_store", "data"),
             State("auxiliary_store", "data"),
-            State("clusters_column_store", "data"),
         )
         def update_table_columns(
             n_clicks,
@@ -168,7 +164,6 @@ class Table(APlot):
             table_df,
             df,
             aux,
-            kmeans_col,
         ):
             if not ctx.triggered_id:
                 raise PreventUpdate()
@@ -177,9 +172,6 @@ class Table(APlot):
             df = df_from_store(df)
             aux = df_from_store(aux)
             df = pd.concat((df, aux), axis=1)
-
-            if len(kmeans_col) == df.shape[0]:
-                df["Clusters"] = kmeans_col
 
             for id, item in enumerate(ctx.inputs_list[0]):
                 if item["id"]["index"] == trigger_id:
@@ -264,10 +256,10 @@ class Table(APlot):
         else:
             columns = columns[:5]
 
-            if "Clusters" not in columns:
-                columns.append("Clusters")
+            if CLUSTER_COLUMN_NAME not in columns:
+                columns.append(CLUSTER_COLUMN_NAME)
 
-            hidden_columns = ["Clusters"]
+            hidden_columns = [CLUSTER_COLUMN_NAME]
             sort_by = []
 
         filter_query = config.get("query", "")
@@ -310,12 +302,15 @@ class Table(APlot):
                     style_data_conditional=[
                         {
                             "if": {
-                                "filter_query": f'{{Clusters}} = "{cluster}"',
+                                "filter_query": (
+                                    f'{{{CLUSTER_COLUMN_NAME}}} = "{cluster}"'
+                                ),
                             },
                             "backgroundColor": colour,
-                            "color": "white" if cluster == "all" else "black",
+                            "color": "black",
                         }
                         for cluster, colour in cluster_colours().items()
+                        if cluster != "all"
                     ],
                 ),
                 FlexRow(
