@@ -10,8 +10,11 @@ from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
 
 from xiplot.plots import APlot
-from xiplot.tabs.cluster import CLUSTER_COLUMN_NAME, get_clusters
-from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.cluster import (
+    CLUSTER_COLUMN_NAME,
+    cluster_colours,
+    get_clusters,
+)
 from xiplot.utils.components import ColumnDropdown, PdfButton, PlotData
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.layouts import layout_wrapper
@@ -150,16 +153,11 @@ class Scatterplot(APlot):
             )
 
         @app.callback(
-            output=dict(
-                aux=ServersideOutput("auxiliary_store", "data"),
-                reset=Output("clusters_column_store_reset", "children"),
-            ),
-            inputs=[
-                Input({"type": "scatterplot", "index": ALL}, "selectedData"),
-                State("auxiliary_store", "data"),
-                State("selection_cluster_dropdown", "value"),
-                State("cluster_selection_mode", "value"),
-            ],
+            ServersideOutput("auxiliary_store", "data"),
+            Input({"type": "scatterplot", "index": ALL}, "selectedData"),
+            State("auxiliary_store", "data"),
+            State("selection_cluster_dropdown", "value"),
+            State("cluster_selection_mode", "value"),
         )
         def handle_cluster_drawing(
             selected_data, aux, cluster_id, selection_mode
@@ -222,7 +220,7 @@ class Scatterplot(APlot):
                 return dash.no_update
 
             aux[CLUSTER_COLUMN_NAME] = clusters
-            return dict(aux=df_to_store(aux), reset=str(uuid.uuid4()))
+            return df_to_store(aux)
 
         PlotData.register_callback(
             cls.name(),
@@ -305,7 +303,10 @@ class Scatterplot(APlot):
                 x_axis, y_axis = "jitter-x", "jitter-y"
 
         sizes = [0.5] * df.shape[0]
-        colors = df.copy().loc[:, color]
+        if color and color in df:
+            colors = df.loc[:, color].copy()
+        else:
+            colors = [""] * df.shape[0]
         row_ids = []
         id = 0
         if selected_rows:
@@ -326,7 +327,7 @@ class Scatterplot(APlot):
             x=x_axis,
             y=y_axis,
             color="__Color__",
-            symbol=symbol,
+            symbol=symbol if symbol in df else None,
             size="__Sizes__" if 5 in sizes else None,
             opacity=1,
             color_discrete_map={
@@ -365,7 +366,7 @@ class Scatterplot(APlot):
             y_axis = None
 
         scatter_colour = config.get("colour", CLUSTER_COLUMN_NAME)
-        scatter_symbol = config.get("symbol", None)
+        scatter_symbol = config.get("symbol", CLUSTER_COLUMN_NAME)
         jitter_slider = config.get("jitter", 0.0)
 
         for c in num_columns:

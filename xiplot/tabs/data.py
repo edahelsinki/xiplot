@@ -13,9 +13,12 @@ from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
 
 from xiplot.tabs import Tab
-from xiplot.tabs.cluster import CLUSTER_COLUMN_NAME, get_clusters
 from xiplot.utils import generate_id
-from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.cluster import (
+    CLUSTER_COLUMN_NAME,
+    cluster_colours,
+    get_clusters,
+)
 from xiplot.utils.components import FlexRow, PlotData
 from xiplot.utils.dataframe import (
     get_data_filepaths,
@@ -172,7 +175,6 @@ class Data(Tab):
             ServersideOutput("auxiliary_store", "data"),
             Output("metadata_store", "data"),
             Output("selected_rows_store", "data"),
-            Output("clusters_column_store_reset", "children"),
             Output("data-tab-notify-container", "children"),
             Input("submit-button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
@@ -191,7 +193,6 @@ class Data(Tab):
 
             if not filepath:
                 return (
-                    dash.no_update,
                     dash.no_update,
                     dash.no_update,
                     dash.no_update,
@@ -242,7 +243,6 @@ class Data(Tab):
                         )
                     except Exception as err:
                         return (
-                            dash.no_update,
                             dash.no_update,
                             dash.no_update,
                             dash.no_update,
@@ -324,7 +324,6 @@ class Data(Tab):
                     dash.no_update,
                     dash.no_update,
                     dash.no_update,
-                    dash.no_update,
                     dmc.Notification(
                         id=str(uuid.uuid4()),
                         color="yellow",
@@ -344,7 +343,6 @@ class Data(Tab):
             if "is_selected" in aux:
                 if aux.dtypes["is_selected"] != bool:
                     return (
-                        dash.no_update,
                         dash.no_update,
                         dash.no_update,
                         dash.no_update,
@@ -392,7 +390,6 @@ class Data(Tab):
                 df_to_store(aux),
                 meta,
                 selected_rows,
-                str(uuid.uuid4()),
                 notification,
             )
 

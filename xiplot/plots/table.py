@@ -5,8 +5,7 @@ from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.plots import APlot
-from xiplot.tabs.cluster import CLUSTER_COLUMN_NAME
-from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.cluster import CLUSTER_COLUMN_NAME, cluster_colours
 from xiplot.utils.components import (
     ColumnDropdown,
     DeleteButton,

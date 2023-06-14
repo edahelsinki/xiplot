@@ -10,21 +10,11 @@ from dash_extensions.enrich import CycleBreakerInput, ServersideOutput
 import pandas as pd
 
 from xiplot.tabs import Tab
-from xiplot.utils.cluster import KMeans, cluster_colours
-from xiplot.utils.components import ColumnDropdown, FlexRow
+from xiplot.utils.cluster import CLUSTER_COLUMN_NAME, KMeans, cluster_colours
+from xiplot.utils.components import ClusterDropdown, ColumnDropdown, FlexRow
 from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.layouts import cluster_dropdown, layout_wrapper
+from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
-
-CLUSTER_COLUMN_NAME = "Xiplot_cluster"
-
-
-def get_clusters(aux: pd.DataFrame, n: int = -1) -> pd.Categorical:
-    if CLUSTER_COLUMN_NAME in aux:
-        return pd.Categorical(aux[CLUSTER_COLUMN_NAME])
-    if n == -1:
-        n = aux.shape[0]
-    return pd.Categorical(["all"]).repeat(n)
 
 
 class Cluster(Tab):
@@ -41,7 +31,6 @@ class Cluster(Tab):
             Input("clusters_reset-button", "n_clicks"),
             State("cluster_amount", "value"),
             State("cluster_feature", "value"),
-            Input("clusters_column_store_reset", "children"),
         )
         def set_clusters(
             df,
@@ -51,10 +40,8 @@ class Cluster(Tab):
             n_clicks,
             n_clusters,
             features,
-            reset,
         ):
             if ctx.triggered_id == "clusters_reset-button":
-                df = df_from_store(df)
 
                 if df is None:
                     return (
@@ -70,6 +57,7 @@ class Cluster(Tab):
                         dash.no_update,
                     )
 
+                df = df_from_store(df)
                 notifications = []
 
                 if process_id != done and process_id is not None:
@@ -96,6 +84,7 @@ class Cluster(Tab):
                         )
                     )
 
+                aux = df_from_store(aux)
                 if CLUSTER_COLUMN_NAME in aux:
                     del aux[CLUSTER_COLUMN_NAME]
                     return df_to_store(aux), notifications, process_id
@@ -309,12 +298,11 @@ class Cluster(Tab):
             Output("selection_cluster_dropdown", "value"),
             Output("selection_cluster_dropdown", "disabled"),
             Input("cluster_selection_mode", "value"),
-            State("selection_cluster_dropdown", "value"),
         )
-        def pin_selection_cluster(selection_mode, selection_cluster):
+        def pin_selection_cluster(selection_mode):
             if not selection_mode:
                 return "c1", True
-            return selection_cluster, False
+            return dash.no_update, False
 
         @app.callback(
             Output("cluster-tab-settings-session", "children"),
@@ -437,6 +425,10 @@ class Cluster(Tab):
                 )
 
             return meta
+
+        ClusterDropdown.register_callbacks(
+            app, df_from_store, "selection_cluster_dropdown", True
+        )
 
     @staticmethod
     def validate_cluster_params(
@@ -570,10 +562,12 @@ class Cluster(Tab):
                         labelClassName="button",
                         inline=True,
                     ),
-                    cluster_dropdown(
-                        id_name="selection_cluster_dropdown",
-                        value="c1",
-                        disabled=True,
+                    layout_wrapper(
+                        component=ClusterDropdown(
+                            id="selection_cluster_dropdown",
+                            value="c1",
+                            disabled=True,
+                        ),
                         css_class="dash-dropdown",
                         title="Select cluster",
                     ),
@@ -612,10 +606,6 @@ class Cluster(Tab):
                 ),
                 html.Div(
                     id="cluster-tab-settings-session",
-                    style={"display": "none"},
-                ),
-                html.Div(
-                    id="clusters_column_store_reset",
                     style={"display": "none"},
                 ),
             ],

@@ -4,11 +4,15 @@ from dash import ALL, MATCH, Input, Output, ctx, dcc
 from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
-from xiplot.tabs.cluster import get_clusters
-from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.components import ColumnDropdown, PdfButton, PlotData
+from xiplot.utils.cluster import cluster_colours, get_clusters
+from xiplot.utils.components import (
+    ClusterDropdown,
+    ColumnDropdown,
+    PdfButton,
+    PlotData,
+)
 from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.layouts import cluster_dropdown, layout_wrapper
+from xiplot.utils.layouts import layout_wrapper
 
 
 class Histogram(APlot):
@@ -19,10 +23,7 @@ class Histogram(APlot):
         @app.callback(
             Output({"type": "histogram", "index": MATCH}, "figure"),
             Input(cls.get_id(MATCH, "x_axis_dropdown"), "value"),
-            Input(
-                {"type": "hg_cluster_comparison_dropdown", "index": MATCH},
-                "value",
-            ),
+            Input(ClusterDropdown.get_id(MATCH), "value"),
             Input("data_frame_store", "data"),
             Input("auxiliary_store", "data"),
             Input("plotly-template", "data"),
@@ -51,10 +52,7 @@ class Histogram(APlot):
             app,
             (
                 Input(cls.get_id(ALL, "x_axis_dropdown"), "value"),
-                Input(
-                    {"type": "hg_cluster_comparison_dropdown", "index": ALL},
-                    "value",
-                ),
+                Input(ClusterDropdown.get_id(ALL), "value"),
             ),
             lambda i: dict(
                 axes=dict(x=i[0]), groupby="Clusters", classes=i[1] or []
@@ -151,12 +149,10 @@ class Histogram(APlot):
                 css_class="dd-single",
                 title="x axis",
             ),
-            cluster_dropdown(
-                "hg_cluster_comparison_dropdown",
-                index,
-                multi=True,
-                clearable=True,
-                value=classes,
+            layout_wrapper(
+                component=ClusterDropdown(
+                    index=index, multi=True, value=classes, clearable=True
+                ),
                 title="Cluster Comparison",
                 css_class="dd-single",
             ),

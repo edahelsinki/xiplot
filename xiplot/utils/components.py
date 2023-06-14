@@ -1,4 +1,6 @@
 import base64
+import uuid
+from collections import Counter
 from io import BytesIO
 from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
@@ -18,6 +20,7 @@ from dash import (
 )
 
 from xiplot.utils import generate_id
+from xiplot.utils.cluster import cluster_colours, get_clusters
 from xiplot.utils.regex import dropdown_regex
 
 
@@ -237,6 +240,119 @@ class ColumnDropdown(dcc.Dropdown):
 
                 columns, selected, _ = dropdown_regex(columns, selected, regex)
                 return columns, selected, new_search
+
+
+class ClusterDropdown(dcc.Dropdown):
+    def __init__(
+        self,
+        *args,
+        index: Optional[str] = None,
+        id: Optional[Dict] = None,
+        **kwargs,
+    ):
+        """Create a `dcc.Dropdown` for selecting clusters.
+
+        Args:
+            index: Index of the dropdown (to be used with the default id).
+              Defaults to None.
+            id: Optionally override the default id (see
+              `ClusterDropdown.register_callbacks()`). Defaults to None.
+        """
+        if not id:
+            id = self.get_id(index if index is not None else str(uuid.uuid4()))
+        super().__init__(*args, id=id, options=self.get_options(), **kwargs)
+
+    @classmethod
+    def get_id(cls, index: str):
+        return generate_id(cls, index)
+
+    @classmethod
+    def get_options(
+        cls, clusters: Optional[pd.Categorical] = None, empty: bool = False
+    ) -> List[object]:
+        """Generate the options for a ClusterDropdown.
+
+        Args:
+            clusters: Optional column of cluster ids. Defaults to None.
+            empty: Include emtpy clusters. Defaults to False.
+
+        Returns:
+            List of Dropdown options.
+        """
+        cc = cluster_colours()
+        if clusters is None:
+            counter = {k: "" for k in cc.keys()}
+        else:
+            counter = {k: f": [{v}]" for k, v in Counter(clusters).items()}
+            counter["all"] = f": [{len(clusters)}]"
+        if empty:
+            for k in cc.keys():
+                if k not in counter:
+                    counter[k] = ""
+
+        options = [
+            {
+                "label": html.Div(
+                    [
+                        html.Div(
+                            style={"background-color": colour},
+                            className="color-rect",
+                        ),
+                        html.Div(
+                            (
+                                f"Everything{counter[cluster]}"
+                                if cluster == "all"
+                                else f"Cluster #{i}{counter[cluster]}"
+                            ),
+                            style={
+                                "display": "inline-block",
+                                "padding-left": 10,
+                            },
+                        ),
+                    ],
+                    style={"display": "flex", "align-items": "center"},
+                ),
+                "value": cluster,
+            }
+            for i, (cluster, colour) in enumerate(cluster_colours().items())
+            if cluster in counter
+        ]
+        return options
+
+    @classmethod
+    def register_callbacks(
+        cls,
+        app: Dash,
+        df_from_store: Callable,
+        id: Union[None, str, Dict] = None,
+        empty: bool = False,
+    ):
+        """Register callbacks for the cluster dropdowns.
+        This is only needed if the id is changed (otherwise it is already setup).
+
+        Args:
+            app: Dash app
+            df_from_store: function for getting dataframes.
+            id: Custom id (dicts should have an `ALL` component). Defaults to None.
+            empty: Include empty clausers. Defaults to False.
+        """
+        if id is None:
+            id = cls.get_id(ALL)
+
+        @app.callback(
+            Output(id, "options"),
+            Input("auxiliary_store", "data"),
+            prevent_initial_call=False,
+        )
+        def cluster_dropdown_count_callback(aux):
+            if aux is None:
+                return no_update
+            clusters = get_clusters(df_from_store(aux))
+            options = cls.get_options(clusters, empty)
+            if isinstance(id, dict):
+                return [options] * len(ctx.outputs_list)
+            else:
+                return options
 
 
 class DeleteButton(html.Button):

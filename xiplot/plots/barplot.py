@@ -12,10 +12,14 @@ from dash import MATCH, Input, Output, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
-from xiplot.tabs.cluster import get_clusters
-from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.components import ColumnDropdown, PdfButton, PlotData
-from xiplot.utils.layouts import cluster_dropdown, layout_wrapper
+from xiplot.utils.cluster import cluster_colours, get_clusters
+from xiplot.utils.components import (
+    ClusterDropdown,
+    ColumnDropdown,
+    PdfButton,
+    PlotData,
+)
+from xiplot.utils.layouts import layout_wrapper
 
 
 class Barplot(APlot):
@@ -31,10 +35,7 @@ class Barplot(APlot):
             ),
             Input(cls.get_id(MATCH, "x_axis_dropdown"), "value"),
             Input(cls.get_id(MATCH, "y_axis_dropdown"), "value"),
-            Input(
-                {"type": "bp_cluster_comparison_dropdown", "index": MATCH},
-                "value",
-            ),
+            Input(ClusterDropdown.get_id(MATCH), "value"),
             Input({"type": "order_dropdown", "index": MATCH}, "value"),
             Input("data_frame_store", "data"),
             Input("auxiliary_store", "data"),
@@ -87,10 +88,7 @@ class Barplot(APlot):
             [
                 Input(cls.get_id(MATCH, "x_axis_dropdown"), "value"),
                 Input(cls.get_id(MATCH, "y_axis_dropdown"), "value"),
-                Input(
-                    {"type": "bp_cluster_comparison_dropdown", "index": MATCH},
-                    "value",
-                ),
+                Input(ClusterDropdown.get_id(MATCH), "value"),
                 Input({"type": "order_dropdown", "index": MATCH}, "value"),
             ],
             lambda i: dict(
@@ -319,12 +317,10 @@ class Barplot(APlot):
                 css_class="dd-double-right",
                 title="y axis",
             ),
-            cluster_dropdown(
-                "bp_cluster_comparison_dropdown",
-                index,
-                multi=True,
-                value=classes,
-                clearable=True,
+            layout_wrapper(
+                component=ClusterDropdown(
+                    index=index, multi=True, value=classes, clearable=True
+                ),
                 title="Cluster Comparison",
                 css_class="dd-single cluster-comparison",
             ),

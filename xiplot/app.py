@@ -7,13 +7,13 @@ from xiplot.plugin import (
     get_plugins_cached,
     is_dynamic_plugin_loading_supported,
 )
-from xiplot.tabs.cluster import Cluster, get_clusters
+from xiplot.tabs.cluster import Cluster
 from xiplot.tabs.data import Data
 from xiplot.tabs.embedding import Embedding
 from xiplot.tabs.plots import Plots
 from xiplot.tabs.plugins import Plugins
 from xiplot.tabs.settings import Settings
-from xiplot.utils.components import PdfButton
+from xiplot.utils.components import ClusterDropdown, PdfButton
 
 
 class XiPlot:
@@ -120,34 +120,7 @@ class XiPlot:
         for _, _, cb in get_plugins_cached("callback"):
             cb(app, df_from_store, df_to_store)
 
-        @app.callback(
-            Output(
-                {"type": "cluster-dropdown-count", "index": ALL}, "children"
-            ),
-            Input("auxiliary_store", "data"),
-            prevent_initial_call=False,
-        )
-        def cluster_dropdown_count_callback(aux):
-            if aux is None:
-                clusters = []
-            else:
-                clusters = get_clusters(df_from_store(aux))
-            counter = Counter(clusters)
-
-            counts = []
-
-            for output in ctx.outputs_list:
-                cluster = output["id"]["index"].split("-")[0]
-
-                if cluster == "all":
-                    if len(clusters) == 0:
-                        counts.append("all")
-                    else:
-                        counts.append(len(clusters))
-                else:
-                    counts.append(counter[cluster])
-
-            return [f": [{c}]" for c in counts]
+        ClusterDropdown.register_callbacks(app, df_from_store)
 
 
 def app_logo():
