@@ -12,8 +12,10 @@ from dash_extensions.enrich import ServersideOutput
 from xiplot.plots import APlot
 from xiplot.utils.cluster import (
     CLUSTER_COLUMN_NAME,
+    SELECTED_COLUMN_NAME,
     cluster_colours,
     get_clusters,
+    get_selected,
 )
 from xiplot.utils.components import ColumnDropdown, PdfButton, PlotData
 from xiplot.utils.dataframe import get_numeric_columns
@@ -33,7 +35,6 @@ class Scatterplot(APlot):
             Input(cls.get_id(MATCH, "color_dropdown"), "value"),
             Input(cls.get_id(MATCH, "symbol_dropdown"), "value"),
             Input({"type": "jitter-slider", "index": MATCH}, "value"),
-            Input("selected_rows_store", "data"),
             Input("data_frame_store", "data"),
             Input("auxiliary_store", "data"),
             Input("plotly-template", "data"),
@@ -45,7 +46,6 @@ class Scatterplot(APlot):
             color,
             symbol,
             jitter,
-            selected_rows,
             df,
             aux,
             template=None,
@@ -67,7 +67,6 @@ class Scatterplot(APlot):
                 color,
                 symbol,
                 jitter,
-                selected_rows,
                 template,
             )
 
@@ -89,7 +88,7 @@ class Scatterplot(APlot):
 
         @app.callback(
             output=dict(
-                selected_rows_store=Output("selected_rows_store", "data"),
+                aux=ServersideOutput("auxiliary_store", "data"),
                 click_store=Output("lastly_clicked_point_store", "data"),
                 scatter=Output(
                     {"type": "scatterplot", "index": ALL}, "clickData"
@@ -97,10 +96,10 @@ class Scatterplot(APlot):
             ),
             inputs=[
                 Input({"type": "scatterplot", "index": ALL}, "clickData"),
-                State("selected_rows_store", "data"),
+                State("auxiliary_store", "data"),
             ],
         )
-        def handle_click_events(click, selected_rows):
+        def handle_click_events(click, aux):
             # Try branch for testing
             try:
                 if ctx.triggered_id is None:
@@ -110,24 +109,21 @@ class Scatterplot(APlot):
             except Exception:
                 pass
 
-            if not selected_rows:
-                selected_rows = []
-
             row = get_row(click)
             if row is None:
                 raise PreventUpdate()
 
-            if not selected_rows[row]:
-                selected_rows[row] = True
-            else:
-                selected_rows[row] = False
-
-            scatter_amount = len(click)
+            if aux is None:
+                return dash.no_update
+            aux = df_from_store(aux)
+            selected = get_selected(aux)
+            selected[row] = not selected[row]
+            aux[SELECTED_COLUMN_NAME] = selected
 
             return dict(
-                selected_rows_store=selected_rows,
+                aux=df_to_store(aux),
                 click_store=row,
-                scatter=[None] * scatter_amount,
+                scatter=[None] * len(click),
             )
 
         @app.callback(
@@ -280,7 +276,6 @@ class Scatterplot(APlot):
         color=None,
         symbol=None,
         jitter=None,
-        selected_rows=None,
         template=None,
     ):
         df = pd.concat((df, aux), axis=1)
@@ -307,16 +302,10 @@ class Scatterplot(APlot):
             colors = df.loc[:, color].copy()
         else:
             colors = [""] * df.shape[0]
-        row_ids = []
-        id = 0
-        if selected_rows:
-            for row in selected_rows:
-                if not row:
-                    row_ids.append(id)
-                id += 1
-        for id in row_ids:
-            sizes[id] = 5
-            colors[id] = "*"
+        if SELECTED_COLUMN_NAME in aux:
+            for id in np.where(aux[SELECTED_COLUMN_NAME])[0]:
+                sizes[id] = 5
+                colors[id] = "*"
 
         df["__Sizes__"] = sizes
         df["__Color__"] = colors
@@ -331,7 +320,7 @@ class Scatterplot(APlot):
             size="__Sizes__" if 5 in sizes else None,
             opacity=1,
             color_discrete_map={
-                "*": "#000000",
+                "*": "#DDD" if template and "dark" in template else "#333",
                 **cluster_colours(),
             },
             custom_data=["__Auxiliary__"],

@@ -16,6 +16,7 @@ from xiplot.tabs import Tab
 from xiplot.utils import generate_id
 from xiplot.utils.cluster import (
     CLUSTER_COLUMN_NAME,
+    SELECTED_COLUMN_NAME,
     cluster_colours,
     get_clusters,
 )
@@ -174,7 +175,6 @@ class Data(Tab):
             ServersideOutput("data_frame_store", "data"),
             ServersideOutput("auxiliary_store", "data"),
             Output("metadata_store", "data"),
-            Output("selected_rows_store", "data"),
             Output("data-tab-notify-container", "children"),
             Input("submit-button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
@@ -243,7 +243,6 @@ class Data(Tab):
                         )
                     except Exception as err:
                         return (
-                            dash.no_update,
                             dash.no_update,
                             dash.no_update,
                             dash.no_update,
@@ -323,7 +322,6 @@ class Data(Tab):
                     dash.no_update,
                     dash.no_update,
                     dash.no_update,
-                    dash.no_update,
                     dmc.Notification(
                         id=str(uuid.uuid4()),
                         color="yellow",
@@ -340,30 +338,20 @@ class Data(Tab):
             df = df_from_store(df_store)
             aux = df_from_store(aux_store)
 
-            if "is_selected" in aux:
-                if aux.dtypes["is_selected"] != bool:
-                    return (
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dmc.Notification(
-                            id=str(uuid.uuid4()),
-                            color="yellow",
-                            title="Warning",
-                            message=(
-                                f"The file {filepath.name} could not be loaded"
-                                " as a data frame: auxiliary column"
-                                ' "is_selected" is not of type bool.'
-                            ),
-                            action="show",
-                            autoClose=10000,
+            if SELECTED_COLUMN_NAME in aux:
+                if aux.dtypes[SELECTED_COLUMN_NAME] != bool:
+                    notification = dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message=(
+                            f"The file {filepath.name} has been loaded but the"
+                            ' auxiliary column "{SELECTED_COLUMN_NAME}" is'
+                            " not of type bool."
                         ),
+                        action="show",
+                        autoClose=10000,
                     )
-
-                selected_rows = list(~aux["is_selected"].values)
-            else:
-                selected_rows = [True] * df.shape[0]
 
             if CLUSTER_COLUMN_NAME in aux:
                 invalid_clusters = set(get_clusters(aux).categories) - set(
@@ -373,7 +361,7 @@ class Data(Tab):
                     message = (
                         f"The file {filepath.name} has been loaded"
                         f' but the auxiliary column "{CLUSTER_COLUMN_NAME}"'
-                        f" contained invalid values {invalid_clusters}."
+                        f" contains invalid values {invalid_clusters}."
                     )
                     notification = dmc.Notification(
                         id=str(uuid.uuid4()),
@@ -383,13 +371,11 @@ class Data(Tab):
                         action="show",
                         autoClose=10000,
                     )
-                    del aux[CLUSTER_COLUMN_NAME]
 
             return (
                 df_store,
-                df_to_store(aux),
+                aux_store,
                 meta,
-                selected_rows,
                 notification,
             )
 
@@ -402,7 +388,6 @@ class Data(Tab):
             State("data_frame_store", "data"),
             State("auxiliary_store", "data"),
             State("metadata_store", "data"),
-            State("selected_rows_store", "data"),
             State(PlotData.get_id(ALL, ALL), "data"),
             State(generate_id(WriteFormatDropdown), "value"),
             prevent_initial_call=True,
@@ -414,7 +399,6 @@ class Data(Tab):
             df,
             aux,
             meta,
-            selected_rows,
             plot_data,
             file_extension,
         ):
@@ -465,12 +449,6 @@ class Data(Tab):
 
                 if ctx.triggered_id == "download-plots-file-button":
                     try:
-
-                        if selected_rows is not None:
-                            aux["is_selected"] = ~np.asarray(
-                                selected_rows, dtype=bool
-                            )
-
                         for data in plot_data:
                             index = data["index"]
                             del data["index"]

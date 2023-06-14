@@ -1,34 +1,35 @@
 def get_sort_by(sort_by, selected_rows, trigger):
-    if len(sort_by) == 0 and False not in selected_rows:
+    all_selected = all(selected_rows) or not any(selected_rows)
+    if len(sort_by) == 0 and all_selected:
         sort_by = []
 
-    elif len(sort_by) == 0 and False in selected_rows:
+    elif len(sort_by) == 0 and not all_selected:
         sort_by = [
-            {"column_id": "Selection", "direction": "asc"},
+            {"column_id": "Selection", "direction": "desc"},
             {"column_id": "index_copy", "direction": "asc"},
         ]
 
-    elif len(sort_by) != 0 and False not in selected_rows:
+    elif len(sort_by) != 0 and True not in selected_rows:
         pass
 
     elif sort_by[0]["column_id"] != "Selection":
-        sort_by.insert(0, {"column_id": "Selection", "direction": "asc"})
+        sort_by.insert(0, {"column_id": "Selection", "direction": "desc"})
 
     elif (
-        trigger != "selected_rows_store"
+        trigger != "auxiliary_store"
         and {"column_id": "index_copy", "direction": "asc"} in sort_by
     ):
         sort_by.remove({"column_id": "index_copy", "direction": "asc"})
         sort_by.append({"column_id": "index_copy", "direction": "asc"})
 
     elif (
-        False not in selected_rows
-        and {"column_id": "index_copy", "direction": "asc"} in sort_by
+        all_selected
+        and {"column_id": "index_copy", "direction": "desc"} in sort_by
     ):
-        sort_by.remove({"column_id": "Selection", "direction": "asc"})
+        sort_by.remove({"column_id": "Selection", "direction": "desc"})
         sort_by.remove({"column_id": "index_copy", "direction": "asc"})
 
-    elif sort_by == {"column_id": "Selection", "direction": "asc"}:
+    elif sort_by == {"column_id": "Selection", "direction": "desc"}:
         sort_by.append({"column_id": "index_copy", "direction": "asc"})
 
     elif len(sort_by) == 1 and sort_by[0]["column_id"] == "Selection":

@@ -33,7 +33,6 @@ ID_AUXILIARY = "auxiliary_store"  # Additional dataframe (editable)
 ID_METADATA = "metadata_store"
 ID_HOVERED = "lastly_hovered_point_store"
 ID_CLICKED = "lastly_clicked_point_store"
-ID_SELECTED = "selected_rows_store"
 # `dcc.Store` that is `True` if the dark mode is active
 ID_DARK_MODE = "light-dark-toggle-store"
 # `dcc.Store` that contains the current plotly template

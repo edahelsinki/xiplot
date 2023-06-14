@@ -3,6 +3,7 @@ import plotly.express as px
 
 
 CLUSTER_COLUMN_NAME = "Xiplot_cluster"
+SELECTED_COLUMN_NAME = "Xiplot_selected"
 
 
 def get_clusters(aux: pd.DataFrame, n: int = -1) -> pd.Categorical:
@@ -20,6 +21,23 @@ def get_clusters(aux: pd.DataFrame, n: int = -1) -> pd.Categorical:
     if n == -1:
         n = aux.shape[0]
     return pd.Categorical(["all"]).repeat(n)
+
+
+def get_selected(aux: pd.DataFrame, n: int = -1) -> pd.Series:
+    """Get the selected column from the auxiliary data.
+
+    Args:
+        aux: Auxiliary data frame.
+        n: Column size if missing. Defaults to `aux.shape[0]`.
+
+    Returns:
+        Categorical column with clusters (creates a column with `n` "all" if missing)
+    """
+    if SELECTED_COLUMN_NAME in aux:
+        return aux[SELECTED_COLUMN_NAME]
+    if n == -1:
+        n = aux.shape[0]
+    return pd.Series([False]).repeat(n)
 
 
 def cluster_colours():

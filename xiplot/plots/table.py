@@ -1,11 +1,26 @@
 import numpy as np
 import pandas as pd
-from dash import ALL, MATCH, Input, Output, State, ctx, dash_table, dcc, html
+from dash import (
+    ALL,
+    MATCH,
+    Input,
+    Output,
+    State,
+    ctx,
+    dash_table,
+    dcc,
+    html,
+    no_update,
+)
 from dash.exceptions import PreventUpdate
-from dash_extensions.enrich import CycleBreakerInput
+from dash_extensions.enrich import CycleBreakerInput, ServersideOutput
 
 from xiplot.plots import APlot
-from xiplot.utils.cluster import CLUSTER_COLUMN_NAME, cluster_colours
+from xiplot.utils.cluster import (
+    CLUSTER_COLUMN_NAME,
+    SELECTED_COLUMN_NAME,
+    cluster_colours,
+)
 from xiplot.utils.components import (
     ColumnDropdown,
     DeleteButton,
@@ -23,13 +38,18 @@ class Table(APlot):
             [
                 Output({"type": "table", "index": ALL}, "data"),
                 Output({"type": "table", "index": ALL}, "sort_by"),
+                Output({"type": "table", "index": ALL}, "selected_rows"),
             ],
-            Input("selected_rows_store", "data"),
+            CycleBreakerInput("auxiliary_store", "data"),
             State({"type": "table", "index": ALL}, "data"),
             Input({"type": "table", "index": ALL}, "sort_by"),
             prevent_initial_call=False,
         )
-        def update_table_data(selected_rows, table_df, sort_by):
+        def update_table_data(aux, table_df, sort_by):
+            if aux is None:
+                return no_update
+            aux = df_from_store(aux)
+
             # Try branch for testing
             try:
                 trigger = ctx.triggered_id
@@ -38,40 +58,44 @@ class Table(APlot):
             except PreventUpdate:
                 raise
             except Exception:
-                trigger = "selected_rows_store"
+                trigger = "auxiliary_store"
 
             table_data = []
             sort_bys = []
 
+            if SELECTED_COLUMN_NAME in aux:
+                selected = aux[SELECTED_COLUMN_NAME]
+                where = np.where(aux[SELECTED_COLUMN_NAME])[0]
+            else:
+                selected = [False] * aux.shape[0]
+                where = []
+
             for table_df, sort_by in zip(table_df, sort_by):
                 table_df = pd.DataFrame(table_df)
                 table_df.rename_axis("index_copy")
+                table_df["Selection"] = selected
 
-                if len(selected_rows) == table_df.shape[0]:
-                    table_df["Selection"] = selected_rows
+                sort_by = get_sort_by(sort_by, selected, trigger)
 
-                sort_by = get_sort_by(sort_by, selected_rows, trigger)
-
-                columns = table_df.columns.to_list()
-
-                table_data.append(table_df[columns].to_dict("records"))
+                table_data.append(table_df.to_dict("records"))
                 sort_bys.append(sort_by)
 
-            return table_data, sort_bys
+            return table_data, sort_bys, [where] * len(sort_bys)
 
         @app.callback(
-            Output("selected_rows_store", "data"),
+            ServersideOutput("auxiliary_store", "data"),
             Input({"type": "table", "index": ALL}, "selected_rows"),
-            State("data_frame_store", "data"),
+            State("auxiliary_store", "data"),
         )
-        def update_selected_rows_store(selected_rows_checkbox, df):
+        def update_selected_rows_store(selected_rows_checkbox, aux):
             if (
                 selected_rows_checkbox == [None]
                 or len(selected_rows_checkbox) == 0
             ):
                 raise PreventUpdate()
 
-            df = df_from_store(df)
+            if aux is None:
+                return no_update
 
             # Try branch for testing
             try:
@@ -84,37 +108,12 @@ class Table(APlot):
             except Exception:
                 selected_rows_checkbox = selected_rows_checkbox[0]
 
-            result = [True] * df.shape[0]
+            aux = df_from_store(aux)
+            result = [False] * aux.shape[0]
             for row in selected_rows_checkbox:
-                result[row] = False
-
-            return result
-
-        @app.callback(
-            output=dict(
-                table=Output({"type": "table", "index": ALL}, "selected_rows")
-            ),
-            inputs=[
-                CycleBreakerInput("selected_rows_store", "data"),
-            ],
-            prevent_initial_call=False,
-        )
-        def update_table_checkbox(selected_rows):
-            if not selected_rows:
-                raise PreventUpdate()
-
-            result = []
-            for id, s in enumerate(selected_rows):
-                if not s:
-                    result.append(id)
-
-            # Try branch for testing
-            try:
-                table_amount = len(ctx.outputs_grouping["table"])
-            except Exception:
-                table_amount = 1
-
-            return dict(table=[result for _ in range(table_amount)])
+                result[row] = True
+            aux[SELECTED_COLUMN_NAME] = result
+            return df_to_store(aux)
 
         @app.callback(
             output=dict(
@@ -230,7 +229,6 @@ class Table(APlot):
         return [
             update_table_data,
             update_selected_rows_store,
-            update_table_checkbox,
             update_lastly_activated_cell,
             update_table_columns,
         ]
@@ -254,11 +252,7 @@ class Table(APlot):
             ]
         else:
             columns = columns[:5]
-
-            if CLUSTER_COLUMN_NAME not in columns:
-                columns.append(CLUSTER_COLUMN_NAME)
-
-            hidden_columns = [CLUSTER_COLUMN_NAME]
+            hidden_columns = []
             sort_by = []
 
         filter_query = config.get("query", "")

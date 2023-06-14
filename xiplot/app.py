@@ -79,7 +79,6 @@ class XiPlot:
                     dcc.Store(id="data_frame_store"),
                     dcc.Store(id="auxiliary_store"),
                     dcc.Store(id="metadata_store"),
-                    dcc.Store(id="selected_rows_store"),
                     dcc.Store(id="lastly_clicked_point_store"),
                     dcc.Store(id="lastly_hovered_point_store"),
                     html.Div(
