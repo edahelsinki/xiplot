@@ -160,7 +160,7 @@
     border-top: 0px;
 }
 
-.dash-spreadsheet-menu .dash-spreadsheet-menu-item .show-hide-menu {
+.plots .dash-spreadsheet-menu .dash-spreadsheet-menu-item .show-hide-menu {
     color: black;
     color: var(--font-color);
     background-color: white;
