@@ -16,7 +16,7 @@ def get_clusters(aux: pd.DataFrame, n: int = -1) -> pd.Categorical:
         Categorical column with clusters (creates a column with `n` "all" if missing)
     """
     if CLUSTER_COLUMN_NAME in aux:
-        return pd.Categorical(aux[CLUSTER_COLUMN_NAME])
+        return pd.Categorical(aux[CLUSTER_COLUMN_NAME].copy())
     if n == -1:
         n = aux.shape[0]
     return pd.Categorical(["all"]).repeat(n)
@@ -33,7 +33,7 @@ def get_selected(aux: pd.DataFrame, n: int = -1) -> pd.Series:
         Column with booleans (creates a column with `[False] * n` if missing)
     """
     if SELECTED_COLUMN_NAME in aux:
-        return aux[SELECTED_COLUMN_NAME]
+        return aux[SELECTED_COLUMN_NAME].copy()
     if n == -1:
         n = aux.shape[0]
     return pd.Series([False]).repeat(n).reset_index(drop=True)

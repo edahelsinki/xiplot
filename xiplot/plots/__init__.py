@@ -55,8 +55,10 @@ class APlot(ABC):
     ):
         """Override this to register Dash callbacks for your plot.
 
-        You might also want to call `PlotData.register_callback` and
-        `PdfButton.register_callback` here.
+        If a PdfButton is added to the layout, remember to do:
+        `PdfButton.register_callback(app, cls.name() cls.get_id(None))`
+        If a PlotData is added to the layout, remember to do:
+        `PlotData.register_callback(app, cls.name(), ...)`
 
         Args:
             app: The xiplot app (a subclass of `dash.Dash`).
@@ -65,11 +67,6 @@ class APlot(ABC):
             df_to_store: Function that transform a dataframe into `dcc.Store`
                 data.
         """
-        # If a PdfButton is added to the layout, remember to do:
-        # PdfButton.register_callback(app, cls.get_id(None))
-        # If a PlotData is added to the layout (to enable saving of the plot),
-        #  remember to do:
-        # PlotData.register_callback(app, cls.name(), ...)
         pass
 
     @abstractclassmethod
@@ -97,7 +94,7 @@ class APlot(ABC):
         children = cls.create_layout(index, df, columns, config)
         top_bar = [DeleteButton(index), html.Div(className="stretch")]
         if any(isinstance(e, dcc.Graph) for e in children):
-            top_bar.append(PdfButton(index))
+            top_bar.append(PdfButton(index, cls.name()))
         if cls.help():
             top_bar.append(HelpButton(cls.help()))
         children.insert(0, FlexRow(*top_bar))

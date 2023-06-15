@@ -24,7 +24,7 @@ from xiplot.utils.layouts import layout_wrapper
 class Barplot(APlot):
     @classmethod
     def register_callbacks(cls, app, df_from_store, df_to_store):
-        PdfButton.register_callback(app, {"type": "barplot"})
+        PdfButton.register_callback(app, cls.name(), {"type": "barplot"})
 
         @app.callback(
             Output({"type": "barplot", "index": MATCH}, "figure"),

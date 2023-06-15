@@ -25,7 +25,7 @@ from xiplot.utils.scatterplot import get_row
 class Scatterplot(APlot):
     @classmethod
     def register_callbacks(cls, app, df_from_store, df_to_store):
-        PdfButton.register_callback(app, {"type": "scatterplot"})
+        PdfButton.register_callback(app, cls.name(), {"type": "scatterplot"})
 
         @app.callback(
             Output({"type": "scatterplot", "index": MATCH}, "figure"),
@@ -274,11 +274,13 @@ class Scatterplot(APlot):
 
         sizes = [0.5] * df.shape[0]
         if color and color in df:
-            colors = df.loc[:, color].copy()
+            colors = df[color].copy()
         else:
             colors = [""] * df.shape[0]
         if SELECTED_COLUMN_NAME in aux:
             for id in np.where(aux[SELECTED_COLUMN_NAME])[0]:
+                if isinstance(colors, pd.Series):
+                    colors = pd.Categorical(colors).add_categories("*")
                 sizes[id] = 5
                 colors[id] = "*"
 

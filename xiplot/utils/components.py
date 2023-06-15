@@ -378,7 +378,11 @@ try:
 
     class PdfButton(html.Button):
         def __init__(
-            self, index: Any, children: str = "Download as pdf", **kwargs: Any
+            self,
+            index: str,
+            plot_name: str,
+            children: str = "Download as pdf",
+            **kwargs: Any,
         ):
             """Create a button for donwloading plots as pdf.
 
@@ -388,18 +392,17 @@ try:
                     "Download as pdf".
                 **kwargs: additional arguments forwarded to `html.Button`.
             """
-            super().__init__(
-                children=children, id=generate_id(type(self), index), **kwargs
-            )
+            id = generate_id(type(self), index)
+            id["plot"] = plot_name
+            id2 = generate_id(type(self), index, "download")
+            id2["plot"] = plot_name
+            children = [children, dcc.Download(id=id2)]
+            super().__init__(children=children, id=id, **kwargs)
 
         @classmethod
-        def create_global(cls) -> Any:
-            """Create the `dcc.Download` component needed for the pdf button
-            (add it to your layout)."""
-            return dcc.Download(id=generate_id(cls, None, "download"))
-
-        @classmethod
-        def register_callback(cls, app: Dash, graph_id: Dict[str, Any]):
+        def register_callback(
+            cls, app: Dash, plot_name: str, graph_id: Dict[str, str]
+        ):
             """Register callbacks.
             NOTE: Currently this method has to be called separately for every
             type of graph.
@@ -410,24 +413,19 @@ try:
                 app: Xiplot app.
                 graph_id: Id of the graph.
             """
-            graph_id["index"] = ALL
+            id = generate_id(cls, MATCH)
+            id["plot"] = plot_name
+            id2 = generate_id(cls, MATCH, "download")
+            id2["plot"] = plot_name
+            graph_id["index"] = MATCH
 
             @app.callback(
-                Output(generate_id(cls, None, "download"), "data"),
-                Input(generate_id(cls, ALL), "n_clicks"),
+                Output(id2, "data"),
+                Input(id, "n_clicks"),
                 State(graph_id, "figure"),
                 prevent_initial_call=True,
             )
-            def download_as_pdf(n_clicks, fig):
-                if ctx.triggered[0]["value"] is None:
-                    return no_update
-
-                figs = ctx.args_grouping[1]
-
-                figure = None
-                for f in figs:
-                    if f["id"]["index"] == ctx.triggered_id["index"]:
-                        figure = f["value"]
+            def download_as_pdf(n_clicks, figure):
                 if not figure:
                     return no_update
                 fig_img = po.io.to_image(figure, format="pdf")

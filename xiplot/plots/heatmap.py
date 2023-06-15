@@ -19,7 +19,7 @@ from xiplot.utils.regex import get_columns_by_regex
 class Heatmap(APlot):
     @classmethod
     def register_callbacks(cls, app, df_from_store, df_to_store):
-        PdfButton.register_callback(app, {"type": "heatmap"})
+        PdfButton.register_callback(app, cls.name(), {"type": "heatmap"})
 
         @app.callback(
             Output({"type": "heatmap", "index": MATCH}, "figure"),

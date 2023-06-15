@@ -83,7 +83,6 @@ class XiPlot:
                         [t.create_layout_globals() for t in TABS],
                         id="globals",
                     ),
-                    PdfButton.create_global(),
                     html.Div(
                         [g() for (_, _, g) in get_plugins_cached("global")],
                         id="plugin-globals",

@@ -18,7 +18,7 @@ from xiplot.utils.layouts import layout_wrapper
 class Histogram(APlot):
     @classmethod
     def register_callbacks(cls, app, df_from_store, df_to_store):
-        PdfButton.register_callback(app, {"type": "histogram"})
+        PdfButton.register_callback(app, cls.name(), {"type": "histogram"})
 
         @app.callback(
             Output({"type": "histogram", "index": MATCH}, "figure"),
