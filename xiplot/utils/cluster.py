@@ -69,5 +69,5 @@ def KMeans(n_clusters: int = 8, **kwargs) -> object:
 
     km = KMeans(n_clusters, **kwargs)
     if km.n_init == "warn":
-        km.n_init == "auto"
+        km.n_init = "auto"
     return km
