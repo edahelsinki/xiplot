@@ -3,9 +3,9 @@ import uuid
 import dash
 import dash_mantine_components as dmc
 import jsonschema
+import pandas as pd
 from dash import ALL, Input, Output, State, ctx, dcc, html
 from dash_extensions.enrich import CycleBreakerInput
-import pandas as pd
 
 from xiplot.plots.barplot import Barplot
 from xiplot.plots.heatmap import Heatmap

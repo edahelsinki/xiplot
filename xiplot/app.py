@@ -1,7 +1,5 @@
-from collections import Counter
-
 import dash_mantine_components as dmc
-from dash import ALL, Input, Output, ctx, dcc, html
+from dash import dcc, html
 
 from xiplot.plugin import (
     get_plugins_cached,

@@ -1,6 +1,5 @@
 import uuid
 from collections import defaultdict
-from collections.abc import Iterable
 from itertools import product
 
 import dash

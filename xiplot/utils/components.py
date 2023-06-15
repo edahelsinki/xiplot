@@ -118,7 +118,8 @@ class ColumnDropdown(dcc.Dropdown):
             aux: Auxiliary data frame.
             options: Additional options to add to the column names. Defaults to [].
             numeric: Only select numeric columns. Defaults to False.
-            category: Only select categorical (and integer, and object) columns. Defaults to False.
+            category: Only select categorical (and integer, and object) columns.
+              Defaults to False.
 
         Returns:
             List of column names

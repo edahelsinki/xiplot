@@ -7,7 +7,6 @@ from pathlib import Path
 import dash
 import dash_mantine_components as dmc
 import jsonschema
-import numpy as np
 from dash import ALL, Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput

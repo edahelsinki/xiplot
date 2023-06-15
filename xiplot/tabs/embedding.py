@@ -132,8 +132,6 @@ class Embedding(Tab):
                     autoClose=10000,
                 )
 
-            notifications = []
-
             process_id = str(uuid.uuid4())
 
             message = "The embedding process has started."

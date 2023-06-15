@@ -1,7 +1,6 @@
 import pandas as pd
 import plotly.express as px
 
-
 CLUSTER_COLUMN_NAME = "Xiplot_cluster"
 SELECTED_COLUMN_NAME = "Xiplot_selected"
 

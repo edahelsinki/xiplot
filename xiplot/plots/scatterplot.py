@@ -1,5 +1,4 @@
 import json
-import uuid
 
 import dash
 import numpy as np

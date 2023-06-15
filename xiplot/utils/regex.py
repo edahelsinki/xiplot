@@ -30,7 +30,7 @@ def dropdown_regex(
     options = [o for o in options if o not in selected]
     old_len = len(options)
     # Remove regex matches from options
-    is_regex = re.compile(" \(regex(()|(: \d+))\)$")
+    is_regex = re.compile(r" \(regex(()|(: \d+))\)$")
     select_results = []
     for s in selected:
         reg = is_regex.search(s)
@@ -55,7 +55,7 @@ def get_columns_by_regex(columns, features):
 
     new_features = []
 
-    is_regex = re.compile(" \(regex(()|(: \d+))\)$")
+    is_regex = re.compile(r" \(regex(()|(: \d+))\)$")
     for f in features:
         reg = is_regex.search(f)
         if reg:

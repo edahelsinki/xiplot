@@ -4,17 +4,16 @@ import uuid
 import dash
 import dash_mantine_components as dmc
 import jsonschema
-from dash import Input, Output, State, ctx, dcc, html
-from dash.exceptions import PreventUpdate
-from dash_extensions.enrich import CycleBreakerInput, ServersideOutput
 import pandas as pd
+from dash import Input, Output, State, ctx, dcc, html
+from dash_extensions.enrich import CycleBreakerInput, ServersideOutput
 
 from xiplot.tabs import Tab
 from xiplot.utils.cluster import CLUSTER_COLUMN_NAME, KMeans, cluster_colours
 from xiplot.utils.components import ClusterDropdown, ColumnDropdown, FlexRow
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.layouts import layout_wrapper
-from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
+from xiplot.utils.regex import get_columns_by_regex
 
 
 class Cluster(Tab):
