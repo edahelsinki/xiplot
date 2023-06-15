@@ -1,6 +1,7 @@
 import pandas as pd
 
 from xiplot.utils.components import ColumnDropdown
+from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 
 
 def test_add_matching_values():
@@ -15,3 +16,17 @@ def test_add_matching_values():
     assert ["col1", "col3"] == ColumnDropdown.get_columns(
         df, pd.DataFrame(), category=True
     )
+
+
+def test_regex():
+    options, selected, hits = dropdown_regex(
+        ["asd", "bsd", "csd", "dsd"], ["asd", "bs (regex)"], "cs"
+    )
+    assert options == ["asd", "bs (regex: 1)", "cs (regex: 1)", "dsd"]
+    assert options[:-1] == selected
+    assert hits == 1
+
+    cols = get_columns_by_regex(
+        ["asd", "bsd", "csd", "dsd"], ["asd", "(b|c)sd (regex)"]
+    )
+    assert cols == ["asd", "bsd", "csd"]
