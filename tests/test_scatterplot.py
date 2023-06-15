@@ -8,6 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from tests.util_test import render_plot
 from xiplot.plots.scatterplot import Scatterplot
 from xiplot.setup import setup_xiplot_dash_app
+from xiplot.utils.cluster import CLUSTER_COLUMN_NAME, SELECTED_COLUMN_NAME
 
 (
     tmp,
@@ -22,7 +23,7 @@ from xiplot.setup import setup_xiplot_dash_app
 def test_tesc001_render_scatterplot(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(1)
+    time.sleep(0.1)
     dash_duo.wait_for_page()
 
     render_plot(dash_duo, driver, "Scatterplot")
@@ -38,7 +39,7 @@ def test_tesc001_render_scatterplot(dash_duo):
 def test_tesc002_change_axis_value(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(1)
+    time.sleep(0.1)
     dash_duo.wait_for_page()
 
     render_plot(dash_duo, driver, "Scatterplot")
@@ -47,16 +48,14 @@ def test_tesc002_change_axis_value(dash_duo):
 
     x = driver.find_element(
         By.XPATH,
-        (
-            "//div[@class='dd-double-left']"
-            "/div[2]/div[1]/div[1]/div[1]/div[2]/input"
-        ),
+        "//div[@class='dd-double-left']"
+        "/div[2]/div[1]/div[1]/div[1]/div[2]/input",
     )
 
     x.send_keys("mpg")
     x.send_keys(Keys.RETURN)
 
-    time.sleep(1)
+    time.sleep(0.1)
 
     assert "mpg" in driver.find_element(By.CLASS_NAME, "xtitle").text
     assert dash_duo.get_logs() == [], "browser console should contain no error"
@@ -67,23 +66,21 @@ def test_tesc002_change_axis_value(dash_duo):
 def test_tesc003_target_setting(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(1)
+    time.sleep(0.1)
     dash_duo.wait_for_page()
 
     render_plot(dash_duo, driver, "Scatterplot")
 
     color = driver.find_element(
         By.XPATH,
-        (
-            "//div[@class='plots']/div[3]/div[2]/"
-            "div[1]/div[1]/div[1]/div[2]/input"
-        ),
+        "//div[@class='plots']/div[3]/div[2]/"
+        "div[1]/div[1]/div[1]/div[2]/input",
     )
 
     color.send_keys("PCA 1")
     color.send_keys(Keys.RETURN)
 
-    time.sleep(1)
+    time.sleep(0.1)
 
     assert dash_duo.get_logs() == [], "browser console should contain no error"
     assert dash_duo.get_logs() == [], "browser console should contain no error"
@@ -94,7 +91,7 @@ def test_tesc003_target_setting(dash_duo):
 def test_tesc004_jitter_setting(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(1)
+    time.sleep(0.1)
     dash_duo.wait_for_page()
 
     render_plot(dash_duo, driver, "Scatterplot")
@@ -110,33 +107,29 @@ def test_tesc004_jitter_setting(dash_duo):
 
 
 def test_create_scatterplot():
-    d = {"col1": [1, 2], "col2": [3, 4]}
-    df = pd.DataFrame(data=d)
     fig = tmp(
         "col1",
         "col2",
         "Clusters",
         None,
         0,
-        [True, True],
-        ["all", "all"],
-        df,
-        [],
+        pd.DataFrame({"col1": [1, 2], "col2": [3, 4]}),
+        pd.DataFrame(index=range(2)),
+        None,
     )
-
     assert str(type(fig)) == "<class 'plotly.graph_objs._figure.Figure'>"
 
 
 def test_handle_click_events():
-    click = [{"points": [{"customdata": [{"index": 1}]}]}]
-    output = handle_click_events(click, [True, True])
+    click = [{"points": [{"customdata": [{"index": 0}]}]}]
+    output = handle_click_events(click, pd.DataFrame(range(2)))
 
-    selected_rows = output["selected_rows_store"]
+    aux = output["aux"]
     clicked_row = output["click_store"]
     clicked_update = output["scatter"]
 
-    assert selected_rows == [True, False]
-    assert clicked_row == 1
+    assert all(aux[SELECTED_COLUMN_NAME] == [True, False])
+    assert clicked_row == 0
     assert clicked_update == [None]
 
 
@@ -154,9 +147,6 @@ def test_handle_hover_events():
 def test_handle_cluster_drawing():
     selected_points = [{"points": [{"customdata": [{"index": 1}]}]}]
     output = handle_cluster_drawing(
-        selected_points, ["all", "all"], "c1", False
+        selected_points, pd.DataFrame(index=range(2)), "c1", False
     )
-
-    cluster_column = output["clusters"]
-
-    assert cluster_column == ["c2", "c1"]
+    assert all(output[CLUSTER_COLUMN_NAME] == ["c2", "c1"])

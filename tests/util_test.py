@@ -32,10 +32,8 @@ def render_plot(dash_duo, driver, plot_name):
 
     plot_type_dd_input = driver.find_element(
         By.XPATH,
-        (
-            "//div[@id='plot_type']/div[1]/div[1]/div[1]"
-            "/div[@class='Select-input']/input[1]"
-        ),
+        "//div[@id='plot_type']/div[1]/div[1]/div[1]"
+        "/div[@class='Select-input']/input[1]",
     )
     plot_type_dd_input.send_keys(plot_name)
     plot_type_dd_input.send_keys(Keys.RETURN)

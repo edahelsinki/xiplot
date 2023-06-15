@@ -31,13 +31,13 @@ def get_selected(aux: pd.DataFrame, n: int = -1) -> pd.Series:
         n: Column size if missing. Defaults to `aux.shape[0]`.
 
     Returns:
-        Categorical column with clusters (creates a column with `n` "all" if missing)
+        Column with booleans (creates a column with `[False] * n` if missing)
     """
     if SELECTED_COLUMN_NAME in aux:
         return aux[SELECTED_COLUMN_NAME]
     if n == -1:
         n = aux.shape[0]
-    return pd.Series([False]).repeat(n)
+    return pd.Series([False]).repeat(n).reset_index(drop=True)
 
 
 def cluster_colours():

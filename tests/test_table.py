@@ -8,11 +8,11 @@ from selenium.webdriver.common.keys import Keys
 from tests.util_test import render_plot
 from xiplot.plots.table import Table
 from xiplot.setup import setup_xiplot_dash_app
+from xiplot.utils.cluster import SELECTED_COLUMN_NAME
 
 (
     update_table_data,
     update_selected_rows_store,
-    update_table_checkbox,
     update_lastly_activated_cell,
     update_table_columns,
 ) = Table.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)
@@ -21,7 +21,7 @@ from xiplot.setup import setup_xiplot_dash_app
 def test_teta001_render_table(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(1)
+    time.sleep(0.1)
     dash_duo.wait_for_page()
 
     render_plot(dash_duo, driver, "Table")
@@ -40,32 +40,33 @@ def test_teta001_render_table(dash_duo):
 def test_teta002_select_columns(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(1)
+    time.sleep(0.1)
     dash_duo.wait_for_page()
 
     render_plot(dash_duo, driver, "Table")
 
+    time.sleep(0.1)
+
     column_dropdown = driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[2]/div[0]",
+        "//div[@class='plots']/div[2]/div",
     )
     column_dropdown.click()
 
-    time.sleep(1)
+    time.sleep(0.1)
     column_dropdown_input = driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[2]/div[0]"
-        "/div[1]/div[1]/div[1]/div[2]/input",
+        "//div[@class='plots']/div[2]/div/div[1]/div[1]/div[1]/div[2]/input",
     )
     column_dropdown_input.send_keys("PCA 2", Keys.RETURN)
-    time.sleep(1)
+    time.sleep(0.1)
 
     column_dropdown_button = driver.find_element(
         By.XPATH,
-        "//button[text()='Select']",
+        "//button[text()='Update table']",
     )
     column_dropdown_button.click()
-    time.sleep(1)
+    time.sleep(0.1)
 
     plot = driver.find_element(
         By.XPATH,
@@ -82,7 +83,7 @@ def test_teta002_select_columns(dash_duo):
 def test_teta003_toggle_columns(dash_duo):
     driver = dash_duo.driver
     dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(1)
+    time.sleep(0.1)
     dash_duo.wait_for_page()
 
     render_plot(dash_duo, driver, "Table")
@@ -92,13 +93,13 @@ def test_teta003_toggle_columns(dash_duo):
         "//button[text()='Toggle Columns']",
     )
     toggle_columns.click()
-    time.sleep(1)
+    time.sleep(0.1)
 
     toggle_columns_first_checkbox = driver.find_element(
         By.XPATH, "//div[@class='show-hide-menu-item']/input"
     )
     toggle_columns_first_checkbox.click()
-    time.sleep(1)
+    time.sleep(0.1)
 
     plot = driver.find_element(
         By.XPATH,
@@ -113,38 +114,28 @@ def test_teta003_toggle_columns(dash_duo):
 
 
 def test_create_table():
-    d = {"col1": [1, 2], "col2": [3, 4]}
-    df = pd.DataFrame(data=d)
-    output = update_table_data(["all", "all"], [True, True], [df], [[]])
-    table_df = output[0][0][0]
+    df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
+    aux = pd.DataFrame({SELECTED_COLUMN_NAME: [True, True]})
+    output = update_table_data(aux, [df], [[]])
+    table_df = output[0][0]
     sort_by = output[1][0]
 
-    assert table_df == {
-        "col1": 1,
-        "col2": 3,
-        "Selection": True,
-        "Clusters": "all",
-    }, {
-        "col1": 2,
-        "col2": 4,
-        "Selection": True,
-        "Clusters": "all",
-    }
+    assert table_df[0] == {"col1": 1, "col2": 3, "Selection": True}
+    assert table_df[1] == {"col1": 2, "col2": 4, "Selection": True}
     assert sort_by == []
 
 
 def test_update_selected_rows_store():
-    d = {"col1": [1, 2], "col2": [3, 4]}
-    df = pd.DataFrame(data=d)
-    output = update_selected_rows_store([[1]], df)
-    selected_rows_store = output
-
-    assert selected_rows_store == [True, False]
+    aux = pd.DataFrame({SELECTED_COLUMN_NAME: [False, False]})
+    output = update_selected_rows_store([[1]], aux)
+    assert all(output[SELECTED_COLUMN_NAME] == [False, True])
 
 
 def test_update_table_checkbox():
-    output = update_table_checkbox([True, False], ["all", "all"])
-    selected_rows = output["table"]
+    df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
+    aux = pd.DataFrame({SELECTED_COLUMN_NAME: [False, True]})
+    output = update_table_data(aux, [df], [[]])
+    selected_rows = output[2]
 
     assert selected_rows == [[1]]
 

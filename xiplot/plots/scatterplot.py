@@ -172,42 +172,18 @@ class Scatterplot(APlot):
                 if cluster_id not in clusters.categories:
                     clusters = clusters.add_categories([cluster_id])
 
-            try:
-                for trigger in ctx.triggered:
-                    if (
-                        not trigger
-                        or not trigger["value"]
-                        or not trigger["value"]["points"]
-                    ):
-                        continue
+            for trigger in selected_data:
+                if not trigger or not trigger["points"]:
+                    continue
 
-                    updated = updated or len(trigger["value"]["points"]) > 0
-
-                    try:
-                        if selection_mode:
-                            for p in trigger["value"]["points"]:
-                                clusters[
-                                    p["customdata"][0]["index"]
-                                ] = cluster_id
-                        else:
-                            for p in trigger["value"]["points"]:
-                                clusters[p["customdata"][0]["index"]] = "c1"
-                    except Exception:
-                        return dash.no_update
-            # Try branch for testing
-            except Exception:
-                trigger = {
-                    "value": {"points": [{"customdata": [{"index": 1}]}]}
-                }
-
-                updated = updated or len(trigger["value"]["points"]) > 0
+                updated = updated or len(trigger["points"]) > 0
 
                 try:
                     if selection_mode:
-                        for p in trigger["value"]["points"]:
+                        for p in trigger["points"]:
                             clusters[p["customdata"][0]["index"]] = cluster_id
                     else:
-                        for p in trigger["value"]["points"]:
+                        for p in trigger["points"]:
                             clusters[p["customdata"][0]["index"]] = "c1"
                 except Exception:
                     return dash.no_update
