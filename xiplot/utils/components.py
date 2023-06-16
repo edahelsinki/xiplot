@@ -325,7 +325,6 @@ class ClusterDropdown(dcc.Dropdown):
     def register_callbacks(
         cls,
         app: Dash,
-        df_from_store: Callable,
         id: Union[None, str, Dict] = None,
         empty: bool = False,
     ):
@@ -334,7 +333,6 @@ class ClusterDropdown(dcc.Dropdown):
 
         Args:
             app: Dash app
-            df_from_store: function for getting dataframes.
             id: Custom id (dicts should have an `ALL` component). Defaults to None.
             empty: Include empty clausers. Defaults to False.
         """

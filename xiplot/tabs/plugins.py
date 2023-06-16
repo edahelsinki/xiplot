@@ -4,13 +4,12 @@ from collections import defaultdict
 from functools import partial
 from importlib.metadata import entry_points
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, List, Literal, Optional, Tuple
 from warnings import warn
 
 import dash
 import dash_mantine_components as dmc
 from dash import Input, Output, State, ctx, dcc, html
-from pyparsing import Any, Literal
 
 from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow

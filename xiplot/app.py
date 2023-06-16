@@ -116,7 +116,7 @@ class XiPlot:
         for _, _, cb in get_plugins_cached("callback"):
             cb(app, df_from_store, df_to_store)
 
-        ClusterDropdown.register_callbacks(app, df_from_store)
+        ClusterDropdown.register_callbacks(app)
 
 
 def app_logo():

@@ -335,7 +335,7 @@ class Cluster(Tab):
             return meta
 
         ClusterDropdown.register_callbacks(
-            app, df_from_store, "selection_cluster_dropdown", True
+            app, "selection_cluster_dropdown", True
         )
 
     @staticmethod

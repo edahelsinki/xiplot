@@ -12,8 +12,8 @@ from xiplot.plots.histogram import Histogram
 from xiplot.plots.scatterplot import Scatterplot
 from xiplot.plots.smiles import Smiles
 from xiplot.plots.table import Table
-from xiplot.plugin import get_plugins_cached
 from xiplot.tabs import Tab
+from xiplot.tabs.plugins import get_plugins_cached
 from xiplot.utils import generate_id
 from xiplot.utils.auxiliary import merge_df_aux
 from xiplot.utils.components import DeleteButton, FlexRow

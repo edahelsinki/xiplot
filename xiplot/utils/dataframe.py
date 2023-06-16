@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, Iterator, Optional, Tuple
 
 import pandas as pd
 
-from xiplot.plugin import get_plugins_cached
+from xiplot.tabs.plugins import get_plugins_cached
 from xiplot.utils.io import FinallyCloseBytesIO
 
 

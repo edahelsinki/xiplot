@@ -4,11 +4,11 @@ import plotly.graph_objects as go
 import plotly.io as pio
 from dash import Dash, Input, Output, State, dcc, html
 
-from xiplot.plugin import (
+from xiplot.tabs import Tab
+from xiplot.tabs.plugins import (
     get_all_loaded_plugins_cached,
     is_dynamic_plugin_loading_supported,
 )
-from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
 from xiplot.utils.layouts import layout_wrapper
 
