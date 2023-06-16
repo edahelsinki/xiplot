@@ -3,22 +3,31 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
+from xiplot.setup import setup_xiplot_dash_app
+
+
+def start_server(dash_duo):
+    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
+    driver = dash_duo.driver
+    driver.implicitly_wait(5)  # wait and repoll all `driver.find_element()`
+    time.sleep(1)
+    dash_duo.wait_for_page()
+    time.sleep(0.1)
+    return driver
+
 
 def load_file(dash_duo, driver):
+    time.sleep(0.1)
     data_files_dd = dash_duo.find_element("#data_files")
-    load_button = dash_duo.find_element("#submit-button")
-
     data_files_dd.click()
-
-    driver.implicitly_wait(1)
 
     dd_input = driver.find_element(By.XPATH, "//input[@autocomplete='off']")
 
     dd_input.send_keys("autompg-df.csv")
     dd_input.send_keys(Keys.RETURN)
+    time.sleep(0.5)
 
-    driver.implicitly_wait(1)
-
+    load_button = dash_duo.find_element("#submit-button")
     load_button.click()
 
 
@@ -39,10 +48,7 @@ def render_plot(dash_duo, driver, plot_name):
     )
     plot_type_dd_input.send_keys(plot_name)
     plot_type_dd_input.send_keys(Keys.RETURN)
-
-    driver.implicitly_wait(1)
+    time.sleep(0.5)
 
     plot_add = driver.find_element(By.ID, "new_plot-button")
     plot_add.click()
-
-    time.sleep(1)

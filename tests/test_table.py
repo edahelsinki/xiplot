@@ -5,9 +5,8 @@ import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-from tests.util_test import render_plot
+from tests.util_test import render_plot, start_server
 from xiplot.plots.table import Table
-from xiplot.setup import setup_xiplot_dash_app
 from xiplot.utils.auxiliary import SELECTED_COLUMN_NAME, get_selected
 
 (
@@ -19,11 +18,7 @@ from xiplot.utils.auxiliary import SELECTED_COLUMN_NAME, get_selected
 
 
 def test_teta001_render_table(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(0.1)
-    dash_duo.wait_for_page()
-
+    driver = start_server(dash_duo)
     render_plot(dash_duo, driver, "Table")
 
     plot = driver.find_element(
@@ -38,14 +33,8 @@ def test_teta001_render_table(dash_duo):
 
 
 def test_teta002_select_columns(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(0.1)
-    dash_duo.wait_for_page()
-
+    driver = start_server(dash_duo)
     render_plot(dash_duo, driver, "Table")
-
-    time.sleep(0.1)
 
     column_dropdown = driver.find_element(
         By.XPATH,
@@ -53,20 +42,19 @@ def test_teta002_select_columns(dash_duo):
     )
     column_dropdown.click()
 
-    time.sleep(0.1)
     column_dropdown_input = driver.find_element(
         By.XPATH,
         "//div[@class='plots']/div[2]/div/div[1]/div[1]/div[1]/div[2]/input",
     )
     column_dropdown_input.send_keys("PCA 2", Keys.RETURN)
-    time.sleep(0.1)
+    time.sleep(0.5)
 
     column_dropdown_button = driver.find_element(
         By.XPATH,
         "//button[text()='Update table']",
     )
     column_dropdown_button.click()
-    time.sleep(0.1)
+    time.sleep(0.5)
 
     plot = driver.find_element(
         By.XPATH,
@@ -81,11 +69,7 @@ def test_teta002_select_columns(dash_duo):
 
 
 def test_teta003_toggle_columns(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(0.1)
-    dash_duo.wait_for_page()
-
+    driver = start_server(dash_duo)
     render_plot(dash_duo, driver, "Table")
 
     toggle_columns = driver.find_element(
@@ -93,13 +77,11 @@ def test_teta003_toggle_columns(dash_duo):
         "//button[text()='Toggle Columns']",
     )
     toggle_columns.click()
-    time.sleep(0.1)
 
     toggle_columns_first_checkbox = driver.find_element(
         By.XPATH, "//div[@class='show-hide-menu-item']/input"
     )
     toggle_columns_first_checkbox.click()
-    time.sleep(0.1)
 
     plot = driver.find_element(
         By.XPATH,

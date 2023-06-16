@@ -5,9 +5,8 @@ import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-from tests.util_test import render_plot
+from tests.util_test import render_plot, start_server
 from xiplot.plots.scatterplot import Scatterplot
-from xiplot.setup import setup_xiplot_dash_app
 from xiplot.utils.auxiliary import get_clusters, get_selected
 
 (
@@ -21,11 +20,7 @@ from xiplot.utils.auxiliary import get_clusters, get_selected
 
 
 def test_tesc001_render_scatterplot(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(0.1)
-    dash_duo.wait_for_page()
-
+    driver = start_server(dash_duo)
     render_plot(dash_duo, driver, "Scatterplot")
 
     plot = driver.find_element(By.CLASS_NAME, "dash-graph")
@@ -37,11 +32,7 @@ def test_tesc001_render_scatterplot(dash_duo):
 
 
 def test_tesc002_change_axis_value(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(0.1)
-    dash_duo.wait_for_page()
-
+    driver = start_server(dash_duo)
     render_plot(dash_duo, driver, "Scatterplot")
 
     driver.find_element(By.CLASS_NAME, "dd-double-left").click()
@@ -56,7 +47,6 @@ def test_tesc002_change_axis_value(dash_duo):
 
     x.send_keys("mpg")
     x.send_keys(Keys.RETURN)
-
     time.sleep(0.5)
 
     assert "mpg" in driver.find_element(By.CLASS_NAME, "xtitle").text
@@ -66,11 +56,7 @@ def test_tesc002_change_axis_value(dash_duo):
 
 
 def test_tesc003_target_setting(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(0.1)
-    dash_duo.wait_for_page()
-
+    driver = start_server(dash_duo)
     render_plot(dash_duo, driver, "Scatterplot")
 
     color = driver.find_element(
@@ -83,25 +69,20 @@ def test_tesc003_target_setting(dash_duo):
 
     color.send_keys("PCA 1")
     color.send_keys(Keys.RETURN)
+    time.sleep(0.5)
 
-    time.sleep(0.1)
-
-    assert dash_duo.get_logs() == [], "browser console should contain no error"
     assert dash_duo.get_logs() == [], "browser console should contain no error"
 
     driver.close()
 
 
 def test_tesc004_jitter_setting(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(0.1)
-    dash_duo.wait_for_page()
-
+    driver = start_server(dash_duo)
     render_plot(dash_duo, driver, "Scatterplot")
 
     jitter_slider = driver.find_element(By.CLASS_NAME, "rc-slider-step")
     jitter_slider.click()
+    time.sleep(0.1)
 
     jitter_value = driver.find_element(By.CLASS_NAME, "rc-slider-handle")
 

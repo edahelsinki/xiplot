@@ -5,9 +5,8 @@ import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-from tests.util_test import render_plot
+from tests.util_test import render_plot, start_server
 from xiplot.plots.histogram import Histogram
-from xiplot.setup import setup_xiplot_dash_app
 
 tmp = Histogram.register_callbacks(
     dash.Dash(__name__), lambda x: x, lambda x: x
@@ -15,11 +14,7 @@ tmp = Histogram.register_callbacks(
 
 
 def test_tehi001_render_histogram(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(0.1)
-    dash_duo.wait_for_page()
-
+    driver = start_server(dash_duo)
     render_plot(dash_duo, driver, "Histogram")
 
     plot = driver.find_element(By.CLASS_NAME, "dash-graph")
@@ -31,11 +26,7 @@ def test_tehi001_render_histogram(dash_duo):
 
 
 def test_tehi002_set_axis(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(0.1)
-    dash_duo.wait_for_page()
-
+    driver = start_server(dash_duo)
     render_plot(dash_duo, driver, "Histogram")
 
     driver.find_element(By.CLASS_NAME, "dd-single").click()
@@ -47,7 +38,6 @@ def test_tehi002_set_axis(dash_duo):
 
     x.send_keys("mpg")
     x.send_keys(Keys.RETURN)
-
     time.sleep(0.5)
 
     assert "mpg" in driver.find_element(By.CLASS_NAME, "xtitle").text
@@ -57,11 +47,7 @@ def test_tehi002_set_axis(dash_duo):
 
 
 def test_tehi003_clear_clusters(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(0.1)
-    dash_duo.wait_for_page()
-
+    driver = start_server(dash_duo)
     render_plot(dash_duo, driver, "Histogram")
 
     cluster_dd = driver.find_element(
