@@ -1,15 +1,15 @@
 import dash_mantine_components as dmc
 from dash import dcc, html
 
-from xiplot.plugin import (
-    get_plugins_cached,
-    is_dynamic_plugin_loading_supported,
-)
 from xiplot.tabs.cluster import Cluster
 from xiplot.tabs.data import Data
 from xiplot.tabs.embedding import Embedding
 from xiplot.tabs.plots import Plots
-from xiplot.tabs.plugins import Plugins
+from xiplot.tabs.plugins import (
+    Plugins,
+    get_plugins_cached,
+    is_dynamic_plugin_loading_supported,
+)
 from xiplot.tabs.settings import Settings
 from xiplot.utils.components import ClusterDropdown
 
