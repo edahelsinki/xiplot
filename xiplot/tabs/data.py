@@ -1,5 +1,4 @@
 import base64
-import sys
 import uuid
 from collections import OrderedDict
 from io import BytesIO
@@ -511,12 +510,6 @@ class Data(Tab):
     @staticmethod
     def create_layout(data_dir=""):
         try:
-            if sys.version_info.minor >= 11:
-                raise NotImplementedError(
-                    "dash_uploader does not work on Python 3.11"
-                    # Dash complains about "Invalid props"
-                )
-
             import dash_uploader as du
 
             uploader = du.Upload(
