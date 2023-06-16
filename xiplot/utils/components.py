@@ -440,15 +440,19 @@ try:
 except ImportError:
 
     class PdfButton(html.Div):
-        def __init__(self, index: Any, **kwargs: Any):
+        def __init__(
+            self,
+            index: str,
+            plot_name: str,
+            children: str = "Download as pdf",
+            **kwargs: Any,
+        ):
             super().__init__(id=generate_id(type(self), index), **kwargs)
 
         @classmethod
-        def create_global(cls) -> Any:
-            pass
-
-        @classmethod
-        def register_callback(cls, app: Dash, graph_id: Dict[str, Any]):
+        def register_callback(
+            cls, app: Dash, plot_name: str, graph_id: Dict[str, str]
+        ):
             pass
 
 
