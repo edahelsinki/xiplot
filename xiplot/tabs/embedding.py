@@ -3,11 +3,10 @@ import uuid
 
 import dash
 import dash_mantine_components as dmc
-import pandas as pd
 from dash import Input, Output, State, dcc, html
-from dash_extensions.enrich import ServersideOutput
 
 from xiplot.tabs import Tab
+from xiplot.utils.auxiliary import decode_aux, encode_aux, merge_df_aux
 from xiplot.utils.components import ColumnDropdown, FlexRow
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.regex import get_columns_by_regex
@@ -32,7 +31,7 @@ def get_pca_columns(df, features):
 class Embedding(Tab):
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
-            ServersideOutput("auxiliary_store", "data"),
+            Output("auxiliary_store", "data"),
             Output("embedding-tab-main-notify-container", "children"),
             Output("embedding-tab-compute-done", "children"),
             Input("embedding-button", "value"),
@@ -57,7 +56,7 @@ class Embedding(Tab):
                 )
 
             df = df_from_store(df)
-            aux = df_from_store(aux)
+            aux = decode_aux(aux)
             columns = ColumnDropdown.get_columns(df, aux, numeric=True)
             features = get_columns_by_regex(columns, features)
 
@@ -68,9 +67,7 @@ class Embedding(Tab):
                 return dash.no_update, notifications, process_id
 
             try:
-                pca_cols = get_pca_columns(
-                    pd.concat((df, aux), axis=1), features
-                )
+                pca_cols = get_pca_columns(merge_df_aux(df, aux), features)
                 aux["Xiplot_PCA_1"] = pca_cols[:, 0]
                 aux["Xiplot_PCA_2"] = pca_cols[:, 1]
 
@@ -106,7 +103,7 @@ class Embedding(Tab):
 
                 return (dash.no_update, notifications, process_id)
 
-            return df_to_store(aux), notifications, process_id
+            return encode_aux(aux), notifications, process_id
 
         @app.callback(
             Output("embedding-button", "value"),

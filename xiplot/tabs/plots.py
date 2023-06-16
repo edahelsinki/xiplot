@@ -3,7 +3,6 @@ import uuid
 import dash
 import dash_mantine_components as dmc
 import jsonschema
-import pandas as pd
 from dash import ALL, Input, Output, State, ctx, dcc, html
 from dash_extensions.enrich import CycleBreakerInput
 
@@ -16,6 +15,7 @@ from xiplot.plots.table import Table
 from xiplot.plugin import get_plugins_cached
 from xiplot.tabs import Tab
 from xiplot.utils import generate_id
+from xiplot.utils.auxiliary import merge_df_aux
 from xiplot.utils.components import DeleteButton, FlexRow
 from xiplot.utils.layouts import layout_wrapper
 
@@ -178,9 +178,7 @@ class Plots(Tab):
                     plots = meta["plots"]
 
                 # read df from store
-                df = df_from_store(df)
-                aux = df_from_store(aux)
-                df = pd.concat((df, aux), axis=1)
+                df = merge_df_aux(df_from_store(df), aux)
 
                 columns = df.columns.to_list()
 

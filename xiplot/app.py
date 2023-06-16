@@ -11,7 +11,7 @@ from xiplot.tabs.embedding import Embedding
 from xiplot.tabs.plots import Plots
 from xiplot.tabs.plugins import Plugins
 from xiplot.tabs.settings import Settings
-from xiplot.utils.components import ClusterDropdown, PdfButton
+from xiplot.utils.components import ClusterDropdown
 
 
 class XiPlot:

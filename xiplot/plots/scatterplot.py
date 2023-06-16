@@ -6,16 +6,18 @@ import pandas as pd
 import plotly.express as px
 from dash import ALL, MATCH, Input, Output, State, ctx, dcc
 from dash.exceptions import PreventUpdate
-from dash_extensions.enrich import ServersideOutput
 
 from xiplot.plots import APlot
-from xiplot.utils.cluster import (
+from xiplot.utils.auxiliary import (
     CLUSTER_COLUMN_NAME,
     SELECTED_COLUMN_NAME,
-    cluster_colours,
+    decode_aux,
+    encode_aux,
     get_clusters,
     get_selected,
+    merge_df_aux,
 )
+from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import ColumnDropdown, PdfButton, PlotData
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.layouts import layout_wrapper
@@ -60,7 +62,7 @@ class Scatterplot(APlot):
 
             fig = Scatterplot.render(
                 df_from_store(df),
-                df_from_store(aux),
+                decode_aux(aux),
                 x_axis,
                 y_axis,
                 color,
@@ -87,7 +89,7 @@ class Scatterplot(APlot):
 
         @app.callback(
             output=dict(
-                aux=ServersideOutput("auxiliary_store", "data"),
+                aux=Output("auxiliary_store", "data"),
                 click_store=Output("lastly_clicked_point_store", "data"),
                 scatter=Output(
                     {"type": "scatterplot", "index": ALL}, "clickData"
@@ -114,13 +116,13 @@ class Scatterplot(APlot):
 
             if aux is None:
                 return dash.no_update
-            aux = df_from_store(aux)
+            aux = decode_aux(aux)
             selected = get_selected(aux)
             selected[row] = not selected[row]
             aux[SELECTED_COLUMN_NAME] = selected
 
             return dict(
-                aux=df_to_store(aux),
+                aux=encode_aux(aux),
                 click_store=row,
                 scatter=[None] * len(click),
             )
@@ -148,7 +150,7 @@ class Scatterplot(APlot):
             )
 
         @app.callback(
-            ServersideOutput("auxiliary_store", "data"),
+            Output("auxiliary_store", "data"),
             Input({"type": "scatterplot", "index": ALL}, "selectedData"),
             State("auxiliary_store", "data"),
             State("selection_cluster_dropdown", "value"),
@@ -162,7 +164,7 @@ class Scatterplot(APlot):
 
             updated = False
 
-            aux = df_from_store(aux)
+            aux = decode_aux(aux)
             clusters = get_clusters(aux)
             if not selection_mode:
                 clusters = clusters.set_categories(["c1", "c2"])
@@ -191,7 +193,7 @@ class Scatterplot(APlot):
                 return dash.no_update
 
             aux[CLUSTER_COLUMN_NAME] = clusters
-            return df_to_store(aux)
+            return encode_aux(aux)
 
         PlotData.register_callback(
             cls.name(),
@@ -253,7 +255,7 @@ class Scatterplot(APlot):
         jitter=None,
         template=None,
     ):
-        df = pd.concat((df, aux), axis=1)
+        df = merge_df_aux(df, aux)
         if jitter:
             jitter = float(jitter)
         if type(jitter) == float:

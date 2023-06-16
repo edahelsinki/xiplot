@@ -4,7 +4,8 @@ from dash import ALL, MATCH, Input, Output, ctx, dcc
 from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
-from xiplot.utils.cluster import cluster_colours, get_clusters
+from xiplot.utils.auxiliary import decode_aux, get_clusters, merge_df_aux
+from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import (
     ClusterDropdown,
     ColumnDropdown,
@@ -43,7 +44,7 @@ class Histogram(APlot):
                 x_axis,
                 selected_clusters,
                 df_from_store(df),
-                df_from_store(aux),
+                decode_aux(aux),
                 template,
             )
 
@@ -70,7 +71,7 @@ class Histogram(APlot):
 
     @staticmethod
     def render(x_axis, selected_clusters, df, aux, template=None):
-        df = pd.concat((df, aux), axis=1)
+        df = merge_df_aux(df, aux)
         clusters = get_clusters(aux, df.shape[0])
         if type(selected_clusters) == str:
             selected_clusters = [selected_clusters]

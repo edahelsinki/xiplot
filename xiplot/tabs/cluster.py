@@ -6,10 +6,16 @@ import dash_mantine_components as dmc
 import jsonschema
 import pandas as pd
 from dash import Input, Output, State, ctx, dcc, html
-from dash_extensions.enrich import CycleBreakerInput, ServersideOutput
+from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.tabs import Tab
-from xiplot.utils.cluster import CLUSTER_COLUMN_NAME, KMeans, cluster_colours
+from xiplot.utils.auxiliary import (
+    CLUSTER_COLUMN_NAME,
+    decode_aux,
+    encode_aux,
+    merge_df_aux,
+)
+from xiplot.utils.cluster import KMeans, cluster_colours
 from xiplot.utils.components import ClusterDropdown, ColumnDropdown, FlexRow
 from xiplot.utils.dataframe import get_numeric_columns
 from xiplot.utils.layouts import layout_wrapper
@@ -20,7 +26,7 @@ class Cluster(Tab):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
-            ServersideOutput("auxiliary_store", "data"),
+            Output("auxiliary_store", "data"),
             Output("cluster-tab-main-notify-container", "children"),
             Output("cluster-tab-compute-done", "children"),
             State("data_frame_store", "data"),
@@ -41,7 +47,6 @@ class Cluster(Tab):
             features,
         ):
             if ctx.triggered_id == "clusters_reset-button":
-
                 if df is None:
                     return (
                         dash.no_update,
@@ -83,18 +88,18 @@ class Cluster(Tab):
                         )
                     )
 
-                aux = df_from_store(aux)
+                aux = decode_aux(aux)
                 if CLUSTER_COLUMN_NAME in aux:
                     del aux[CLUSTER_COLUMN_NAME]
-                    return df_to_store(aux), notifications, process_id
+                    return encode_aux(aux), notifications, process_id
                 return dash.no_update, notifications, process_id
 
             if ctx.triggered_id == "cluster-button":
                 notifications = []
 
                 try:
-                    aux = df_from_store(aux)
-                    df2 = pd.concat((df_from_store(df), aux), axis=1)
+                    aux = decode_aux(aux)
+                    df2 = merge_df_aux(df_from_store(df), aux)
                     kmeans_col = Cluster.create_by_input(
                         df2,
                         features,
@@ -105,7 +110,7 @@ class Cluster(Tab):
 
                     if kmeans_col != dash.no_update:
                         aux[CLUSTER_COLUMN_NAME] = pd.Categorical(kmeans_col)
-                        return df_to_store(aux), notifications, process_id
+                        return encode_aux(aux), notifications, process_id
                 except ImportError as err:
                     raise err
                 except Exception as err:

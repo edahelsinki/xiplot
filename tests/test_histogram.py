@@ -48,7 +48,7 @@ def test_tehi002_set_axis(dash_duo):
     x.send_keys("mpg")
     x.send_keys(Keys.RETURN)
 
-    time.sleep(0.1)
+    time.sleep(0.5)
 
     assert "mpg" in driver.find_element(By.CLASS_NAME, "xtitle").text
     assert dash_duo.get_logs() == [], "browser console should contain no error"

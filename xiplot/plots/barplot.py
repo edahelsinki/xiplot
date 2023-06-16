@@ -11,7 +11,8 @@ from dash import MATCH, Input, Output, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
-from xiplot.utils.cluster import cluster_colours, get_clusters
+from xiplot.utils.auxiliary import decode_aux, get_clusters, merge_df_aux
+from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import (
     ClusterDropdown,
     ColumnDropdown,
@@ -66,7 +67,7 @@ class Barplot(APlot):
                         selected_clusters,
                         order,
                         df_from_store(df),
-                        df_from_store(aux),
+                        decode_aux(aux),
                         template,
                     ),
                     dash.no_update,
@@ -124,7 +125,7 @@ class Barplot(APlot):
         aux,
         template=None,
     ):
-        df = pd.concat((df, aux), axis=1)
+        df = merge_df_aux(df, aux)
         if "frequency" not in df.columns:
             df["frequency"] = [1 for _ in range(len(df))]
 

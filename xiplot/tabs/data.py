@@ -13,12 +13,14 @@ from dash_extensions.enrich import ServersideOutput
 
 from xiplot.tabs import Tab
 from xiplot.utils import generate_id
-from xiplot.utils.cluster import (
+from xiplot.utils.auxiliary import (
     CLUSTER_COLUMN_NAME,
     SELECTED_COLUMN_NAME,
-    cluster_colours,
+    decode_aux,
+    encode_aux,
     get_clusters,
 )
+from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import FlexRow, PlotData
 from xiplot.utils.dataframe import (
     get_data_filepaths,
@@ -83,8 +85,10 @@ class Data(Tab):
                                     [
                                         f"The file {upload_path.name} ",
                                         html.I("(upload)"),
-                                        " could not be loaded as a data"
-                                        f" frame: {err}.",
+                                        (
+                                            " could not be loaded as a data"
+                                            f" frame: {err}."
+                                        ),
                                     ]
                                 )
                             ],
@@ -97,7 +101,7 @@ class Data(Tab):
 
                 return (
                     df_to_store(df),
-                    df_to_store(aux),
+                    encode_aux(aux),
                     meta,
                     generate_dataframe_options(upload_path, data_dir),
                     str(Path("uploads") / upload_path.name),
@@ -149,8 +153,10 @@ class Data(Tab):
                                     [
                                         f"The file {upload_name} ",
                                         html.I("(upload)"),
-                                        " could not be loaded as a data"
-                                        f" frame: {err}.",
+                                        (
+                                            " could not be loaded as a data"
+                                            f" frame: {err}."
+                                        ),
                                     ]
                                 )
                             ],
@@ -161,7 +167,7 @@ class Data(Tab):
 
                 return (
                     df_to_store(df),
-                    df_to_store(aux),
+                    encode_aux(aux),
                     meta,
                     generate_dataframe_options(upload_name, data_dir),
                     str(Path("uploads") / upload_name.name),
@@ -172,7 +178,7 @@ class Data(Tab):
 
         @app.callback(
             ServersideOutput("data_frame_store", "data"),
-            ServersideOutput("auxiliary_store", "data"),
+            Output("auxiliary_store", "data"),
             Output("metadata_store", "data"),
             Output("data-tab-notify-container", "children"),
             Input("submit-button", "n_clicks"),
@@ -260,7 +266,7 @@ class Data(Tab):
                         )
 
                     df_store = df_to_store(df)
-                    aux_store = df_to_store(aux)
+                    aux_store = encode_aux(aux)
 
                     notification = dmc.Notification(
                         id=str(uuid.uuid4()),
@@ -335,7 +341,7 @@ class Data(Tab):
                 )
 
             df = df_from_store(df_store)
-            aux = df_from_store(aux_store)
+            aux = decode_aux(aux_store)
 
             if SELECTED_COLUMN_NAME in aux:
                 if aux.dtypes[SELECTED_COLUMN_NAME] != bool:
@@ -402,7 +408,7 @@ class Data(Tab):
             file_extension,
         ):
             df = df_from_store(df)
-            aux = df_from_store(aux)
+            aux = decode_aux(aux)
 
             if filepath is None or df is None:
                 return dash.no_update, dmc.Notification(
@@ -430,8 +436,10 @@ class Data(Tab):
                             message=[
                                 html.Div(
                                     [
-                                        "Failed to download the data file"
-                                        f" for {filepath.name}",
+                                        (
+                                            "Failed to download the data file"
+                                            f" for {filepath.name}"
+                                        ),
                                         (
                                             html.I(" (upload)")
                                             if ctx.triggered_id
@@ -469,8 +477,10 @@ class Data(Tab):
                             message=[
                                 html.Div(
                                     [
-                                        "Failed to download plots and data"
-                                        f" file for {filepath.name}",
+                                        (
+                                            "Failed to download plots and data"
+                                            f" file for {filepath.name}"
+                                        ),
                                         (
                                             html.I(" (upload)")
                                             if ctx.triggered_id
@@ -499,26 +509,26 @@ class Data(Tab):
 
     @staticmethod
     def create_layout(data_dir=""):
-        try:
-            import dash_uploader as du
+        # try:
+        #     import dash_uploader as du
 
-            uploader = du.Upload(
-                id="file_uploader",
-                text="Drag and Drop or Select a File to upload",
-                default_style={"minHeight": 1, "lineHeight": 4},
-            )
-        except (ImportError, AttributeError):
-            uploader = dcc.Upload(
-                id="file_uploader",
-                children=html.Div(
-                    [
-                        "Drag and Drop or ",
-                        html.A("Select a File"),
-                        " to upload",
-                    ]
-                ),
-                className="dcc-upload",
-            )
+        #     uploader = du.Upload(
+        #         id="file_uploader",
+        #         text="Drag and Drop or Select a File to upload",
+        #         default_style={"minHeight": 1, "lineHeight": 4},
+        #     )
+        # except (ImportError, AttributeError):
+        uploader = dcc.Upload(
+            id="file_uploader",
+            children=html.Div(
+                [
+                    "Drag and Drop or ",
+                    html.A("Select a File"),
+                    " to upload",
+                ]
+            ),
+            className="dcc-upload",
+        )
 
         return FlexRow(
             html.Div(

@@ -1,5 +1,6 @@
 import pandas as pd
 
+from xiplot.utils.auxiliary import decode_aux, encode_aux
 from xiplot.utils.components import ColumnDropdown
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 
@@ -30,3 +31,12 @@ def test_regex():
         ["asd", "bsd", "csd", "dsd"], ["asd", "(b|c)sd (regex)"]
     )
     assert cols == ["asd", "bsd", "csd"]
+
+
+def test_aux():
+    df = pd.DataFrame(index=range(4))
+    assert df.equals(decode_aux(encode_aux(df)))
+    df = pd.DataFrame(
+        {"a": [1, 2, 3], "b": [1.0, 2.3, 3.2], "c": ["a", "b", "a"]}
+    )
+    assert df.equals(decode_aux(encode_aux(df)))

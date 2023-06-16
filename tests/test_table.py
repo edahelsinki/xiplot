@@ -8,7 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from tests.util_test import render_plot
 from xiplot.plots.table import Table
 from xiplot.setup import setup_xiplot_dash_app
-from xiplot.utils.cluster import SELECTED_COLUMN_NAME
+from xiplot.utils.auxiliary import SELECTED_COLUMN_NAME
 
 (
     update_table_data,

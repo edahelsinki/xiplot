@@ -13,14 +13,17 @@ from dash import (
     no_update,
 )
 from dash.exceptions import PreventUpdate
-from dash_extensions.enrich import CycleBreakerInput, ServersideOutput
+from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.plots import APlot
-from xiplot.utils.cluster import (
+from xiplot.utils.auxiliary import (
     CLUSTER_COLUMN_NAME,
     SELECTED_COLUMN_NAME,
-    cluster_colours,
+    decode_aux,
+    encode_aux,
+    merge_df_aux,
 )
+from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import (
     ColumnDropdown,
     DeleteButton,
@@ -48,7 +51,7 @@ class Table(APlot):
         def update_table_data(aux, table_df, sort_by):
             if aux is None:
                 return no_update
-            aux = df_from_store(aux)
+            aux = decode_aux(aux)
 
             # Try branch for testing
             try:
@@ -83,7 +86,7 @@ class Table(APlot):
             return table_data, sort_bys, [where] * len(sort_bys)
 
         @app.callback(
-            ServersideOutput("auxiliary_store", "data"),
+            Output("auxiliary_store", "data"),
             Input({"type": "table", "index": ALL}, "selected_rows"),
             State("auxiliary_store", "data"),
         )
@@ -108,12 +111,12 @@ class Table(APlot):
             except Exception:
                 selected_rows_checkbox = selected_rows_checkbox[0]
 
-            aux = df_from_store(aux)
+            aux = decode_aux(aux)
             result = [False] * aux.shape[0]
             for row in selected_rows_checkbox:
                 result[row] = True
             aux[SELECTED_COLUMN_NAME] = result
-            return df_to_store(aux)
+            return encode_aux(aux)
 
         @app.callback(
             output=dict(
@@ -167,9 +170,7 @@ class Table(APlot):
                 raise PreventUpdate()
 
             trigger_id = ctx.triggered_id["index"]
-            df = df_from_store(df)
-            aux = df_from_store(aux)
-            df = pd.concat((df, aux), axis=1)
+            df = merge_df_aux(df_from_store(df), aux)
 
             for id, item in enumerate(ctx.inputs_list[0]):
                 if item["id"]["index"] == trigger_id:

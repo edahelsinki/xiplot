@@ -8,7 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from tests.util_test import render_plot
 from xiplot.plots.scatterplot import Scatterplot
 from xiplot.setup import setup_xiplot_dash_app
-from xiplot.utils.cluster import CLUSTER_COLUMN_NAME, SELECTED_COLUMN_NAME
+from xiplot.utils.auxiliary import get_clusters, get_selected
 
 (
     tmp,
@@ -48,14 +48,16 @@ def test_tesc002_change_axis_value(dash_duo):
 
     x = driver.find_element(
         By.XPATH,
-        "//div[@class='dd-double-left']"
-        "/div[2]/div[1]/div[1]/div[1]/div[2]/input",
+        (
+            "//div[@class='dd-double-left']"
+            "/div[2]/div[1]/div[1]/div[1]/div[2]/input"
+        ),
     )
 
     x.send_keys("mpg")
     x.send_keys(Keys.RETURN)
 
-    time.sleep(0.1)
+    time.sleep(0.5)
 
     assert "mpg" in driver.find_element(By.CLASS_NAME, "xtitle").text
     assert dash_duo.get_logs() == [], "browser console should contain no error"
@@ -73,8 +75,10 @@ def test_tesc003_target_setting(dash_duo):
 
     color = driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[3]/div[2]/"
-        "div[1]/div[1]/div[1]/div[2]/input",
+        (
+            "//div[@class='plots']/div[3]/div[2]/"
+            "div[1]/div[1]/div[1]/div[2]/input"
+        ),
     )
 
     color.send_keys("PCA 1")
@@ -122,13 +126,13 @@ def test_create_scatterplot():
 
 def test_handle_click_events():
     click = [{"points": [{"customdata": [{"index": 0}]}]}]
-    output = handle_click_events(click, pd.DataFrame(range(2)))
+    output = handle_click_events(click, pd.DataFrame(index=range(2)))
 
     aux = output["aux"]
     clicked_row = output["click_store"]
     clicked_update = output["scatter"]
 
-    assert all(aux[SELECTED_COLUMN_NAME] == [True, False])
+    assert all(get_selected(aux) == [True, False])
     assert clicked_row == 0
     assert clicked_update == [None]
 
@@ -146,7 +150,7 @@ def test_handle_hover_events():
 
 def test_handle_cluster_drawing():
     selected_points = [{"points": [{"customdata": [{"index": 1}]}]}]
-    output = handle_cluster_drawing(
+    aux = handle_cluster_drawing(
         selected_points, pd.DataFrame(index=range(2)), "c1", False
     )
-    assert all(output[CLUSTER_COLUMN_NAME] == ["c2", "c1"])
+    assert all(get_clusters(aux) == ["c2", "c1"])

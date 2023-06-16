@@ -20,7 +20,8 @@ from dash import (
 )
 
 from xiplot.utils import generate_id
-from xiplot.utils.cluster import cluster_colours, get_clusters
+from xiplot.utils.auxiliary import decode_aux, get_clusters
+from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.regex import dropdown_regex
 
 
@@ -185,7 +186,7 @@ class ColumnDropdown(dcc.Dropdown):
                 if df is None:
                     return no_update
                 df = df_from_store(df)
-                aux = df_from_store(aux)
+                aux = decode_aux(aux)
                 columns = cls.get_columns(df, aux, options, numeric, category)
                 if isinstance(id, dict) and "index" in id:
                     return [columns] * len(dds)
@@ -227,7 +228,7 @@ class ColumnDropdown(dcc.Dropdown):
                 if df is None:
                     return no_update, no_update, no_update
                 df = df_from_store(df)
-                aux = df_from_store(aux)
+                aux = decode_aux(aux)
                 columns = cls.get_columns(df, aux, options, numeric, category)
 
                 if ctx.triggered_id == regex_button_id or (
@@ -348,7 +349,7 @@ class ClusterDropdown(dcc.Dropdown):
         def cluster_dropdown_count_callback(aux):
             if aux is None:
                 return no_update
-            clusters = get_clusters(df_from_store(aux))
+            clusters = get_clusters(aux)
             options = cls.get_options(clusters, empty)
             if isinstance(id, dict):
                 return [options] * len(ctx.outputs_list)

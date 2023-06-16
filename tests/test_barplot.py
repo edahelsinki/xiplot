@@ -42,8 +42,10 @@ def test_teba002_change_axis_value(dash_duo):
 
     x = driver.find_element(
         By.XPATH,
-        "//div[@class='dd-double-left']"
-        "/div[2]/div[1]/div[1]/div[1]/div[2]/input",
+        (
+            "//div[@class='dd-double-left']"
+            "/div[2]/div[1]/div[1]/div[1]/div[2]/input"
+        ),
     )
 
     x.send_keys("model-year")
@@ -111,8 +113,10 @@ def test_teba004_set_order(dash_duo):
 
     dropdown_input = driver.find_element(
         By.XPATH,
-        "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]/div[1]/"
-        "div[@class='Select-input']/input",
+        (
+            "//div[@class='plots']/div[4]/div[2]/div[1]/div[1]/div[1]/"
+            "div[@class='Select-input']/input"
+        ),
     )
     dropdown_input.send_keys("total", Keys.RETURN)
 
