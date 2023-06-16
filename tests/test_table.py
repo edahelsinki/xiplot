@@ -8,7 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from tests.util_test import render_plot
 from xiplot.plots.table import Table
 from xiplot.setup import setup_xiplot_dash_app
-from xiplot.utils.auxiliary import SELECTED_COLUMN_NAME
+from xiplot.utils.auxiliary import SELECTED_COLUMN_NAME, get_selected
 
 (
     update_table_data,
@@ -128,7 +128,7 @@ def test_create_table():
 def test_update_selected_rows_store():
     aux = pd.DataFrame({SELECTED_COLUMN_NAME: [False, False]})
     output = update_selected_rows_store([[1]], aux)
-    assert all(output[SELECTED_COLUMN_NAME] == [False, True])
+    assert all(get_selected(output) == [False, True])
 
 
 def test_update_table_checkbox():

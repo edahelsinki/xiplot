@@ -1,4 +1,5 @@
 import base64
+import sys
 import uuid
 from collections import OrderedDict
 from io import BytesIO
@@ -509,26 +510,32 @@ class Data(Tab):
 
     @staticmethod
     def create_layout(data_dir=""):
-        # try:
-        #     import dash_uploader as du
+        try:
+            if sys.version_info.minor >= 11:
+                raise NotImplementedError(
+                    "dash_uploader does not work on Python 3.11"
+                    # Dash complains about "Invalid props"
+                )
 
-        #     uploader = du.Upload(
-        #         id="file_uploader",
-        #         text="Drag and Drop or Select a File to upload",
-        #         default_style={"minHeight": 1, "lineHeight": 4},
-        #     )
-        # except (ImportError, AttributeError):
-        uploader = dcc.Upload(
-            id="file_uploader",
-            children=html.Div(
-                [
-                    "Drag and Drop or ",
-                    html.A("Select a File"),
-                    " to upload",
-                ]
-            ),
-            className="dcc-upload",
-        )
+            import dash_uploader as du
+
+            uploader = du.Upload(
+                id="file_uploader",
+                text="Drag and Drop or Select a File to upload",
+                default_style={"minHeight": 1, "lineHeight": 4},
+            )
+        except (ImportError, AttributeError, NotImplementedError):
+            uploader = dcc.Upload(
+                id="file_uploader",
+                children=html.Div(
+                    [
+                        "Drag and Drop or ",
+                        html.A("Select a File"),
+                        " to upload",
+                    ]
+                ),
+                className="dcc-upload",
+            )
 
         return FlexRow(
             html.Div(
