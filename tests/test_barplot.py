@@ -4,6 +4,7 @@ import dash
 import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.remote.webelement import WebElement
 
 from tests.util_test import render_plot, start_server
 from xiplot.plots.barplot import Barplot
@@ -49,36 +50,39 @@ def test_teba002_change_axis_value(dash_duo):
     driver.close()
 
 
-# def test_teba003_set_cluster(dash_duo):
-#     driver = start_server(dash_duo)
-#     render_plot(dash_duo, driver, "Barplot")
+def test_teba003_set_cluster(dash_duo):
+    driver = start_server(dash_duo)
+    render_plot(dash_duo, driver, "Barplot")
 
-#     cluster_dd = driver.find_element(
-#         By.XPATH,
-#         "//div[@class='dd-single cluster-comparison']/div[2]",
-#     )
-#     cluster_dd.click()
+    # Run clustering
+    driver.find_element(By.XPATH, "//div[@id='control-tabs']/div[3]").click()
+    cluster_dd = driver.find_element(By.ID, "cluster_feature")
+    cluster_dd.find_element(By.TAG_NAME, "input").send_keys("PCA")
+    time.sleep(0.1)
+    # The headless driver uses some wierd window size so that the dropdown
+    # obscures the button. This is why we have cannot just use `click` here:
+    driver.execute_script(
+        "arguments[0].click();",
+        driver.find_element(By.ID, "add_by_keyword-button"),
+    )
+    time.sleep(0.1)
+    driver.find_element(By.ID, "cluster-button").click()
+    time.sleep(0.5)
 
-#     # TODO create clusters first!
+    # Use clusters
+    cluster_dd = driver.find_element(
+        By.XPATH,
+        "//div[@class='dd-single cluster-comparison']",
+    )
+    cluster_dd.find_element(By.TAG_NAME, "input").send_keys("C2\n")
+    time.sleep(0.1)
+    cluster_val: WebElement = cluster_dd.find_element(
+        By.CLASS_NAME, "Select-value"
+    )
+    assert "Cluster #2" in cluster_val.get_attribute("innerHTML")
 
-#     time.sleep(.1)
-
-#     driver.find_element(
-#         By.XPATH,
-#         "//div[@class='ReactVirtualized__Grid__innerScrollContainer']/div[3]",
-#     ).click()
-
-#     time.sleep(.1)
-
-#     cluster_value = driver.find_element(
-#         By.XPATH,
-#         "//div[@class='dd-single cluster-comparison']/div[2]/div[1]/div[1]",
-#     ).get_attribute("outerHTML")
-
-#     assert "cluster #2" in cluster_value
-#     assert dash_duo.get_logs() == [], "browser console should contain no error"
-
-#     driver.close()
+    assert dash_duo.get_logs() == [], "browser console should contain no error"
+    driver.close()
 
 
 def test_teba004_set_order(dash_duo):

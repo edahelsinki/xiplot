@@ -2,11 +2,12 @@ import time
 
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.remote.webdriver import WebDriver
 
 from xiplot.setup import setup_xiplot_dash_app
 
 
-def start_server(dash_duo):
+def start_server(dash_duo) -> WebDriver:
     dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
     driver = dash_duo.driver
     driver.implicitly_wait(5)  # wait and repoll all `driver.find_element()`
