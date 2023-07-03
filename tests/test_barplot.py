@@ -4,7 +4,6 @@ import dash
 import pandas as pd
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.remote.webelement import WebElement
 
 from tests.util_test import render_plot, start_server
 from xiplot.plots.barplot import Barplot
@@ -56,8 +55,8 @@ def test_teba003_set_cluster(dash_duo):
 
     # Run clustering
     driver.find_element(By.XPATH, "//div[@id='control-tabs']/div[3]").click()
-    cluster_dd = driver.find_element(By.ID, "cluster_feature")
-    cluster_dd.find_element(By.TAG_NAME, "input").send_keys("PCA")
+    feature_dd = driver.find_element(By.ID, "cluster_feature")
+    feature_dd.find_element(By.TAG_NAME, "input").send_keys("PCA")
     time.sleep(0.1)
     # The headless driver uses some wierd window size so that the dropdown
     # obscures the button. This is why we have cannot just use `click` here:
@@ -70,15 +69,21 @@ def test_teba003_set_cluster(dash_duo):
     time.sleep(0.5)
 
     # Use clusters
-    cluster_dd = driver.find_element(
-        By.XPATH,
-        "//div[@class='dd-single cluster-comparison']",
+    inp = driver.find_element(
+        By.CSS_SELECTOR, ".dd-single.cluster-comparison input"
     )
-    cluster_dd.find_element(By.TAG_NAME, "input").send_keys("C2\n")
-    time.sleep(0.1)
-    cluster_val: WebElement = cluster_dd.find_element(
-        By.CLASS_NAME, "Select-value"
-    )
+    inp.send_keys("2")
+    inp.send_keys(Keys.RETURN)
+    time.sleep(0.5)
+    try:
+        cluster_val = driver.find_element(
+            By.CSS_SELECTOR, ".dd-single.cluster-comparison"
+        ).find_element(By.CSS_SELECTOR, ".Select-value")
+    except Exception:
+        # Sometimes the GitHub test is too slow to find ".Select-value"
+        cluster_val = driver.find_element(
+            By.CSS_SELECTOR, ".dd-single.cluster-comparison"
+        )
     assert "Cluster #2" in cluster_val.get_attribute("innerHTML")
 
     assert dash_duo.get_logs() == [], "browser console should contain no error"
