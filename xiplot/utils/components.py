@@ -410,6 +410,7 @@ try:
 
             Args:
                 app: Xiplot app.
+                plot_name: Name of the plot.
                 graph_id: Id of the graph.
             """
             id = generate_id(cls, MATCH)

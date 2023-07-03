@@ -4,6 +4,7 @@ from itertools import product
 
 import dash
 import dash_mantine_components as dmc
+import jsonschema
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -93,7 +94,6 @@ class Barplot(APlot):
             ],
             lambda i: dict(
                 axes=dict(x=i[0], y=i[1]),
-                groupby="Clusters",
                 classes=i[2] or [],
                 order=i[3],
             ),
@@ -274,6 +274,26 @@ class Barplot(APlot):
         y_columns = ColumnDropdown.get_columns(
             df, pd.DataFrame(), ["frequency"], numeric=True
         )
+        jsonschema.validate(
+            instance=config,
+            schema=dict(
+                type="object",
+                properties=dict(
+                    axes=dict(
+                        type="object",
+                        properties=dict(
+                            x=dict(type="string"), y=dict(type="string")
+                        ),
+                    ),
+                    classes=dict(
+                        type="array",
+                        items=dict(enum=list(cluster_colours().keys())),
+                        uniqueItems=True,
+                    ),
+                    order=dict(enum=["reldiff", "total"]),
+                ),
+            ),
+        )
 
         try:
             x_axis = config["axes"]["x"]
@@ -291,7 +311,6 @@ class Barplot(APlot):
         if x_axis == y_axis:
             raise Exception("The x and y axis must be different")
 
-        _groupby = config.get("groupby", "Clusters")  # noqa: F841
         classes = config.get("classes", [])
         order = config.get("order", "reldiff")
 
