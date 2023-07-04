@@ -1,3 +1,4 @@
+import jsonschema
 import plotly.express as px
 from dash import MATCH, Input, Output, ctx, dcc, html
 from dash.exceptions import PreventUpdate
@@ -98,6 +99,12 @@ class Heatmap(APlot):
 
     @classmethod
     def create_layout(cls, index, df, columns, config=dict()):
+        jsonschema.validate(
+            instance=config,
+            schema=dict(
+                type="object", properties=dict(clusters=dict(type="integer"))
+            ),
+        )
         n_clusters = config.get("clusters", 5)
         num_columns = get_numeric_columns(df, columns)
         return [

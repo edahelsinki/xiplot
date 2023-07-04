@@ -1,3 +1,4 @@
+import jsonschema
 import pandas as pd
 import plotly.express as px
 from dash import ALL, MATCH, Input, Output, ctx, dcc
@@ -55,9 +56,7 @@ class Histogram(APlot):
                 Input(cls.get_id(ALL, "x_axis_dropdown"), "value"),
                 Input(ClusterDropdown.get_id(ALL), "value"),
             ),
-            lambda i: dict(
-                axes=dict(x=i[0]), groupby="Clusters", classes=i[1] or []
-            ),
+            lambda i: dict(axes=dict(x=i[0]), classes=i[1] or []),
         )
 
         ColumnDropdown.register_callback(
@@ -123,6 +122,22 @@ class Histogram(APlot):
 
     @classmethod
     def create_layout(cls, index, df, columns, config=dict()):
+        jsonschema.validate(
+            instance=config,
+            schema=dict(
+                type="object",
+                properties=dict(
+                    axes=dict(
+                        type="object", properties=dict(x=dict(type="string"))
+                    ),
+                    classes=dict(
+                        type="array",
+                        items=dict(enum=list(cluster_colours().keys())),
+                        uniqueItems=True,
+                    ),
+                ),
+            ),
+        )
         num_columns = get_numeric_columns(df, columns)
 
         try:
