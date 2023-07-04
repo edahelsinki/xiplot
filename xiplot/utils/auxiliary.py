@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 
 import pandas as pd
 
@@ -6,7 +6,7 @@ CLUSTER_COLUMN_NAME = "Xiplot_cluster"
 SELECTED_COLUMN_NAME = "Xiplot_selected"
 
 
-def get_clusters(aux: pd.DataFrame, n: int = -1) -> pd.Categorical:
+def get_clusters(aux: pd.DataFrame, n: Optional[int] = None) -> pd.Categorical:
     """Get the cluster column from the auxiliary data.
 
     Args:
@@ -20,12 +20,12 @@ def get_clusters(aux: pd.DataFrame, n: int = -1) -> pd.Categorical:
         aux = decode_aux(aux)
     if CLUSTER_COLUMN_NAME in aux:
         return pd.Categorical(aux[CLUSTER_COLUMN_NAME].copy())
-    if n == -1:
+    if n is None:
         n = aux.shape[0]
     return pd.Categorical(["all"]).repeat(n)
 
 
-def get_selected(aux: pd.DataFrame, n: int = -1) -> pd.Series:
+def get_selected(aux: pd.DataFrame, n: Optional[int] = None) -> pd.Series:
     """Get the selected column from the auxiliary data.
 
     Args:
@@ -39,7 +39,7 @@ def get_selected(aux: pd.DataFrame, n: int = -1) -> pd.Series:
         aux = decode_aux(aux)
     if SELECTED_COLUMN_NAME in aux:
         return aux[SELECTED_COLUMN_NAME].copy()
-    if n == -1:
+    if n is None:
         n = aux.shape[0]
     return pd.Series([False]).repeat(n).reset_index(drop=True)
 
