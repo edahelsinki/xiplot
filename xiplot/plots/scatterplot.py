@@ -1,5 +1,4 @@
 import json
-import uuid
 
 import dash
 import jsonschema
@@ -10,10 +9,18 @@ from dash import ALL, MATCH, Input, Output, State, ctx, dcc
 from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
+from xiplot.utils.auxiliary import (
+    CLUSTER_COLUMN_NAME,
+    SELECTED_COLUMN_NAME,
+    decode_aux,
+    encode_aux,
+    get_clusters,
+    get_selected,
+    merge_df_aux,
+)
 from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.components import PdfButton, PlotData
+from xiplot.utils.components import ColumnDropdown, PdfButton, PlotData
 from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.scatterplot import get_row
 
@@ -21,19 +28,17 @@ from xiplot.utils.scatterplot import get_row
 class Scatterplot(APlot):
     @classmethod
     def register_callbacks(cls, app, df_from_store, df_to_store):
-        PdfButton.register_callback(app, {"type": "scatterplot"})
+        PdfButton.register_callback(app, cls.name(), {"type": "scatterplot"})
 
         @app.callback(
             Output({"type": "scatterplot", "index": MATCH}, "figure"),
-            Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
-            Input({"type": "scatter_y_axis", "index": MATCH}, "value"),
-            Input({"type": "scatter_target_color", "index": MATCH}, "value"),
-            Input({"type": "scatter_target_symbol", "index": MATCH}, "value"),
+            Input(cls.get_id(MATCH, "x_axis_dropdown"), "value"),
+            Input(cls.get_id(MATCH, "y_axis_dropdown"), "value"),
+            Input(cls.get_id(MATCH, "color_dropdown"), "value"),
+            Input(cls.get_id(MATCH, "symbol_dropdown"), "value"),
             Input({"type": "jitter-slider", "index": MATCH}, "value"),
-            Input("selected_rows_store", "data"),
-            Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
-            Input("pca_column_store", "data"),
+            Input("auxiliary_store", "data"),
             Input("plotly-template", "data"),
             prevent_initial_call=False,
         )
@@ -43,10 +48,8 @@ class Scatterplot(APlot):
             color,
             symbol,
             jitter,
-            selected_rows,
-            kmeans_col,
             df,
-            pca_cols,
+            aux,
             template=None,
         ):
             # Try branch for testing
@@ -58,17 +61,14 @@ class Scatterplot(APlot):
             except Exception:
                 pass
 
-            df = df_from_store(df)
             fig = Scatterplot.render(
-                df,
+                df_from_store(df),
+                decode_aux(aux),
                 x_axis,
                 y_axis,
                 color,
                 symbol,
                 jitter,
-                selected_rows,
-                kmeans_col,
-                pca_cols,
                 template,
             )
 
@@ -79,7 +79,7 @@ class Scatterplot(APlot):
 
         @app.callback(
             Output({"type": "jitter-slider", "index": MATCH}, "max"),
-            Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
+            Input({"type": "x_axis_dropdown", "index": MATCH}, "value"),
             State("data_frame_store", "data"),
         )
         def update_jitter_max(x_axis, df):
@@ -90,7 +90,7 @@ class Scatterplot(APlot):
 
         @app.callback(
             output=dict(
-                selected_rows_store=Output("selected_rows_store", "data"),
+                aux=Output("auxiliary_store", "data"),
                 click_store=Output("lastly_clicked_point_store", "data"),
                 scatter=Output(
                     {"type": "scatterplot", "index": ALL}, "clickData"
@@ -98,10 +98,10 @@ class Scatterplot(APlot):
             ),
             inputs=[
                 Input({"type": "scatterplot", "index": ALL}, "clickData"),
-                State("selected_rows_store", "data"),
+                State("auxiliary_store", "data"),
             ],
         )
-        def handle_click_events(click, selected_rows):
+        def handle_click_events(click, aux):
             # Try branch for testing
             try:
                 if ctx.triggered_id is None:
@@ -111,24 +111,21 @@ class Scatterplot(APlot):
             except Exception:
                 pass
 
-            if not selected_rows:
-                selected_rows = []
-
             row = get_row(click)
             if row is None:
                 raise PreventUpdate()
 
-            if not selected_rows[row]:
-                selected_rows[row] = True
-            else:
-                selected_rows[row] = False
-
-            scatter_amount = len(click)
+            if aux is None:
+                return dash.no_update
+            aux = decode_aux(aux)
+            selected = get_selected(aux)
+            selected[row] = not selected[row]
+            aux[SELECTED_COLUMN_NAME] = selected
 
             return dict(
-                selected_rows_store=selected_rows,
+                aux=encode_aux(aux),
                 click_store=row,
-                scatter=[None] * scatter_amount,
+                scatter=[None] * len(click),
             )
 
         @app.callback(
@@ -154,87 +151,59 @@ class Scatterplot(APlot):
             )
 
         @app.callback(
-            output=dict(
-                clusters=Output("clusters_column_store", "data"),
-                reset=Output("clusters_column_store_reset", "children"),
-            ),
-            inputs=[
-                Input({"type": "scatterplot", "index": ALL}, "selectedData"),
-                State("clusters_column_store", "data"),
-                State("selection_cluster_dropdown", "value"),
-                State("cluster_selection_mode", "value"),
-            ],
+            Output("auxiliary_store", "data"),
+            Input({"type": "scatterplot", "index": ALL}, "selectedData"),
+            State("auxiliary_store", "data"),
+            State("selection_cluster_dropdown", "value"),
+            State("cluster_selection_mode", "value"),
         )
         def handle_cluster_drawing(
-            selected_data, kmeans_col, cluster_id, selection_mode
+            selected_data, aux, cluster_id, selection_mode
         ):
             if not selected_data:
                 return dash.no_update
 
             updated = False
 
+            aux = decode_aux(aux)
+            clusters = get_clusters(aux)
             if not selection_mode:
-                kmeans_col = ["c2"] * len(kmeans_col)
+                clusters = clusters.set_categories(["c1", "c2"])
+                clusters[:] = "c2"
+            else:
+                if cluster_id not in clusters.categories:
+                    clusters = clusters.add_categories([cluster_id])
 
-            try:
-                for trigger in ctx.triggered:
-                    if (
-                        not trigger
-                        or not trigger["value"]
-                        or not trigger["value"]["points"]
-                    ):
-                        continue
+            for trigger in selected_data:
+                if not trigger or not trigger["points"]:
+                    continue
 
-                    updated = updated or len(trigger["value"]["points"]) > 0
-
-                    try:
-                        if selection_mode:
-                            for p in trigger["value"]["points"]:
-                                kmeans_col[p["customdata"][0]["index"]] = (
-                                    cluster_id
-                                )
-                        else:
-                            for p in trigger["value"]["points"]:
-                                kmeans_col[p["customdata"][0]["index"]] = "c1"
-                    except Exception:
-                        return dash.no_update
-            # Try branch for testing
-            except Exception:
-                trigger = {
-                    "value": {"points": [{"customdata": [{"index": 1}]}]}
-                }
-
-                updated = updated or len(trigger["value"]["points"]) > 0
+                updated = updated or len(trigger["points"]) > 0
 
                 try:
                     if selection_mode:
-                        for p in trigger["value"]["points"]:
-                            kmeans_col[p["customdata"][0]["index"]] = (
-                                cluster_id
-                            )
+                        for p in trigger["points"]:
+                            clusters[p["customdata"][0]["index"]] = cluster_id
                     else:
-                        for p in trigger["value"]["points"]:
-                            kmeans_col[p["customdata"][0]["index"]] = "c1"
+                        for p in trigger["points"]:
+                            clusters[p["customdata"][0]["index"]] = "c1"
                 except Exception:
                     return dash.no_update
 
             if not updated:
                 return dash.no_update
 
-            return dict(clusters=kmeans_col, reset=str(uuid.uuid4()))
+            aux[CLUSTER_COLUMN_NAME] = clusters
+            return encode_aux(aux)
 
         PlotData.register_callback(
             cls.name(),
             app,
             (
-                Input({"type": "scatter_x_axis", "index": MATCH}, "value"),
-                Input({"type": "scatter_y_axis", "index": MATCH}, "value"),
-                Input(
-                    {"type": "scatter_target_color", "index": MATCH}, "value"
-                ),
-                Input(
-                    {"type": "scatter_target_symbol", "index": MATCH}, "value"
-                ),
+                Input(cls.get_id(MATCH, "x_axis_dropdown"), "value"),
+                Input(cls.get_id(MATCH, "y_axis_dropdown"), "value"),
+                Input(cls.get_id(MATCH, "color_dropdown"), "value"),
+                Input(cls.get_id(MATCH, "symbol_dropdown"), "value"),
                 Input({"type": "jitter-slider", "index": MATCH}, "value"),
             ),
             lambda i: dict(
@@ -245,42 +214,29 @@ class Scatterplot(APlot):
             ),
         )
 
-        @app.callback(
-            output=dict(
-                scatter_x=Output(
-                    {"type": "scatter_x_axis", "index": ALL}, "options"
-                ),
-                scatter_y=Output(
-                    {"type": "scatter_y_axis", "index": ALL}, "options"
-                ),
-            ),
-            inputs=[
-                Input("pca_column_store", "data"),
-                State("data_frame_store", "data"),
-                State({"type": "scatter_y_axis", "index": ALL}, "options"),
-                Input({"type": "scatterplot", "index": ALL}, "figure"),
-            ],
+        ColumnDropdown.register_callback(
+            app,
+            cls.get_id(ALL, "x_axis_dropdown"),
+            df_from_store,
+            numeric=True,
         )
-        def update_columns(pca_cols, df, all_options, fig):
-            df = df_from_store(df)
-
-            if all_options:
-                options = all_options[0]
-            else:
-                return dash.no_update
-
-            if (
-                pca_cols
-                and len(pca_cols) == df.shape[0]
-                and "Xiplot_PCA_1" not in options
-                and "Xiplot_PCA_2" not in options
-            ):
-                options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
-
-            return dict(
-                scatter_x=[options] * len(all_options),
-                scatter_y=[options] * len(all_options),
-            )
+        ColumnDropdown.register_callback(
+            app,
+            cls.get_id(ALL, "y_axis_dropdown"),
+            df_from_store,
+            numeric=True,
+        )
+        ColumnDropdown.register_callback(
+            app,
+            cls.get_id(ALL, "color_dropdown"),
+            df_from_store,
+        )
+        ColumnDropdown.register_callback(
+            app,
+            cls.get_id(ALL, "symbol_dropdown"),
+            df_from_store,
+            category=True,
+        )
 
         return [
             tmp,
@@ -292,26 +248,15 @@ class Scatterplot(APlot):
     @staticmethod
     def render(
         df,
+        aux,
         x_axis,
         y_axis,
         color=None,
         symbol=None,
         jitter=None,
-        selected_rows=None,
-        kmeans_col=[],
-        pca_cols=[],
         template=None,
     ):
-        if x_axis in ["Xiplot_PCA_1", "Xiplot_PCA_2"] and not pca_cols:
-            return None
-
-        if len(kmeans_col) == df.shape[0]:
-            df["Clusters"] = kmeans_col
-        else:
-            df["Clusters"] = ["all"] * df.shape[0]
-
-        df = add_pca_columns_to_df(df, pca_cols)
-
+        df = merge_df_aux(df, aux)
         if jitter:
             jitter = float(jitter)
         if type(jitter) == float:
@@ -331,17 +276,16 @@ class Scatterplot(APlot):
                 x_axis, y_axis = "jitter-x", "jitter-y"
 
         sizes = [0.5] * df.shape[0]
-        colors = df.copy().loc[:, color]
-        row_ids = []
-        id = 0
-        if selected_rows:
-            for row in selected_rows:
-                if not row:
-                    row_ids.append(id)
-                id += 1
-        for id in row_ids:
-            sizes[id] = 5
-            colors[id] = "*"
+        if color and color in df:
+            colors = df[color].copy()
+        else:
+            colors = [""] * df.shape[0]
+        if SELECTED_COLUMN_NAME in aux:
+            for id in np.where(aux[SELECTED_COLUMN_NAME])[0]:
+                if isinstance(colors, pd.Series):
+                    colors = pd.Categorical(colors).add_categories("*")
+                sizes[id] = 5
+                colors[id] = "*"
 
         df["__Sizes__"] = sizes
         df["__Color__"] = colors
@@ -352,11 +296,11 @@ class Scatterplot(APlot):
             x=x_axis,
             y=y_axis,
             color="__Color__",
-            symbol=symbol,
+            symbol=symbol if symbol in df else None,
             size="__Sizes__" if 5 in sizes else None,
             opacity=1,
             color_discrete_map={
-                "*": "#000000",
+                "*": "#DDD" if template and "dark" in template else "#333",
                 **cluster_colours(),
             },
             custom_data=["__Auxiliary__"],
@@ -376,24 +320,8 @@ class Scatterplot(APlot):
 
         return fig
 
-    @staticmethod
-    def create_layout(index, df, columns, config=dict()):
-        num_columns = get_numeric_columns(df, columns)
-
-        try:
-            if config["axes"]["x"] in (
-                "Xiplot_PCA_1",
-                "Xiplot_PCA_2",
-            ) or config["axes"]["y"] in (
-                "Xiplot_PCA_1",
-                "Xiplot_PCA_2",
-            ):
-                num_columns.append("Xiplot_PCA_1")
-                num_columns.append("Xiplot_PCA_2")
-
-        except Exception:
-            pass
-
+    @classmethod
+    def create_layout(cls, index, df, columns, config=dict()):
         jsonschema.validate(
             instance=config,
             schema=dict(
@@ -402,16 +330,16 @@ class Scatterplot(APlot):
                     axes=dict(
                         type="object",
                         properties=dict(
-                            x=dict(enum=num_columns),
-                            y=dict(enum=num_columns),
+                            x=dict(type="string"), y=dict(type="string")
                         ),
                     ),
-                    colour=dict(enum=columns + [None]),
-                    symbol=dict(enum=columns + [None]),
+                    colour=dict(type="string"),
+                    symbol=dict(type="string"),
                     jitter=dict(type="number", minimum=0.0),
                 ),
             ),
         )
+        num_columns = get_numeric_columns(df, columns)
 
         try:
             x_axis = config["axes"]["x"]
@@ -423,8 +351,8 @@ class Scatterplot(APlot):
         except Exception:
             y_axis = None
 
-        scatter_colour = config.get("colour", "Clusters")
-        scatter_symbol = config.get("symbol", None)
+        scatter_colour = config.get("colour", CLUSTER_COLUMN_NAME)
+        scatter_symbol = config.get("symbol", CLUSTER_COLUMN_NAME)
         jitter_slider = config.get("jitter", 0.0)
 
         for c in num_columns:
@@ -448,8 +376,8 @@ class Scatterplot(APlot):
         return [
             dcc.Graph(id={"type": "scatterplot", "index": index}),
             layout_wrapper(
-                component=dcc.Dropdown(
-                    id={"type": "scatter_x_axis", "index": index},
+                component=ColumnDropdown(
+                    cls.get_id(index, "x_axis_dropdown"),
                     options=num_columns,
                     value=x_axis,
                     clearable=False,
@@ -458,8 +386,8 @@ class Scatterplot(APlot):
                 title="x",
             ),
             layout_wrapper(
-                component=dcc.Dropdown(
-                    id={"type": "scatter_y_axis", "index": index},
+                component=ColumnDropdown(
+                    cls.get_id(index, "y_axis_dropdown"),
                     options=num_columns,
                     value=y_axis,
                     clearable=False,
@@ -468,8 +396,8 @@ class Scatterplot(APlot):
                 title="y",
             ),
             layout_wrapper(
-                component=dcc.Dropdown(
-                    id={"type": "scatter_target_color", "index": index},
+                component=ColumnDropdown(
+                    cls.get_id(index, "color_dropdown"),
                     options=columns,
                     value=scatter_colour,
                     clearable=False,
@@ -478,8 +406,8 @@ class Scatterplot(APlot):
                 title="target (color)",
             ),
             layout_wrapper(
-                component=dcc.Dropdown(
-                    id={"type": "scatter_target_symbol", "index": index},
+                component=ColumnDropdown(
+                    cls.get_id(index, "symbol_dropdown"),
                     options=columns,
                     value=scatter_symbol,
                 ),

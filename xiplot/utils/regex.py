@@ -1,76 +1,52 @@
 import re
+from typing import List, Optional, Tuple
 
 
-def dropdown_regex(options: list, selected: list, keyword=None):
-    """
-    Dropdown's values are searchable with regex
+def dropdown_regex(
+    options: List[str], selected: List[str], new_regex: Optional[str] = None
+) -> Tuple[List[str], List[str], int]:
+    """Dropdown options with regex.
 
-    Patameters:
-
-        options: options of the dropdown
-        selected: already selected values of the dropdown
-        keyword: keyword to search values of the dropdown with
+    Args:
+        options: List of dropdown options.
+        selected: List of dropdown selection.
+        new_regex: Regex to add to the selection. Defaults to None.
 
     Returns:
-
-        new_options: options with the keyword which replaces the original
-            values which were found by the keyword
-        selected: selected values of the dropdown
-        hits: amount of found values with the keyword
-
-
+        new_options: New list of options (reduced by regexes).
+        new_selected: New list of selection (including the new regex).
+        hits: number of hits for the new regex or zero.
     """
-
-    # initialize selected if selected is None
-    if not selected:
+    if selected is None:
         selected = []
-
-    # collect unselected options of the dropdown
-    unselected_options = []
-    for o in options:
-        if o not in selected:
-            unselected_options.append(o)
-
-    # return if any amount of values were found with the keyword
-    hits = 0
-    if keyword:
-        # add already selected values to the new options
-        new_options = [s for s in selected]
-
-        found = False
-        for o in unselected_options:
-            # if value matched with the keyword, set found True and increase
-            #  hits by 1
-            if re.search(keyword, o):
-                found = True
-                hits += 1
-            # if value not matched with the keyword, add to the new options
-            else:
-                new_options.append(o)
-
-        # if found any amount of values, add keyword to the new options and
-        #  to the selected values
-        if found:
-            selected.append(keyword + " (regex)")
-            new_options.append(keyword + " (regex)")
-        return new_options, selected or None, hits
-
-    sub_selected = []
-
-    # add every value of the dropdown to the sub_selected
-    # which is not a regex keyword
+    hits = False
+    # Add optional new regex
+    if new_regex:
+        new_regex = new_regex + " (regex)"
+        if new_regex not in selected:
+            selected = selected + [new_regex]
+            hits = True
+    # Remove selected from options
+    options = [o for o in options if o not in selected]
+    old_len = len(options)
+    # Remove regex matches from options
+    is_regex = re.compile(r" \(regex(()|(: \d+))\)$")
+    select_results = []
     for s in selected:
-        if " (regex)" not in s:
-            sub_selected.append(s)
-
-    # update options, sub_selected and hits,
-    # if any regex keywords are selected
-    for s in selected:
-        if " (regex)" in s:
-            options, sub_selected, hits = dropdown_regex(
-                options, sub_selected, s[:-8]
-            )
-    return options, sub_selected or None, hits
+        reg = is_regex.search(s)
+        if reg:
+            s = s[: reg.start()]
+            regex = re.compile(s)
+            old_len = len(options)
+            options = [o for o in options if not regex.search(o)]
+            s = f"{s} (regex: {old_len - len(options)})"
+        select_results.append(s)
+    # Return new_options, new_selected, hits for the new regex
+    return (
+        select_results + options,
+        select_results,
+        old_len - len(options) if hits else 0,
+    )
 
 
 def get_columns_by_regex(columns, features):
@@ -79,10 +55,13 @@ def get_columns_by_regex(columns, features):
 
     new_features = []
 
+    is_regex = re.compile(r" \(regex(()|(: \d+))\)$")
     for f in features:
-        if " (regex)" in f:
+        reg = is_regex.search(f)
+        if reg:
+            regex = re.compile(f[: reg.start()])
             for c in columns:
-                if re.search(f[:-8], c) and c not in new_features:
+                if regex.search(c) and c not in new_features:
                     new_features.append(c)
         elif f not in new_features:
             new_features.append(f)

@@ -12,9 +12,10 @@ from xiplot.plots.histogram import Histogram
 from xiplot.plots.scatterplot import Scatterplot
 from xiplot.plots.smiles import Smiles
 from xiplot.plots.table import Table
-from xiplot.plugin import get_plugins_cached
 from xiplot.tabs import Tab
+from xiplot.tabs.plugins import get_plugins_cached
 from xiplot.utils import generate_id
+from xiplot.utils.auxiliary import merge_df_aux
 from xiplot.utils.components import DeleteButton, FlexRow
 from xiplot.utils.layouts import layout_wrapper
 
@@ -45,8 +46,7 @@ class Plots(Tab):
             State("plots", "children"),
             State("plot_type", "value"),
             State("data_frame_store", "data"),
-            State("clusters_column_store", "data"),
-            State("pca_column_store", "data"),
+            State("auxiliary_store", "data"),
             CycleBreakerInput("metadata_store", "data"),
             State("plots-tab-settings-session", "children"),
         )
@@ -56,8 +56,7 @@ class Plots(Tab):
             children,
             plot_type,
             df,
-            kmeans_col,
-            pca_cols,
+            aux,
             meta,
             last_meta_session,
         ):
@@ -93,7 +92,7 @@ class Plots(Tab):
                 "new_plot-button",
                 "metadata_store_data_breaker",
             ]:
-                if kmeans_col is None:
+                if df is None:
                     return (
                         meta["session"],
                         dash.no_update,
@@ -179,15 +178,7 @@ class Plots(Tab):
                     plots = meta["plots"]
 
                 # read df from store
-                df = df_from_store(df)
-
-                # create column for clusters if needed
-                if len(kmeans_col) == df.shape[0]:
-                    df["Clusters"] = kmeans_col
-
-                if pca_cols and len(pca_cols) == df.shape[0]:
-                    df["Xiplot_PCA_1"] = [i[0] for i in pca_cols]
-                    df["Xiplot_PCA_2"] = [i[1] for i in pca_cols]
+                df = merge_df_aux(df_from_store(df), aux)
 
                 columns = df.columns.to_list()
 

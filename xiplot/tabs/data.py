@@ -7,14 +7,19 @@ from pathlib import Path
 import dash
 import dash_mantine_components as dmc
 import jsonschema
-import numpy as np
-import pandas as pd
 from dash import ALL, Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
 
 from xiplot.tabs import Tab
 from xiplot.utils import generate_id
+from xiplot.utils.auxiliary import (
+    CLUSTER_COLUMN_NAME,
+    SELECTED_COLUMN_NAME,
+    decode_aux,
+    encode_aux,
+    get_clusters,
+)
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import FlexRow, PlotData
 from xiplot.utils.dataframe import (
@@ -96,7 +101,7 @@ class Data(Tab):
 
                 return (
                     df_to_store(df),
-                    df_to_store(aux),
+                    encode_aux(aux),
                     meta,
                     generate_dataframe_options(upload_path, data_dir),
                     str(Path("uploads") / upload_path.name),
@@ -162,7 +167,7 @@ class Data(Tab):
 
                 return (
                     df_to_store(df),
-                    df_to_store(aux),
+                    encode_aux(aux),
                     meta,
                     generate_dataframe_options(upload_name, data_dir),
                     str(Path("uploads") / upload_name.name),
@@ -173,11 +178,8 @@ class Data(Tab):
 
         @app.callback(
             ServersideOutput("data_frame_store", "data"),
+            Output("auxiliary_store", "data"),
             Output("metadata_store", "data"),
-            Output("clusters_column_store", "data"),
-            Output("selected_rows_store", "data"),
-            Output("pca_column_store", "data"),
-            Output("clusters_column_store_reset", "children"),
             Output("data-tab-notify-container", "children"),
             Input("submit-button", "n_clicks"),
             Input("uploaded_data_file_store", "data"),
@@ -201,7 +203,6 @@ class Data(Tab):
                     dash.no_update,
                     dash.no_update,
                     dash.no_update,
-                    dash.no_update,
                     dmc.Notification(
                         id=str(uuid.uuid4()),
                         color="yellow",
@@ -219,7 +220,7 @@ class Data(Tab):
             if trigger == "submit-button":
                 if str(list(filepath.parents)[0]) == "uploads":
                     df_store = uploaded_data
-                    aux = df_from_store(uploaded_aux)
+                    aux_store = uploaded_aux
                     meta = uploaded_meta
 
                     notification = dmc.Notification(
@@ -251,8 +252,6 @@ class Data(Tab):
                             dash.no_update,
                             dash.no_update,
                             dash.no_update,
-                            dash.no_update,
-                            dash.no_update,
                             dmc.Notification(
                                 id=str(uuid.uuid4()),
                                 color="yellow",
@@ -267,6 +266,7 @@ class Data(Tab):
                         )
 
                     df_store = df_to_store(df)
+                    aux_store = encode_aux(aux)
 
                     notification = dmc.Notification(
                         id=str(uuid.uuid4()),
@@ -281,7 +281,7 @@ class Data(Tab):
                     )
             elif trigger == "uploaded_data_file_store":
                 df_store = uploaded_data
-                aux = df_from_store(uploaded_aux)
+                aux_store = uploaded_aux
                 meta = uploaded_meta
 
                 notification = dmc.Notification(
@@ -327,9 +327,6 @@ class Data(Tab):
                     dash.no_update,
                     dash.no_update,
                     dash.no_update,
-                    dash.no_update,
-                    dash.no_update,
-                    dash.no_update,
                     dmc.Notification(
                         id=str(uuid.uuid4()),
                         color="yellow",
@@ -344,84 +341,46 @@ class Data(Tab):
                 )
 
             df = df_from_store(df_store)
+            aux = decode_aux(aux_store)
 
-            if "is_selected" in aux:
-                if aux.dtypes["is_selected"] != bool:
-                    return (
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dmc.Notification(
-                            id=str(uuid.uuid4()),
-                            color="yellow",
-                            title="Warning",
-                            message=(
-                                f"The file {filepath.name} could not be loaded"
-                                " as a data frame: auxiliary column"
-                                ' "is_selected" is not of type bool.'
-                            ),
-                            action="show",
-                            autoClose=10000,
+            if SELECTED_COLUMN_NAME in aux:
+                if aux.dtypes[SELECTED_COLUMN_NAME] != bool:
+                    notification = dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message=(
+                            f"The file {filepath.name} has been loaded but the"
+                            ' auxiliary column "{SELECTED_COLUMN_NAME}" is'
+                            " not of type bool."
                         ),
+                        action="show",
+                        autoClose=10000,
                     )
 
-                selected_rows = list(~aux["is_selected"].values)
-            else:
-                selected_rows = [True] * df.shape[0]
-
-            if "cluster" in aux:
-                clusters = list(aux["cluster"].values)
-
-                invalid_clusters = set(clusters) - set(
+            if CLUSTER_COLUMN_NAME in aux:
+                invalid_clusters = set(get_clusters(aux).categories) - set(
                     cluster_colours().keys()
                 )
-
                 if len(invalid_clusters) > 0:
-                    return (
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dash.no_update,
-                        dmc.Notification(
-                            id=str(uuid.uuid4()),
-                            color="yellow",
-                            title="Warning",
-                            message=(
-                                f"The file {filepath.name} could not be loaded"
-                                ' as a data frame: auxiliary column "cluster"'
-                                f" contains invalid values {invalid_clusters}."
-                            ),
-                            action="show",
-                            autoClose=10000,
-                        ),
+                    message = (
+                        f"The file {filepath.name} has been loaded"
+                        f' but the auxiliary column "{CLUSTER_COLUMN_NAME}"'
+                        f" contains invalid values {invalid_clusters}."
                     )
-            else:
-                clusters = ["all"] * df.shape[0]
-
-            if "pca_cols" in aux:
-                pca_cols = [
-                    (
-                        float(i.strip("][").split(", ")[0]),
-                        (float(i.strip("][").split(", ")[1])),
+                    notification = dmc.Notification(
+                        id=str(uuid.uuid4()),
+                        color="yellow",
+                        title="Warning",
+                        message=message,
+                        action="show",
+                        autoClose=10000,
                     )
-                    for i in list(aux["pca_cols"].values)
-                ]
-
-            else:
-                pca_cols = None
 
             return (
                 df_store,
+                aux_store,
                 meta,
-                clusters,
-                selected_rows,
-                pca_cols,
-                str(uuid.uuid4()),
                 notification,
             )
 
@@ -432,10 +391,8 @@ class Data(Tab):
             Input("download-plots-file-button", "n_clicks"),
             State("data_files", "value"),
             State("data_frame_store", "data"),
+            State("auxiliary_store", "data"),
             State("metadata_store", "data"),
-            State("clusters_column_store", "data"),
-            State("selected_rows_store", "data"),
-            State("pca_column_store", "data"),
             State(PlotData.get_id(ALL, ALL), "data"),
             State(generate_id(WriteFormatDropdown), "value"),
             prevent_initial_call=True,
@@ -445,14 +402,13 @@ class Data(Tab):
             p_clicks,
             filepath,
             df,
+            aux,
             meta,
-            clusters,
-            selected_rows,
-            pca_cols,
             plot_data,
             file_extension,
         ):
             df = df_from_store(df)
+            aux = decode_aux(aux)
 
             if filepath is None or df is None:
                 return dash.no_update, dmc.Notification(
@@ -500,19 +456,6 @@ class Data(Tab):
 
                 if ctx.triggered_id == "download-plots-file-button":
                     try:
-                        aux = dict()
-
-                        if clusters is not None:
-                            aux["cluster"] = clusters
-
-                        if selected_rows is not None:
-                            aux["is_selected"] = ~np.asarray(
-                                selected_rows, dtype=bool
-                            )
-
-                        if pca_cols is not None:
-                            aux["pca_cols"] = pca_cols
-
                         for data in plot_data:
                             index = data["index"]
                             del data["index"]
@@ -520,7 +463,7 @@ class Data(Tab):
 
                         filename, mime = write_dataframe_and_metadata(
                             df,
-                            pd.DataFrame(aux),
+                            aux,
                             meta,
                             meta["filename"],
                             file,
@@ -574,7 +517,7 @@ class Data(Tab):
                 text="Drag and Drop or Select a File to upload",
                 default_style={"minHeight": 1, "lineHeight": 4},
             )
-        except (ImportError, AttributeError):
+        except (ImportError, AttributeError, NotImplementedError):
             uploader = dcc.Upload(
                 id="file_uploader",
                 children=html.Div(

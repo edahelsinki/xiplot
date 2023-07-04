@@ -17,8 +17,7 @@ def KMeans(n_clusters: int = 8, **kwargs) -> object:
     versions `>=1.2,<1.4`. Older and newer versions are not affected (unless
     `n_init="warn"` is manually specified).
 
-    NOTE: This function lazily loads scikit-learn (so the first call might be
-     slow).
+    NOTE: This function lazily loads scikit-learn (so the first call might be slow).
 
     Args:
         n_clusters: The number of clusters. Defaults to 8.
@@ -31,5 +30,5 @@ def KMeans(n_clusters: int = 8, **kwargs) -> object:
 
     km = KMeans(n_clusters, **kwargs)
     if km.n_init == "warn":
-        km.n_init == "auto"
+        km.n_init = "auto"
     return km

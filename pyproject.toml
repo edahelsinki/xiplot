@@ -1,6 +1,6 @@
 [project]
 name = "xiplot"
-version = "0.2.0"
+version = "0.3.0"
 authors = [
     { name = "Akihiro Tanaka", email = "akihiro.fin@gmail.com" },
     { name = "Juniper Tyree", email = "juniper.tyree@helsinki.fi" },
@@ -33,7 +33,16 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "black", "dash[testing]", "isort", "pyproject-flake8", "webdriver-manager", "selenium"]
+dev = [
+    "pytest",
+    "black",
+    "dash[testing]",
+    "isort",
+    "pyproject-flake8",
+    "webdriver-manager",
+    "selenium",
+    "IPython",
+]
 
 [project.urls]
 homepage = "https://github.com/edahelsinki/xiplot"

@@ -1,7 +1,10 @@
 import base64
+import uuid
+from collections import Counter
 from io import BytesIO
-from typing import Any, Callable, Dict, Optional, Sequence, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Union
 
+import pandas as pd
 import plotly as po
 from dash import (
     ALL,
@@ -17,6 +20,9 @@ from dash import (
 )
 
 from xiplot.utils import generate_id
+from xiplot.utils.auxiliary import decode_aux, get_clusters
+from xiplot.utils.cluster import cluster_colours
+from xiplot.utils.regex import dropdown_regex
 
 
 class FlexRow(html.Div):
@@ -75,6 +81,280 @@ class InputText(html.Div):
         super().__init__(children=inp, className=className, **div_kws)
 
 
+class ColumnDropdown(dcc.Dropdown):
+    def __init__(
+        self,
+        id: Dict,
+        *args,
+        **kwargs,
+    ):
+        """Create a `dcc.Dropdown` for selecting columns from the data frame
+        and auxiliary data frame.
+
+        Args:
+            id: Element id.
+            *args: Arguments forwarded to `dcc.Dropdown`.
+            regex: Add a hidden synced input field for regex matching.
+            *kwargs: Keyword arguments forwarded to `dcc.Dropdown`.
+        """
+        super().__init__(
+            *args,
+            id=id,
+            **kwargs,
+        )
+
+    @classmethod
+    def get_columns(
+        cls,
+        df: pd.DataFrame,
+        aux: pd.DataFrame,
+        options: List[str] = [],
+        numeric: bool = False,
+        category: bool = False,
+    ) -> List[str]:
+        """Get column names from the data frame and auxiliary data frame.
+
+        Args:
+            df: Data frame.
+            aux: Auxiliary data frame.
+            options: Additional options to add to the column names. Defaults to [].
+            numeric: Only select numeric columns. Defaults to False.
+            category: Only select categorical (and integer, and object) columns.
+              Defaults to False.
+
+        Returns:
+            List of column names
+        """
+        if numeric:
+            return (
+                options
+                + df.select_dtypes("number").columns.to_list()
+                + aux.select_dtypes("number").columns.to_list()
+            )
+        elif category:
+            return (
+                options
+                + df.select_dtypes(
+                    ["number", "category", "object"], "float"
+                ).columns.to_list()
+                + aux.select_dtypes(
+                    ["number", "category", "object"], "float"
+                ).columns.to_list()
+            )
+        else:
+            return options + df.columns.to_list() + aux.columns.to_list()
+
+    @classmethod
+    def register_callback(
+        cls,
+        app: Dash,
+        id: Dict,
+        df_from_store: Callable,
+        options: List[str] = [],
+        numeric: bool = False,
+        category: bool = False,
+        regex_button_id: Optional[Dict] = None,
+        regex_input_id: Optional[Dict] = None,
+    ):
+        """Register callbacks for the dropdowns.
+        Call this once per unique id (ignoring index).
+
+        Args:
+            app: Dash app.
+            id: Dropdown id.
+            df_from_store: Function for extracting dataframes from store.
+            options: See `ColumnDropdown.get_columns()`. Defaults to [].
+            numeric: See `ColumnDropdown.get_columns()`. Defaults to False.
+            category: See `ColumnDropdown.get_columns()`. Defaults to False.
+            regex_button_id: Id for the "add regex" button, if this dropdown
+              accepts regex. Defaults to None.
+            regex_input_id: Id for a hidden input (that will be synced to the
+              dropdown), if this dropdown accepts regex. Defaults to None.
+        """
+        if regex_button_id is None or regex_input_id is None:
+            if isinstance(id, dict) and "index" in id:
+                id["index"] = ALL
+
+            @app.callback(
+                Output(id, "options"),
+                Input("data_frame_store", "data"),
+                Input("auxiliary_store", "data"),
+                State(id, "value"),
+                prevent_initial_call=False,
+            )
+            def update_columns(df, aux, dds):
+                if df is None:
+                    return no_update
+                df = df_from_store(df)
+                aux = decode_aux(aux)
+                columns = cls.get_columns(df, aux, options, numeric, category)
+                if isinstance(id, dict) and "index" in id:
+                    return [columns] * len(dds)
+                else:
+                    return columns
+
+        else:
+            if isinstance(id, dict) and "index" in id:
+                id["index"] = MATCH
+                regex_button_id["index"] = MATCH
+                regex_input_id["index"] = MATCH
+
+            # Sync `dropdown.search_value` and "regex_input"
+            app.clientside_callback(
+                """
+                function (input) {
+                if (input == "") {
+                    return window.dash_clientside.no_update;
+                }
+                return input;
+                }
+                """,
+                Output(regex_input_id, "value"),
+                Input(id, "search_value"),
+            )
+
+            @app.callback(
+                Output(id, "options"),
+                Output(id, "value"),
+                Output(id, "search_value"),
+                Input("data_frame_store", "data"),
+                Input("auxiliary_store", "data"),
+                Input(regex_button_id, "n_clicks"),
+                Input(id, "value"),
+                State(regex_input_id, "value"),
+                prevent_initial_call=False,
+            )
+            def update_columns_regex(df, aux, _nc, selected, regex):
+                if df is None:
+                    return no_update, no_update, no_update
+                df = df_from_store(df)
+                aux = decode_aux(aux)
+                columns = cls.get_columns(df, aux, options, numeric, category)
+
+                if ctx.triggered_id == regex_button_id or (
+                    isinstance(ctx.triggered_id, dict)
+                    and ctx.triggered_id["type"] == regex_button_id["type"]
+                ):
+                    new_search = ""
+                else:
+                    regex = None
+                    new_search = no_update
+
+                columns, selected, _ = dropdown_regex(columns, selected, regex)
+                return columns, selected, new_search
+
+
+class ClusterDropdown(dcc.Dropdown):
+    def __init__(
+        self,
+        *args,
+        index: Optional[str] = None,
+        id: Optional[Dict] = None,
+        **kwargs,
+    ):
+        """Create a `dcc.Dropdown` for selecting clusters.
+
+        Args:
+            index: Index of the dropdown (to be used with the default id).
+              Defaults to None.
+            id: Optionally override the default id (see
+              `ClusterDropdown.register_callbacks()`). Defaults to None.
+        """
+        if not id:
+            id = self.get_id(index if index is not None else str(uuid.uuid4()))
+        super().__init__(*args, id=id, options=self.get_options(), **kwargs)
+
+    @classmethod
+    def get_id(cls, index: str):
+        return generate_id(cls, index)
+
+    @classmethod
+    def get_options(
+        cls, clusters: Optional[pd.Categorical] = None, empty: bool = False
+    ) -> List[object]:
+        """Generate the options for a ClusterDropdown.
+
+        Args:
+            clusters: Optional column of cluster ids. Defaults to None.
+            empty: Include emtpy clusters. Defaults to False.
+
+        Returns:
+            List of Dropdown options.
+        """
+        cc = cluster_colours()
+        if clusters is None:
+            counter = {k: "" for k in cc.keys()}
+        else:
+            counter = {k: f": [{v}]" for k, v in Counter(clusters).items()}
+            counter["all"] = f": [{len(clusters)}]"
+        if empty:
+            for k in cc.keys():
+                if k not in counter:
+                    counter[k] = ""
+
+        options = [
+            {
+                "label": html.Div(
+                    [
+                        html.Div(
+                            style={"background-color": colour},
+                            className="color-rect",
+                        ),
+                        html.Div(
+                            (
+                                f"Everything{counter[cluster]}"
+                                if cluster == "all"
+                                else f"Cluster #{i}{counter[cluster]}"
+                            ),
+                            style={
+                                "display": "inline-block",
+                                "padding-left": 10,
+                            },
+                        ),
+                    ],
+                    style={"display": "flex", "align-items": "center"},
+                ),
+                "value": cluster,
+            }
+            for i, (cluster, colour) in enumerate(cluster_colours().items())
+            if cluster in counter
+        ]
+        return options
+
+    @classmethod
+    def register_callbacks(
+        cls,
+        app: Dash,
+        id: Union[None, str, Dict] = None,
+        empty: bool = False,
+    ):
+        """Register callbacks for the cluster dropdowns.
+        This is only needed if the id is changed (otherwise it is already setup).
+
+        Args:
+            app: Dash app
+            id: Custom id (dicts should have an `ALL` component). Defaults to None.
+            empty: Include empty clausers. Defaults to False.
+        """
+        if id is None:
+            id = cls.get_id(ALL)
+
+        @app.callback(
+            Output(id, "options"),
+            Input("auxiliary_store", "data"),
+            prevent_initial_call=False,
+        )
+        def cluster_dropdown_count_callback(aux):
+            if aux is None:
+                return no_update
+            clusters = get_clusters(aux)
+            options = cls.get_options(clusters, empty)
+            if isinstance(id, dict):
+                return [options] * len(ctx.outputs_list)
+            else:
+                return options
+
+
 class DeleteButton(html.Button):
     def __init__(self, index: Any, children: str = "x", **kwargs: Any):
         """Create a delete button.
@@ -97,7 +377,11 @@ try:
 
     class PdfButton(html.Button):
         def __init__(
-            self, index: Any, children: str = "Download as pdf", **kwargs: Any
+            self,
+            index: str,
+            plot_name: str,
+            children: str = "Download as pdf",
+            **kwargs: Any,
         ):
             """Create a button for donwloading plots as pdf.
 
@@ -107,18 +391,17 @@ try:
                     "Download as pdf".
                 **kwargs: additional arguments forwarded to `html.Button`.
             """
-            super().__init__(
-                children=children, id=generate_id(type(self), index), **kwargs
-            )
+            id = generate_id(type(self), index)
+            id["plot"] = plot_name
+            id2 = generate_id(type(self), index, "download")
+            id2["plot"] = plot_name
+            children = [children, dcc.Download(id=id2)]
+            super().__init__(children=children, id=id, **kwargs)
 
         @classmethod
-        def create_global(cls) -> Any:
-            """Create the `dcc.Download` component needed for the pdf button
-            (add it to your layout)."""
-            return dcc.Download(id=generate_id(cls, None, "download"))
-
-        @classmethod
-        def register_callback(cls, app: Dash, graph_id: Dict[str, Any]):
+        def register_callback(
+            cls, app: Dash, plot_name: str, graph_id: Dict[str, str]
+        ):
             """Register callbacks.
             NOTE: Currently this method has to be called separately for every
             type of graph.
@@ -127,26 +410,22 @@ try:
 
             Args:
                 app: Xiplot app.
+                plot_name: Name of the plot.
                 graph_id: Id of the graph.
             """
-            graph_id["index"] = ALL
+            id = generate_id(cls, MATCH)
+            id["plot"] = plot_name
+            id2 = generate_id(cls, MATCH, "download")
+            id2["plot"] = plot_name
+            graph_id["index"] = MATCH
 
             @app.callback(
-                Output(generate_id(cls, None, "download"), "data"),
-                Input(generate_id(cls, ALL), "n_clicks"),
+                Output(id2, "data"),
+                Input(id, "n_clicks"),
                 State(graph_id, "figure"),
                 prevent_initial_call=True,
             )
-            def download_as_pdf(n_clicks, fig):
-                if ctx.triggered[0]["value"] is None:
-                    return no_update
-
-                figs = ctx.args_grouping[1]
-
-                figure = None
-                for f in figs:
-                    if f["id"]["index"] == ctx.triggered_id["index"]:
-                        figure = f["value"]
+            def download_as_pdf(n_clicks, figure):
                 if not figure:
                     return no_update
                 fig_img = po.io.to_image(figure, format="pdf")
@@ -162,15 +441,19 @@ try:
 except ImportError:
 
     class PdfButton(html.Div):
-        def __init__(self, index: Any, **kwargs: Any):
+        def __init__(
+            self,
+            index: str,
+            plot_name: str,
+            children: str = "Download as pdf",
+            **kwargs: Any,
+        ):
             super().__init__(id=generate_id(type(self), index), **kwargs)
 
         @classmethod
-        def create_global(cls) -> Any:
-            pass
-
-        @classmethod
-        def register_callback(cls, app: Dash, graph_id: Dict[str, Any]):
+        def register_callback(
+            cls, app: Dash, plot_name: str, graph_id: Dict[str, str]
+        ):
             pass
 
 

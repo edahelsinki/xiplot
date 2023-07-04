@@ -1,12 +1,9 @@
-import time
-
 import dash
 import pandas as pd
 from selenium.webdriver.common.by import By
 
-from tests.util_test import render_plot
+from tests.util_test import render_plot, start_server
 from xiplot.plots.heatmap import Heatmap
-from xiplot.setup import setup_xiplot_dash_app
 
 tmp = Heatmap.register_callbacks(
     dash.Dash(__name__), lambda x: x, lambda x: x
@@ -14,11 +11,7 @@ tmp = Heatmap.register_callbacks(
 
 
 def test_tehe001_render_heatmap(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(1)
-    dash_duo.wait_for_page()
-
+    driver = start_server(dash_duo)
     render_plot(dash_duo, driver, "Heatmap")
 
     plot = driver.find_element(By.CLASS_NAME, "dash-graph")
@@ -32,7 +25,7 @@ def test_tehe001_render_heatmap(dash_duo):
 def test_create_heatmap():
     d = {"col1": [1, 2], "col2": [3, 4]}
     df = pd.DataFrame(data=d)
-    output = tmp(2, ["col1", "col2"], df, [])
+    output = tmp(2, ["col1", "col2"], df, pd.DataFrame())
     fig = output
 
     assert str(type(fig)) == "<class 'plotly.graph_objs._figure.Figure'>"

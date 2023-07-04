@@ -1,6 +1,5 @@
 import uuid
 from collections import defaultdict
-from collections.abc import Iterable
 from itertools import product
 
 import dash
@@ -9,21 +8,25 @@ import jsonschema
 import numpy as np
 import pandas as pd
 import plotly.express as px
-from dash import ALL, MATCH, Input, Output, State, ctx, dcc, html
+from dash import MATCH, Input, Output, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
+from xiplot.utils.auxiliary import decode_aux, get_clusters, merge_df_aux
 from xiplot.utils.cluster import cluster_colours
-from xiplot.utils.components import PdfButton, PlotData
-from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.embedding import add_pca_columns_to_df
-from xiplot.utils.layouts import cluster_dropdown, layout_wrapper
+from xiplot.utils.components import (
+    ClusterDropdown,
+    ColumnDropdown,
+    PdfButton,
+    PlotData,
+)
+from xiplot.utils.layouts import layout_wrapper
 
 
 class Barplot(APlot):
     @classmethod
     def register_callbacks(cls, app, df_from_store, df_to_store):
-        PdfButton.register_callback(app, {"type": "barplot"})
+        PdfButton.register_callback(app, cls.name(), {"type": "barplot"})
 
         @app.callback(
             Output({"type": "barplot", "index": MATCH}, "figure"),
@@ -31,16 +34,12 @@ class Barplot(APlot):
                 {"type": "barplot-notify-container", "index": MATCH},
                 "children",
             ),
-            Input({"type": "barplot_x_axis", "index": MATCH}, "value"),
-            Input({"type": "barplot_y_axis", "index": MATCH}, "value"),
-            Input(
-                {"type": "bp_cluster_comparison_dropdown", "index": MATCH},
-                "value",
-            ),
+            Input(cls.get_id(MATCH, "x_axis_dropdown"), "value"),
+            Input(cls.get_id(MATCH, "y_axis_dropdown"), "value"),
+            Input(ClusterDropdown.get_id(MATCH), "value"),
             Input({"type": "order_dropdown", "index": MATCH}, "value"),
-            Input("clusters_column_store", "data"),
             Input("data_frame_store", "data"),
-            Input("pca_column_store", "data"),
+            Input("auxiliary_store", "data"),
             Input("plotly-template", "data"),
             prevent_initial_call=False,
         )
@@ -49,9 +48,8 @@ class Barplot(APlot):
             y_axis,
             selected_clusters,
             order,
-            kmeans_col,
             df,
-            pca_cols,
+            aux,
             template=None,
         ):
             try:
@@ -69,9 +67,8 @@ class Barplot(APlot):
                         y_axis,
                         selected_clusters,
                         order,
-                        kmeans_col,
                         df_from_store(df),
-                        pca_cols,
+                        decode_aux(aux),
                         template,
                     ),
                     dash.no_update,
@@ -90,54 +87,31 @@ class Barplot(APlot):
             cls.name(),
             app,
             [
-                Input({"type": "barplot_x_axis", "index": MATCH}, "value"),
-                Input({"type": "barplot_y_axis", "index": MATCH}, "value"),
-                Input(
-                    {"type": "bp_cluster_comparison_dropdown", "index": MATCH},
-                    "value",
-                ),
+                Input(cls.get_id(MATCH, "x_axis_dropdown"), "value"),
+                Input(cls.get_id(MATCH, "y_axis_dropdown"), "value"),
+                Input(ClusterDropdown.get_id(MATCH), "value"),
                 Input({"type": "order_dropdown", "index": MATCH}, "value"),
             ],
             lambda i: dict(
                 axes=dict(x=i[0], y=i[1]),
-                groupby="Clusters",
                 classes=i[2] or [],
                 order=i[3],
             ),
         )
 
-        @app.callback(
-            output=dict(
-                barplot_y=Output(
-                    {"type": "barplot_y_axis", "index": ALL}, "options"
-                ),
-            ),
-            inputs=[
-                Input("pca_column_store", "data"),
-                State("data_frame_store", "data"),
-                State({"type": "barplot_y_axis", "index": ALL}, "options"),
-                Input({"type": "barplot", "index": ALL}, "figure"),
-            ],
+        ColumnDropdown.register_callback(
+            app,
+            cls.get_id(MATCH, "x_axis_dropdown"),
+            df_from_store,
+            category=True,
         )
-        def update_columns(pca_cols, df, y_all_options, fig):
-            df = df_from_store(df)
-
-            if y_all_options:
-                y_options = y_all_options[0]
-            else:
-                return dash.no_update
-
-            if (
-                pca_cols
-                and len(pca_cols) == df.shape[0]
-                and "Xiplot_PCA_1" not in y_options
-                and "Xiplot_PCA_2" not in y_options
-            ):
-                y_options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
-
-            return dict(
-                barplot_y=[y_options] * len(y_all_options),
-            )
+        ColumnDropdown.register_callback(
+            app,
+            cls.get_id(MATCH, "y_axis_dropdown"),
+            df_from_store,
+            options=["frequency"],
+            numeric=True,
+        )
 
         return [tmp]
 
@@ -147,25 +121,21 @@ class Barplot(APlot):
         y_axis,
         selected_clusters,
         order,
-        kmeans_col,
         df,
-        pca_cols=[],
+        aux,
         template=None,
     ):
-        if len(kmeans_col) == df.shape[0]:
-            df["Clusters"] = kmeans_col
+        df = merge_df_aux(df, aux)
         if "frequency" not in df.columns:
             df["frequency"] = [1 for _ in range(len(df))]
-
-        df = add_pca_columns_to_df(df, pca_cols)
 
         if x_axis == y_axis:
             raise Exception("The x and y axis must be different")
 
+        clusters = get_clusters(aux, df.shape[0])
         if not selected_clusters:
-            selected_clusters = sorted(set(kmeans_col))
-        else:
-            selected_clusters = set(selected_clusters)
+            selected_clusters = clusters.categories
+        selected_clusters = set(selected_clusters)
 
         Xs = []
         Ys = []
@@ -178,7 +148,7 @@ class Barplot(APlot):
                     for f, xs in zip(df["frequency"], df[x_axis])
                 ]
 
-            for xs, y, c in zip(df[x_axis], df[y_axis], df["Clusters"]):
+            for xs, y, c in zip(df[x_axis], df[y_axis], clusters):
                 for x in xs:
                     if c in selected_clusters:
                         Xs.append(x)
@@ -190,7 +160,7 @@ class Barplot(APlot):
                         Ys.append(y)
                         Cs.append("all")
         else:
-            for x, y, c in zip(df[x_axis], df[y_axis], df["Clusters"]):
+            for x, y, c in zip(df[x_axis], df[y_axis], clusters):
                 if c in selected_clusters:
                     Xs.append(x)
                     Ys.append(y)
@@ -296,16 +266,14 @@ class Barplot(APlot):
 
         return fig
 
-    @staticmethod
-    def create_layout(index, df, columns, config=dict()):
-        x_columns = [
-            c
-            for c in columns
-            if isinstance(df[c][0], Iterable)
-            or df[c].dtype in (int, np.int32, np.int64)
-        ]
-        y_columns = ["frequency"] + get_numeric_columns(df, columns)
-
+    @classmethod
+    def create_layout(cls, index, df, columns, config=dict()):
+        x_columns = ColumnDropdown.get_columns(
+            df, pd.DataFrame(), category=True
+        )
+        y_columns = ColumnDropdown.get_columns(
+            df, pd.DataFrame(), ["frequency"], numeric=True
+        )
         jsonschema.validate(
             instance=config,
             schema=dict(
@@ -314,24 +282,16 @@ class Barplot(APlot):
                     axes=dict(
                         type="object",
                         properties=dict(
-                            x=dict(enum=x_columns),
-                            y=dict(enum=y_columns),
+                            x=dict(type="string"), y=dict(type="string")
                         ),
                     ),
-                    groupby=dict(enum=["Clusters"]),
                     classes=dict(
                         type="array",
-                        items=dict(
-                            enum=list(cluster_colours().keys()),
-                        ),
+                        items=dict(enum=list(cluster_colours().keys())),
                         uniqueItems=True,
                     ),
+                    order=dict(enum=["reldiff", "total"]),
                 ),
-                dependentRequired=dict(
-                    classes=["groupby"],
-                    groupby=["classes"],
-                ),
-                order=dict(enum=["reldiff", "total"]),
             ),
         )
 
@@ -343,12 +303,6 @@ class Barplot(APlot):
         if x_axis is None and len(x_columns) > 0:
             x_axis = x_columns[0]
 
-        if x_axis is None:
-            raise Exception(
-                "The dataframe contains no integer or iterable-categorical"
-                " columns"
-            )
-
         try:
             y_axis = config["axes"]["y"]
         except Exception:
@@ -357,15 +311,14 @@ class Barplot(APlot):
         if x_axis == y_axis:
             raise Exception("The x and y axis must be different")
 
-        _groupby = config.get("groupby", "Clusters")  # noqa: F841
         classes = config.get("classes", [])
         order = config.get("order", "reldiff")
 
         return [
             dcc.Graph(id={"type": "barplot", "index": index}),
             layout_wrapper(
-                component=dcc.Dropdown(
-                    id={"type": "barplot_x_axis", "index": index},
+                component=ColumnDropdown(
+                    cls.get_id(index, "x_axis_dropdown"),
                     value=x_axis,
                     clearable=False,
                     options=x_columns,
@@ -374,8 +327,8 @@ class Barplot(APlot):
                 title="x axis",
             ),
             layout_wrapper(
-                component=dcc.Dropdown(
-                    id={"type": "barplot_y_axis", "index": index},
+                component=ColumnDropdown(
+                    cls.get_id(index, "y_axis_dropdown"),
                     value=y_axis,
                     clearable=False,
                     options=y_columns,
@@ -383,12 +336,10 @@ class Barplot(APlot):
                 css_class="dd-double-right",
                 title="y axis",
             ),
-            cluster_dropdown(
-                "bp_cluster_comparison_dropdown",
-                index,
-                multi=True,
-                value=classes,
-                clearable=True,
+            layout_wrapper(
+                component=ClusterDropdown(
+                    index=index, multi=True, value=classes, clearable=True
+                ),
                 title="Cluster Comparison",
                 css_class="dd-single cluster-comparison",
             ),

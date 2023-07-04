@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from xiplot.plugin import get_plugins_cached
+from xiplot.tabs.plugins import get_plugins_cached
 from xiplot.utils.dataframe import read_functions, write_functions
 
 

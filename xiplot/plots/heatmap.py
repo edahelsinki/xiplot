@@ -1,35 +1,37 @@
-import dash
 import jsonschema
 import plotly.express as px
-from dash import MATCH, Input, Output, State, ctx, dcc, html
+from dash import MATCH, Input, Output, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
+from xiplot.utils.auxiliary import decode_aux, merge_df_aux
 from xiplot.utils.cluster import KMeans
-from xiplot.utils.components import FlexRow, PdfButton, PlotData
+from xiplot.utils.components import (
+    ColumnDropdown,
+    FlexRow,
+    PdfButton,
+    PlotData,
+)
 from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.embedding import add_pca_columns_to_df
 from xiplot.utils.layouts import layout_wrapper
-from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
+from xiplot.utils.regex import get_columns_by_regex
 
 
 class Heatmap(APlot):
     @classmethod
     def register_callbacks(cls, app, df_from_store, df_to_store):
-        PdfButton.register_callback(app, {"type": "heatmap"})
+        PdfButton.register_callback(app, cls.name(), {"type": "heatmap"})
 
         @app.callback(
             Output({"type": "heatmap", "index": MATCH}, "figure"),
             Input({"type": "heatmap_cluster_amount", "index": MATCH}, "value"),
-            Input(
-                {"type": "heatmap_feature_dropdown", "index": MATCH}, "value"
-            ),
+            Input(cls.get_id(MATCH, "columns_dropdown"), "value"),
             Input("data_frame_store", "data"),
-            Input("pca_column_store", "data"),
+            Input("auxiliary_store", "data"),
             Input("plotly-template", "data"),
             prevent_initial_call=False,
         )
-        def tmp(n_clusters, features, df, pca_cols, template=None):
+        def tmp(n_clusters, features, df, aux, template=None):
             # Try branch for testing
             try:
                 if ctx.triggered_id == "data_frame_store":
@@ -40,79 +42,21 @@ class Heatmap(APlot):
                 pass
 
             return Heatmap.render(
-                n_clusters, features, df_from_store(df), pca_cols, template
+                n_clusters,
+                features,
+                df_from_store(df),
+                decode_aux(aux),
+                template,
             )
 
-        @app.callback(
-            Output(
-                {"type": "heatmap_feature_dropdown", "index": MATCH}, "options"
-            ),
-            Output(
-                {"type": "heatmap_feature_dropdown", "index": MATCH}, "value"
-            ),
-            Output(
-                {"type": "heatmap_feature_dropdown", "index": MATCH},
-                "search_value",
-            ),
-            Input("data_frame_store", "data"),
-            Input("pca_column_store", "data"),
-            Input(
-                {"type": "heatmap_regex-button", "index": MATCH}, "n_clicks"
-            ),
-            Input(
-                {"type": "heatmap_feature_dropdown", "index": MATCH}, "value"
-            ),
-            State(
-                {"type": "heatmap_feature_dropdown", "index": MATCH}, "options"
-            ),
-            State({"type": "heatmap_feature-input", "index": MATCH}, "value"),
+        ColumnDropdown.register_callback(
+            app,
+            cls.get_id(MATCH, "columns_dropdown"),
+            df_from_store,
+            numeric=True,
+            regex_button_id=cls.get_id(MATCH, "regex_button"),
+            regex_input_id=cls.get_id(MATCH, "regex_input"),
         )
-        def add_features_by_regex(
-            df, pca_cols, n_clicks, features, options, keyword
-        ):
-            df = df_from_store(df)
-
-            if ctx.triggered_id == "data_frame_store":
-                options = get_numeric_columns(df, df.columns.to_list())
-                return options, None, dash.no_update
-
-            if (
-                ctx.triggered_id == "pca_column_store"
-                and "Xiplot_PCA_1" not in options
-                and "Xiplot_PCA_2" not in options
-            ):
-                options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
-                return options, dash.no_update, dash.no_update
-
-            if not features:
-                features = []
-
-            if ctx.triggered_id["type"] == "heatmap_regex-button":
-                options, features, hits = dropdown_regex(
-                    options or [], features, keyword
-                )
-                return options, features, ""
-
-            if ctx.triggered_id["type"] == "heatmap_feature_dropdown":
-                options = get_numeric_columns(df, df.columns.to_list())
-
-                if pca_cols:
-                    options.extend(["Xiplot_PCA_1", "Xiplot_PCA_2"])
-
-                options, features, hits = dropdown_regex(options, features)
-                return options, features, ""
-
-        @app.callback(
-            Output({"type": "heatmap_feature-input", "index": MATCH}, "value"),
-            Input(
-                {"type": "heatmap_feature_dropdown", "index": MATCH},
-                "search_value",
-            ),
-        )
-        def sync_with_input(keyword):
-            if keyword == "":
-                raise PreventUpdate()
-            return keyword
 
         PlotData.register_callback(
             cls.name(),
@@ -120,16 +64,17 @@ class Heatmap(APlot):
             dict(
                 clusters=Input(
                     {"type": "heatmap_cluster_amount", "index": MATCH}, "value"
-                )
+                ),
+                columns=Input(cls.get_id(MATCH, "columns_dropdown"), "value"),
             ),
         )
 
         return [tmp]
 
     @staticmethod
-    def render(n_clusters, features, df, pca_cols=[], template=None):
+    def render(n_clusters, features, df, aux, template=None):
         km = KMeans(n_clusters=n_clusters, random_state=42)
-        df = add_pca_columns_to_df(df, pca_cols)
+        df = merge_df_aux(df, aux)
         dff = df.dropna()
 
         features = get_columns_by_regex(dff.columns.to_list(), features)
@@ -152,43 +97,34 @@ class Heatmap(APlot):
         )
         return fig
 
-    @staticmethod
-    def create_layout(index, df, columns, config=dict()):
+    @classmethod
+    def create_layout(cls, index, df, columns, config=dict()):
         jsonschema.validate(
             instance=config,
             schema=dict(
                 type="object", properties=dict(clusters=dict(type="integer"))
             ),
         )
-
         n_clusters = config.get("clusters", 5)
         num_columns = get_numeric_columns(df, columns)
         return [
             dcc.Graph(id={"type": "heatmap", "index": index}),
             FlexRow(
                 layout_wrapper(
-                    component=dcc.Dropdown(
+                    component=ColumnDropdown(
+                        cls.get_id(index, "columns_dropdown"),
                         options=num_columns,
                         multi=True,
-                        id={
-                            "type": "heatmap_feature_dropdown",
-                            "index": index,
-                        },
                         clearable=False,
+                        value=config.get("columns", None),
                     ),
                     title="Features",
                     css_class="dash-dropdown",
                 ),
                 html.Button(
                     "Add features by regex",
-                    id={"type": "heatmap_regex-button", "index": index},
+                    id=cls.get_id(index, "regex_button"),
                     className="button",
-                ),
-                layout_wrapper(
-                    component=dcc.Input(
-                        id={"type": "heatmap_feature-input", "index": index}
-                    ),
-                    style={"display": "none"},
                 ),
                 layout_wrapper(
                     component=dcc.Slider(
@@ -201,5 +137,8 @@ class Heatmap(APlot):
                     title="Number of clusters",
                     css_class="dash-dropdown",
                 ),
+            ),
+            dcc.Input(
+                id=cls.get_id(index, "regex_input"), style={"display": "none"}
             ),
         ]

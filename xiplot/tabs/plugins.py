@@ -2,18 +2,15 @@ import uuid
 from asyncio import Future
 from collections import defaultdict
 from functools import partial
+from importlib.metadata import entry_points
 from pathlib import Path
-from typing import Optional
+from typing import Any, List, Literal, Optional, Tuple
+from warnings import warn
 
 import dash
 import dash_mantine_components as dmc
 from dash import Input, Output, State, ctx, dcc, html
 
-from xiplot.plugin import (
-    get_all_loaded_plugins,
-    get_all_loaded_plugins_cached,
-    get_plugins_cached,
-)
 from xiplot.tabs import Tab
 from xiplot.utils.components import FlexRow
 from xiplot.utils.layouts import layout_wrapper
@@ -388,6 +385,110 @@ class Plugins(Tab):
                 ),
             ]
         )
+
+
+def get_plugins(
+    plugin_type: Literal["read", "write", "plot", "global", "callback"],
+) -> List[Tuple[str, str, Any]]:
+    """Get a list of all plugins of the specified type.
+
+    Args:
+        plugin_type: The type of xiplot plugin.
+
+    Returns:
+        A list of tuples of each plugin's name, path, and its
+        loaded `entry_point`.
+    """
+    try:
+        # Python 3.10+
+        plugins = entry_points(group=f"xiplot.plugin.{plugin_type}")
+    except TypeError:
+        # Python 3.8-3.9
+        plugins = entry_points().get(f"xiplot.plugin.{plugin_type}", ())
+
+    loaded_plugins = []
+    for plugin in plugins:
+        try:
+            loaded_plugins.append((plugin.name, plugin.value, plugin.load()))
+        except Exception as e:
+            warn(f"Could not load plugin {plugin}: {e}")
+
+    return loaded_plugins
+
+
+def get_plugins_cached(
+    plugin_type: Literal["read", "write", "plot", "global", "callback"],
+) -> List[Tuple[str, str, Any]]:
+    """Get a list of all plugins of the specified type
+     (this call is cached for future reuse).
+
+    Args:
+        plugin_type: The type of xiplot plugin.
+
+    Returns:
+        A list of tuples of each plugin's name, path, and its
+        loaded `entry_point`.
+    """
+    if getattr(get_plugins_cached, "cache", None) is None:
+        get_plugins_cached.cache = dict()
+
+    cached_plugins_of_type = get_plugins_cached.cache.get(plugin_type, None)
+
+    if cached_plugins_of_type is not None:
+        return cached_plugins_of_type
+
+    loaded_plugins = get_plugins(plugin_type)
+    get_plugins_cached.cache[plugin_type] = loaded_plugins
+
+    return loaded_plugins
+
+
+def get_all_loaded_plugins() -> List[Tuple[str, str, str, Any]]:
+    """Collects the list of all loaded plugins and their types.
+
+    Returns:
+        A list of tuples of each plugin's type, name, path, and its
+        loaded `entry_point`.
+
+    """
+    plugins = []
+
+    for plugin_type in ["read", "write", "plot", "global", "callback"]:
+        for name, path, plugin in get_plugins(plugin_type):
+            plugins.append((plugin_type, name, path, plugin))
+
+    return plugins
+
+
+def get_all_loaded_plugins_cached() -> List[Tuple[str, str, str, Any]]:
+    """Collects the list of all cached loaded plugins and their types.
+
+    Returns:
+        A list of tuples of each plugin's type, name, path, and its
+        loaded `entry_point`.
+
+    """
+    plugins = []
+
+    for plugin_type in ["read", "write", "plot", "global", "callback"]:
+        for name, path, plugin in get_plugins_cached(plugin_type):
+            plugins.append((plugin_type, name, path, plugin))
+
+    return plugins
+
+
+def is_dynamic_plugin_loading_supported() -> bool:
+    """Checks if xiplot supports dynamically loading new plugins at runtime.
+
+    Returns:
+        `True` if dynamic loading is supported, `False` otherwise.
+    """
+    try:
+        import micropip  # noqa: F401
+    except ImportError:
+        return False
+
+    return True
 
 
 def get_loaded_plugin_options():

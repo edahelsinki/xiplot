@@ -1,14 +1,11 @@
-import time
-
 import dash
 import pandas as pd
 import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
-from tests.util_test import render_plot
+from tests.util_test import render_plot, start_server
 from xiplot.plots.smiles import Smiles
-from xiplot.setup import setup_xiplot_dash_app
 
 update_smiles = Smiles.register_callbacks(
     dash.Dash(__name__), lambda x: x, lambda x: x
@@ -17,10 +14,7 @@ update_smiles = Smiles.register_callbacks(
 
 @pytest.fixture
 def driver(dash_duo):
-    driver = dash_duo.driver
-    dash_duo.start_server(setup_xiplot_dash_app(data_dir="data"))
-    time.sleep(1)
-    dash_duo.wait_for_page()
+    driver = start_server(dash_duo)
     render_plot(dash_duo, driver, "Smiles")
     return driver
 

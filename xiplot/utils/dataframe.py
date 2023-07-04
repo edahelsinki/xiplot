@@ -7,7 +7,7 @@ from typing import Any, Callable, Dict, Iterator, Optional, Tuple
 
 import pandas as pd
 
-from xiplot.plugin import get_plugins_cached
+from xiplot.tabs.plugins import get_plugins_cached
 from xiplot.utils.io import FinallyCloseBytesIO
 
 
@@ -188,9 +188,11 @@ def read_dataframe_with_extension(data, filename=None):
             try:
                 aux = read_only_dataframe(aux_file, aux_name)
             except pd.errors.EmptyDataError:
-                aux = pd.DataFrame(dict())
+                aux = pd.DataFrame()
 
-            if not aux.empty and df.shape[0] != aux.shape[0]:
+            if aux.empty:
+                aux.index = df.index
+            if df.shape[0] != aux.shape[0]:
                 raise Exception(
                     "The dataframe and auxiliary data have different number"
                     " of rows."
@@ -198,9 +200,10 @@ def read_dataframe_with_extension(data, filename=None):
 
             return df, aux, metadata
 
+    df = read_only_dataframe(data, filename)
     return (
-        read_only_dataframe(data, filename),
-        pd.DataFrame(dict()),
+        df,
+        pd.DataFrame(index=df.index),
         OrderedDict(filename=str(filename)),
     )
 
@@ -300,7 +303,7 @@ def write_only_dataframe(
     raise Exception(f"Unsupported dataframe format '{file_extension}'")
 
 
-def get_numeric_columns(df, columns):
+def get_numeric_columns(df, columns=None):
     """
     Return only columns, which are numeric
 
@@ -313,4 +316,6 @@ def get_numeric_columns(df, columns):
 
         columns: numeric columns
     """
-    return df[columns].select_dtypes("number").columns.to_list()
+    if columns is not None:
+        df = df[columns]
+    return df.select_dtypes("number").columns.to_list()

@@ -1,19 +1,17 @@
-from collections import Counter
-
 import dash_mantine_components as dmc
-from dash import ALL, Input, Output, ctx, dcc, html
+from dash import dcc, html
 
-from xiplot.plugin import (
-    get_plugins_cached,
-    is_dynamic_plugin_loading_supported,
-)
 from xiplot.tabs.cluster import Cluster
 from xiplot.tabs.data import Data
 from xiplot.tabs.embedding import Embedding
 from xiplot.tabs.plots import Plots
-from xiplot.tabs.plugins import Plugins
+from xiplot.tabs.plugins import (
+    Plugins,
+    get_plugins_cached,
+    is_dynamic_plugin_loading_supported,
+)
 from xiplot.tabs.settings import Settings
-from xiplot.utils.components import PdfButton
+from xiplot.utils.components import ClusterDropdown
 
 
 class XiPlot:
@@ -77,21 +75,14 @@ class XiPlot:
                     ),
                     html.Div(id="plots"),
                     dcc.Store(id="data_frame_store"),
+                    dcc.Store(id="auxiliary_store"),
                     dcc.Store(id="metadata_store"),
-                    dcc.Store(id="clusters_column_store"),
-                    dcc.Store(id="pca_column_store"),
-                    html.Div(
-                        id="clusters_column_store_reset",
-                        style={"display": "none"},
-                    ),
-                    dcc.Store(id="selected_rows_store"),
                     dcc.Store(id="lastly_clicked_point_store"),
                     dcc.Store(id="lastly_hovered_point_store"),
                     html.Div(
                         [t.create_layout_globals() for t in TABS],
                         id="globals",
                     ),
-                    PdfButton.create_global(),
                     html.Div(
                         [g() for (_, _, g) in get_plugins_cached("global")],
                         id="plugin-globals",
@@ -125,30 +116,7 @@ class XiPlot:
         for _, _, cb in get_plugins_cached("callback"):
             cb(app, df_from_store, df_to_store)
 
-        @app.callback(
-            Output(
-                {"type": "cluster-dropdown-count", "index": ALL}, "children"
-            ),
-            Input("clusters_column_store", "data"),
-            prevent_initial_call=False,
-        )
-        def cluster_dropdown_count_callback(kmeans_store):
-            if kmeans_store is None:
-                kmeans_store = []
-
-            counter = Counter(kmeans_store)
-
-            counts = []
-
-            for output in ctx.outputs_list:
-                cluster = output["id"]["index"].split("-")[0]
-
-                if cluster == "all":
-                    counts.append(len(kmeans_store))
-                else:
-                    counts.append(counter[cluster])
-
-            return [f": [{c}]" for c in counts]
+        ClusterDropdown.register_callbacks(app)
 
 
 def app_logo():

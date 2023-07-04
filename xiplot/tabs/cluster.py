@@ -4,47 +4,49 @@ import uuid
 import dash
 import dash_mantine_components as dmc
 import jsonschema
+import pandas as pd
 from dash import Input, Output, State, ctx, dcc, html
-from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.tabs import Tab
+from xiplot.utils.auxiliary import (
+    CLUSTER_COLUMN_NAME,
+    decode_aux,
+    encode_aux,
+    merge_df_aux,
+)
 from xiplot.utils.cluster import KMeans, cluster_colours
-from xiplot.utils.components import FlexRow
+from xiplot.utils.components import ClusterDropdown, ColumnDropdown, FlexRow
 from xiplot.utils.dataframe import get_numeric_columns
-from xiplot.utils.layouts import cluster_dropdown, layout_wrapper
-from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
+from xiplot.utils.layouts import layout_wrapper
+from xiplot.utils.regex import get_columns_by_regex
 
 
 class Cluster(Tab):
     @staticmethod
     def register_callbacks(app, df_from_store, df_to_store):
         @app.callback(
-            Output("clusters_column_store", "data"),
+            Output("auxiliary_store", "data"),
             Output("cluster-tab-main-notify-container", "children"),
             Output("cluster-tab-compute-done", "children"),
             State("data_frame_store", "data"),
+            State("auxiliary_store", "data"),
             Input("cluster-button", "value"),
             State("cluster-tab-compute-done", "children"),
             Input("clusters_reset-button", "n_clicks"),
             State("cluster_amount", "value"),
             State("cluster_feature", "value"),
-            CycleBreakerInput("clusters_column_store", "data"),
-            Input("clusters_column_store_reset", "children"),
         )
         def set_clusters(
             df,
+            aux,
             process_id,
             done,
             n_clicks,
             n_clusters,
             features,
-            kmeans_col,
-            reset,
         ):
             if ctx.triggered_id == "clusters_reset-button":
-                df = df_from_store(df)
-
                 if df is None:
                     return (
                         dash.no_update,
@@ -59,6 +61,7 @@ class Cluster(Tab):
                         dash.no_update,
                     )
 
+                df = df_from_store(df)
                 notifications = []
 
                 if process_id != done and process_id is not None:
@@ -85,20 +88,29 @@ class Cluster(Tab):
                         )
                     )
 
-                return ["all"] * df.shape[0], notifications, process_id
+                aux = decode_aux(aux)
+                if CLUSTER_COLUMN_NAME in aux:
+                    del aux[CLUSTER_COLUMN_NAME]
+                    return encode_aux(aux), notifications, process_id
+                return dash.no_update, notifications, process_id
 
             if ctx.triggered_id == "cluster-button":
                 notifications = []
 
                 try:
+                    aux = decode_aux(aux)
+                    df2 = merge_df_aux(df_from_store(df), aux)
                     kmeans_col = Cluster.create_by_input(
-                        df_from_store(df),
+                        df2,
                         features,
                         n_clusters,
-                        kmeans_col,
                         notifications,
                         process_id,
                     )
+
+                    if kmeans_col != dash.no_update:
+                        aux[CLUSTER_COLUMN_NAME] = pd.Categorical(kmeans_col)
+                        return encode_aux(aux), notifications, process_id
                 except ImportError as err:
                     raise err
                 except Exception as err:
@@ -116,10 +128,7 @@ class Cluster(Tab):
                             autoClose=False,
                         )
                     )
-
-                    return dash.no_update, notifications, process_id
-
-                return kmeans_col, notifications, process_id
+                return dash.no_update, notifications, process_id
 
             notifications = []
 
@@ -184,116 +193,24 @@ class Cluster(Tab):
                 disallowClose=True,
             )
 
-        @app.callback(
-            Output("cluster_feature", "options"),
-            Output("cluster_feature", "value"),
-            Output("cluster_feature", "search_value"),
-            Output("cluster-tab-regex-notify-container", "children"),
-            Input("data_frame_store", "data"),
-            Input("add_by_keyword-button", "n_clicks"),
-            Input("cluster_feature", "value"),
-            State("feature_keyword-input", "value"),
-            State("cluster_feature", "options"),
+        ColumnDropdown.register_callback(
+            app,
+            "cluster_feature",
+            df_from_store,
+            numeric=True,
+            regex_button_id="add_by_keyword-button",
+            regex_input_id="feature_keyword-input",
         )
-        def add_matching_values(df, n_clicks, features, keyword, options):
-            if df is None:
-                if ctx.triggered_id == "add_by_keyword-button":
-                    return (
-                        [],
-                        None,
-                        dash.no_update,
-                        dmc.Notification(
-                            id=str(uuid.uuid4()),
-                            color="yellow",
-                            title="Warning",
-                            message="You have not yet loaded any data file.",
-                            action="show",
-                            autoClose=10000,
-                        ),
-                    )
-                else:
-                    return ([], None, dash.no_update, dash.no_update)
-
-            df = df_from_store(df)
-            if ctx.triggered_id == "data_frame_store":
-                options = get_numeric_columns(df, df.columns.to_list())
-                return options, None, dash.no_update, None
-            if ctx.triggered_id == "add_by_keyword-button":
-                options, features, hits = dropdown_regex(
-                    options or [], features, keyword
-                )
-
-                if keyword is None:
-                    notification = dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="yellow",
-                        title="Warning",
-                        message="No regular expression was given.",
-                        action="show",
-                        autoClose=10000,
-                    )
-                elif hits == 0:
-                    notification = dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="yellow",
-                        title="Warning",
-                        message=(
-                            "No new features matched the regular expression"
-                            f' r"{keyword}".'
-                        ),
-                        action="show",
-                        autoClose=10000,
-                    )
-                elif hits == 1:
-                    notification = dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="blue",
-                        title="Info",
-                        message=(
-                            "One new feature matched the regular expression"
-                            f' r"{keyword}".'
-                        ),
-                        action="show",
-                        autoClose=5000,
-                    )
-                else:
-                    notification = dmc.Notification(
-                        id=str(uuid.uuid4()),
-                        color="blue",
-                        title="Info",
-                        message=(
-                            f"{hits} new features matched the regular"
-                            f' expression r"{keyword}".'
-                        ),
-                        action="show",
-                        autoClose=5000,
-                    )
-
-                return options, features, None, notification
-            if ctx.triggered_id == "cluster_feature":
-                options = get_numeric_columns(df, df.columns.to_list())
-                options, features, hits = dropdown_regex(options, features)
-                return options, features, dash.no_update, None
-
-        @app.callback(
-            Output("feature_keyword-input", "value"),
-            Input("cluster_feature", "search_value"),
-        )
-        def sync_with_input(keyword):
-            if keyword == "":
-                raise PreventUpdate()
-            return keyword
 
         @app.callback(
             Output("selection_cluster_dropdown", "value"),
             Output("selection_cluster_dropdown", "disabled"),
             Input("cluster_selection_mode", "value"),
-            State("selection_cluster_dropdown", "value"),
         )
-        def pin_selection_cluster(selection_mode, selection_cluster):
+        def pin_selection_cluster(selection_mode):
             if not selection_mode:
                 return "c1", True
-            return selection_cluster, False
+            return dash.no_update, False
 
         @app.callback(
             Output("cluster-tab-settings-session", "children"),
@@ -417,6 +334,10 @@ class Cluster(Tab):
 
             return meta
 
+        ClusterDropdown.register_callbacks(
+            app, "selection_cluster_dropdown", True
+        )
+
     @staticmethod
     def validate_cluster_params(
         features, n_clusters, notifications=None, process_id=None
@@ -467,20 +388,19 @@ class Cluster(Tab):
         df,
         features,
         n_clusters,
-        kmeans_col,
         notifications=None,
         process_id=None,
     ):
         if not Cluster.validate_cluster_params(
             features, n_clusters, notifications, process_id
         ):
-            return kmeans_col
+            return dash.no_update
 
         from sklearn.preprocessing import StandardScaler
 
         scaler = StandardScaler()
 
-        columns = get_numeric_columns(df, df.columns.to_list())
+        columns = get_numeric_columns(df)
         new_features = get_columns_by_regex(columns, features)
         scale = scaler.fit_transform(df[new_features])
 
@@ -508,7 +428,7 @@ class Cluster(Tab):
                 FlexRow(
                     layout_wrapper(
                         component=FlexRow(
-                            dcc.Dropdown(id="cluster_feature", multi=True),
+                            ColumnDropdown(id="cluster_feature", multi=True),
                             html.Button(
                                 "Add features by regex",
                                 id="add_by_keyword-button",
@@ -550,10 +470,12 @@ class Cluster(Tab):
                         labelClassName="button",
                         inline=True,
                     ),
-                    cluster_dropdown(
-                        id_name="selection_cluster_dropdown",
-                        value="c1",
-                        disabled=True,
+                    layout_wrapper(
+                        component=ClusterDropdown(
+                            id="selection_cluster_dropdown",
+                            value="c1",
+                            disabled=True,
+                        ),
                         css_class="dash-dropdown",
                         title="Select cluster",
                     ),
