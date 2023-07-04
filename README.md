@@ -6,13 +6,21 @@
 
 ## Description
 
-&chi;iplot is built on top of the [`dash`](https://github.com/plotly/dash) framework with its various extensions (see the [requirements.txt](requirements.txt) file). The goal of the &chi;iplot is to explore new insights from the collected data and to make data exploring user-friendly and intuitive.
+&chi;iplot is built on top of the [`dash`](https://github.com/plotly/dash) framework. The goal of the &chi;iplot is to explore new insights from the collected data and to make data exploring user-friendly and intuitive.
 
-&chi;iplot can be executed in server version or WASM-based browser version. 
+&chi;iplot can be run as a local server or as a [WASM-based browser version](https://edahelsinki.fi/xiplot). 
+
+You can find more details in the [user guide](docs/user_guide) and [the paper](https://arxiv.org/abs/2306.12110).
+For a quick demonstration <!-- see [the video](todo_insert_video_url) or --> try the [WASM version](https://edahelsinki.fi/xiplot).
+
+## Screenshot
+
+![Screenshot of xiplot](docs/images/cluster_by_drawing.png#gh-light-mode-only)
+![Screenshot of xiplot](docs/images/dark_mode.png#gh-dark-mode-only)
 
 ## Dependencies
 
-Install the depencies by running `pip install -r requirements.txt`
+Install the dependencies by running `pip install -r requirements.txt`
 
 ## Execution
 
@@ -22,11 +30,7 @@ Run `python3 -m xiplot` at the root directory.
 
 ### Serverless WASM version
 
-You can try out the serverless WASM version of &chi;iplot at [www.edahelsinki.fi/xiplot](https://www.edahelsinki.fi/xiplot). Please refer to the [wasm](https://github.com/edahelsinki/xiplot/tree/wasm#readme) branch for more information on how the WASM version is implemented.
-
-## User guide
-
-You can find the user guide [here](docs/user_guide).
+You can try out the serverless WASM version of &chi;iplot at [edahelsinki.fi/xiplot](https://edahelsinki.fi/xiplot). Please refer to the [wasm](https://github.com/edahelsinki/xiplot/tree/wasm#readme) branch for more information on how the WASM version is implemented.
 
 ## Funding
 
