@@ -72,3 +72,5 @@ profile = "black"
 line_length = 79
 
 [tool.flake8]
+max-line-length = 88
+exclude = "build/*"
