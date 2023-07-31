@@ -5,7 +5,7 @@
 
 from io import BytesIO
 from os import PathLike
-from typing import Any, Callable, Dict, Tuple, Union
+from typing import Any, Callable, Dict, Optional, Tuple, Union
 
 import pandas as pd
 from dash import Dash
@@ -52,11 +52,11 @@ CSS_DELETE_BUTTON_CLASS = "delete"
 # Helpful typehints:
 AReadFunction = Callable[[Union[BytesIO, PathLike]], pd.DataFrame]
 # Read plugin return string: file extension
-AReadPlugin = Callable[[], Tuple[AReadFunction, str]]
+AReadPlugin = Callable[[], Optional[Tuple[AReadFunction, str]]]
 AWriteFunction = Callable[[pd.DataFrame, BytesIO], None]
 # Write plugin return strings: file extension, MIME type
 #  (ususally "application/octet-stream")
-AWritePlugin = Callable[[], Tuple[AWriteFunction, str, str]]
+AWritePlugin = Callable[[], Optional[Tuple[AWriteFunction, str, str]]]
 AGlobalPlugin = Callable[[], Component]
 # Callback plugin functions: parse_to_dataframe, serialise_from_dataframe
 ACallbackPlugin = Callable[

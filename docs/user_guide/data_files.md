@@ -46,7 +46,7 @@ The plots and the data file will be downloaded as a .tar file. It can be restore
 
 ## Dataframe loading and saving
 
-`xiplot` uses `pandas` to load dataframes from `.csv`, `.json`, `.ft` (feather format) and `.parquet` files. If you are running `xiplot` locally, you can simply copy your datasets into the `data/` folder. If you are accessing `xiplot` remotely or you do not want to pollute the `data/` folder, you can upload the dataset into memory directly inside `xiplot`: navigate to the data tab and either click the upload button to the right or drag the file into it.
+`xiplot` uses `pandas` to load dataframes from `.csv`, `.json`, `.feather`, and `.parquet` files. If you are running `xiplot` locally, you can simply copy your datasets into the `data/` folder. If you are accessing `xiplot` remotely or you do not want to pollute the `data/` folder, you can upload the dataset into memory directly inside `xiplot`: navigate to the data tab and either click the upload button to the right or drag the file into it.
 
 To save the currently loaded dataset, you can navigate to the data tab and press the "Download only the data file" button. The downloaded file will contain the unmodified content of the original dataset.
 
@@ -66,7 +66,7 @@ The combined plots-and-data file has a filename `DATASET.tar`, where `DATASET` i
 - `aux.EXT`
 - `meta.json`
 
-The `data.EXT` file contains the dataset dataframe that will be loaded using `read_csv`, `read_json`, `read_pickle`, or `read_feather`. Note that when reading a json file, `xiplot` tries reading the dataset both in columns (`pd.read_json(file, typ="frame", orient="columns")`) and split (`pd.read_json(file, typ="frame", orient="split")`) mode.
+The `data.EXT` file contains the dataset dataframe that will be loaded using `read_csv`, `read_json`, `read_feather`, or `read_parquet`. Note that when reading a json file, `xiplot` tries reading the dataset both in columns (`pd.read_json(file, typ="frame", orient="columns")`) and split (`pd.read_json(file, typ="frame", orient="split")`) mode.
 
 The `aux.EXT` file contains auxiliary columns for the dataset. It is stored in the same file format as the dataset dataframe. It must either be empty, or have the same number of rows as the dataset dataframe.
 
