@@ -33,7 +33,7 @@ def read_functions() -> (
     """
     for _, _, plugin in get_plugins_cached("read"):
         plugin = plugin()
-        if plugin:
+        if plugin is not None:
             yield plugin
 
     def read_json(data):
@@ -63,7 +63,7 @@ def write_functions() -> (
     """
     for _, _, plugin in get_plugins_cached("write"):
         plugin = plugin()
-        if plugin:
+        if plugin is not None:
             yield plugin
 
     yield lambda df, file: df.to_csv(file, index=False), ".csv", "text/csv"
