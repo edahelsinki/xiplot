@@ -43,9 +43,9 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install build
       - name: Build plugin
-        run: python -m build xiplot_plugin_filetypes
+        run: python -m build plugin_xiplot_filetypes
       - name: Publish plugin
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: xiplot_plugin_filetypes/dist
+          packages-dir: plugin_xiplot_filetypes/dist
           skip-existing: true

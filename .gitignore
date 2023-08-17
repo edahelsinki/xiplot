@@ -135,3 +135,4 @@ Untitled.ipynb
 data/
 uploads/
 node_modules
+plugins/*.whl

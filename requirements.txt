@@ -8,3 +8,4 @@ plotly>=5.9.0
 scikit-learn>=1.0
 kaleido~=0.2.1
 packaging<22 # Needed for dash-uploader==0.6.0
+./plugin_xiplot_filetypes
