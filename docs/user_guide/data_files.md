@@ -46,7 +46,9 @@ The plots and the data file will be downloaded as a .tar file. It can be restore
 
 ## Dataframe loading and saving
 
-`xiplot` uses `pandas` to load dataframes from `.csv`, `.json`, `.feather`, and `.parquet` files. If you are running `xiplot` locally, you can simply copy your datasets into the `data/` folder. If you are accessing `xiplot` remotely or you do not want to pollute the `data/` folder, you can upload the dataset into memory directly inside `xiplot`: navigate to the data tab and either click the upload button to the right or drag the file into it.
+`xiplot` uses `pandas` to load dataframes from `.csv`, `.json`, `.feather`[^1], and `.parquet`[^1] files. If you are running `xiplot` locally, you can simply copy your datasets into the `data/` folder. If you are accessing `xiplot` remotely or you do not want to pollute the `data/` folder, you can upload the dataset into memory directly inside `xiplot`: navigate to the data tab and either click the upload button to the right or drag the file into it.
+
+[^1]: Feather and Parquet support is provided by the [xiplot_filetypes](../../plugin_xiplot_filetypes) plugin (which is installed by default in the non-WASM version).
 
 To save the currently loaded dataset, you can navigate to the data tab and press the "Download only the data file" button. The downloaded file will contain the unmodified content of the original dataset.
 
