@@ -1,92 +1,69 @@
-import site
-import subprocess
-import sys
-from pathlib import Path
-
-import pytest
+import warnings
 
 from xiplot.tabs.plugins import get_plugins_cached
 from xiplot.utils.dataframe import read_functions, write_functions
 
 
-@pytest.fixture(scope="session", autouse=True)
-def install_the_test_plugin():
+def test_plugin():
     try:
-        # Remember to update this if anything new is added to the test_plugin
+        import xiplot_test_plugin  # noqa: F401
+    except ModuleNotFoundError:
+        warnings.warn(
+            "The test plugin is not installed, skipping plugin tests"
+        )
+        return
+
+    # Remember to update this test if anything is added to the test_plugin.
+    try:
         from xiplot_test_plugin import (
             Plot,
             create_global,
             plugin_load,
             plugin_write,
+            register_callbacks,
         )
-        from xiplot_test_plugin import register_callbacks as reg_cb
-
-        assert any(
-            plugin == Plot for (_, _, plugin) in get_plugins_cached("plot")
+    except ImportError:
+        warnings.warn(
+            "The test plugin needs to be updated: "
+            "`pip install --upgrade ./test_plugin`"
         )
-        assert any(
-            plugin == plugin_load
-            for (_, _, plugin) in get_plugins_cached("read")
-        )
-        assert any(
-            plugin == plugin_write
-            for (_, _, plugin) in get_plugins_cached("write")
-        )
-        assert any(
-            plugin == create_global
-            for (_, _, plugin) in get_plugins_cached("global")
-        )
-        assert any(
-            plugin == reg_cb
-            for (_, _, plugin) in get_plugins_cached("callback")
-        )
-    except Exception:
-        subprocess.check_call(
-            [
-                sys.executable,
-                "-m",
-                "pip",
-                "install",
-                "--no-input",
-                "--upgrade",
-                "--editable",
-                str(Path(__file__).parent.parent / "test_plugin"),
-            ]
-        )
-        # Reload the path to make the new package available
-        site.main()
+        raise
 
-        from importlib import reload
-
-        import xiplot_test_plugin
-
-        reload(xiplot_test_plugin)
-        get_plugins_cached.cache = None
-
-
-def test_read_plugin():
-    assert any(ext == ".test" for _, ext in read_functions())
-
-
-def test_write_plugin():
-    assert any(ext == ".test" for _, ext, _ in write_functions())
-
-
-def test_plot_plugin():
+    # Writing
     assert any(
-        plot.name() == "  TEST PLUGIN"
+        plugin == plugin_load for (_, _, plugin) in get_plugins_cached("read")
+    )
+    assert any(ext == plugin_load()[1] for _, ext in read_functions())
+
+    # Reading
+    assert any(
+        plugin == plugin_write
+        for (_, _, plugin) in get_plugins_cached("write")
+    )
+    assert any(ext == plugin_write()[1] for _, ext, _ in write_functions())
+
+    # Plotting
+    assert any(plugin == Plot for (_, _, plugin) in get_plugins_cached("plot"))
+    assert any(
+        plot.name() == Plot.name()
         for (_, _, plot) in get_plugins_cached("plot")
     )
 
-
-def test_global_plugin():
+    # Globals
     assert any(
-        "test_plugin_counter" in str(g().children)
-        for (_, _, g) in get_plugins_cached("global")
+        plugin == create_global
+        for (_, _, plugin) in get_plugins_cached("global")
+    )
+    text = create_global().children[1].id["type"]
+    assert any(
+        text in str(g().children) for (_, _, g) in get_plugins_cached("global")
     )
 
-
-def test_callback_plugin():
+    # Callbacks
+    assert any(
+        plugin == register_callbacks
+        for (_, _, plugin) in get_plugins_cached("callback")
+    )
     assert any(
         cb.__module__ == "xiplot_test_plugin"
         for (_, _, cb) in get_plugins_cached("callback")

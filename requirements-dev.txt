@@ -5,3 +5,4 @@ isort
 pyproject-flake8
 webdriver-manager
 selenium
+./test_plugin
