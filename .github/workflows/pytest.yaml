@@ -36,11 +36,14 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt -r requirements-dev.txt
 
-      - name: Build package
-        run: |
-          python -m build .
-          python -c "import os, glob; assert os.path.getsize(sorted(glob.glob('dist/*-*.whl'))[-1]) > 10_000"
-
       - name: Test with pytest
         run: |
           pytest
+
+      - name: Build package
+        run: |
+          rm -rf dist
+          python -m build .
+          python -c "import os, glob; assert os.path.getsize(sorted(glob.glob('dist/*-*.whl'))[-1]) > 10_000"
+          python -m pip install dist/*-*.whl
+          xiplot --help
