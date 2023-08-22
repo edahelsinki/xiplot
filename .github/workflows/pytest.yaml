@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths: ["**.py", "requirements.txt", "requirements-dev.txt"]
+    paths: ["**.py", "pyproject.toml", "requirements*.txt"]
   pull_request:
     branches: [main]
-    paths: ["**.py", "requirements*.txt", "requirements-dev.txt"]
+    paths: ["**.py", "pyproject.toml", "requirements*.txt"]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -40,10 +40,12 @@ jobs:
         run: |
           pytest
 
-      - name: Build package
+      - name: Build and install package
         run: |
           rm -rf dist
           python -m build .
-          python -c "import os, glob; assert os.path.getsize(sorted(glob.glob('dist/*-*.whl'))[-1]) > 10_000"
-          python -m pip install dist/*-*.whl
+          cd dist
+          python -c "import os, glob; assert os.path.getsize(sorted(glob.glob('*-*.whl'))[-1]) > 10_000"
+          python -m pip install *-*.whl
           xiplot --help
+          cd ..
