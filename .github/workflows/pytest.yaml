@@ -40,12 +40,15 @@ jobs:
         run: |
           pytest
 
-      - name: Build and install package
+      - name: Build package
         run: |
           rm -rf dist
           python -m build .
+
+      - name: Install package
+        run: |
           cd dist
-          python -c "import os, glob; assert os.path.getsize(sorted(glob.glob('*-*.whl'))[-1]) > 10_000"
           python -m pip install *-*.whl
+          python -c "import xiplot.app"
           xiplot --help
           cd ..
