@@ -13,37 +13,36 @@ jobs:
   black:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.7'
-    - name: Install black
-      run: pip install black
-    - name: Run the black formatter
-      run: black --diff --check .
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+      - name: Install black
+        run: pip install black
+      - name: Run the black formatter
+        run: black --diff --check .
   isort:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.7'
-    - name: Install isort
-      run: pip install isort
-    - name: Run the isort linter
-      run: isort --diff --check .
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+      - name: Install isort
+        run: pip install isort
+      - name: Run the isort linter
+        run: isort --diff --check .
   flake8:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.7'
-    - name: Install flake8
-      run: pip install pyproject-flake8
-    - name: Run the flake8 linter
-      # black uses a line length of 88
-      run: pflake8 --max-line-length 88 .
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: "3.7"
+      - name: Install flake8
+        run: pip install pyproject-flake8
+      - name: Run the flake8 linter
+        run: pflake8 .

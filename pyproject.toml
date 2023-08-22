@@ -28,8 +28,8 @@ dependencies = [
     "kaleido ~= 0.2.1; platform_system!='Emscripten'",
     "pandas >= 1.4.0, < 2.0.0",
     "plotly >= 5.9.0",
-    "pyarrow >= 11.0.0; platform_system!='Emscripten'",
     "scikit-learn >= 1.0; platform_system!='Emscripten'",
+    "xiplot_filetypes == 1.0; platform_system!='Emscripten'",
 ]
 
 [project.optional-dependencies]
@@ -55,11 +55,8 @@ xiplot = "xiplot:cli"
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["xiplot*"]
-exclude = ["tests", "test_plugin"]
-namespaces = true
+[tool.setuptools]
+packages = ["xiplot"]
 
 [tool.black]
 target-version = ['py37']
@@ -72,3 +69,5 @@ profile = "black"
 line_length = 79
 
 [tool.flake8]
+max-line-length = 88
+exclude = "build/*"

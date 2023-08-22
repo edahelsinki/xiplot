@@ -22,35 +22,6 @@ def get_data_filepaths(data_dir=""):
         return []
 
 
-def supports_feather_format() -> bool:
-    try:
-        import pyarrow  # noqa: F401
-
-        return True
-    except ImportError:
-        pass
-
-    return False
-
-
-def supports_parquet_format() -> bool:
-    try:
-        import pyarrow  # noqa: F401
-
-        return True
-    except ImportError:
-        pass
-
-    try:
-        import fastparquet  # noqa: F401
-
-        return True
-    except ImportError:
-        pass
-
-    return False
-
-
 def read_functions() -> (
     Iterator[Tuple[Callable[[BytesIO], pd.DataFrame], str]]
 ):
@@ -61,7 +32,9 @@ def read_functions() -> (
         ext: File extension that the readed can handle.
     """
     for _, _, plugin in get_plugins_cached("read"):
-        yield plugin()
+        plugin = plugin()
+        if plugin is not None:
+            yield plugin
 
     def read_json(data):
         if isinstance(data, BytesIO):
@@ -76,10 +49,6 @@ def read_functions() -> (
 
     yield pd.read_csv, ".csv"
     yield read_json, ".json"
-    if supports_feather_format():
-        yield pd.read_feather, ".ft"
-    if supports_parquet_format():
-        yield pd.read_parquet, ".parquet"
 
 
 def write_functions() -> (
@@ -93,16 +62,14 @@ def write_functions() -> (
         mime: MIME type of the written data.
     """
     for _, _, plugin in get_plugins_cached("write"):
-        yield plugin()
+        plugin = plugin()
+        if plugin is not None:
+            yield plugin
 
     yield lambda df, file: df.to_csv(file, index=False), ".csv", "text/csv"
     yield lambda df, file: df.to_json(
         file, orient="split", index=False
     ), ".json", "application/json"
-    if supports_feather_format():
-        yield pd.DataFrame.to_feather, ".ft", "application/octet-stream"
-    if supports_parquet_format():
-        yield pd.DataFrame.to_parquet, ".parquet", "application/octet-stream"
 
 
 def read_dataframe_with_extension(data, filename=None):
@@ -194,8 +161,8 @@ def read_dataframe_with_extension(data, filename=None):
                 aux.index = df.index
             if df.shape[0] != aux.shape[0]:
                 raise Exception(
-                    "The dataframe and auxiliary data have different number"
-                    " of rows."
+                    "The dataframe and auxiliary data have different number of"
+                    " rows."
                 )
 
             return df, aux, metadata
