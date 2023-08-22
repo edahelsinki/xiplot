@@ -1,1 +1,1 @@
-from xiplot.utils.cli import cli
+from xiplot.utils.cli import cli  # noqa: F401

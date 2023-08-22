@@ -82,7 +82,7 @@ def test_tesc004_jitter_setting(dash_duo):
 
     jitter_slider = driver.find_element(By.CLASS_NAME, "rc-slider-step")
     jitter_slider.click()
-    time.sleep(0.1)
+    time.sleep(0.2)
 
     jitter_value = driver.find_element(By.CLASS_NAME, "rc-slider-handle")
 
