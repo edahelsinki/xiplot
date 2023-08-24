@@ -1,0 +1,23 @@
+name: Test build WASM version
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [wasm]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the Repository
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.x"
+
+      - name: Build the WASM version
+        run: |
+          pip install --upgrade pip
+          make -B deploy

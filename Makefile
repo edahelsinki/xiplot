@@ -1,4 +1,6 @@
-.PHONY: install_xiplot setup_build build_xiplot setup_plugins build_test_plugin bundle_plugins build_webdash deploy serve run all clean nuke
+BUNDLED_PLUGINS := xiplot/plugin_xiplot_filetypes
+
+.PHONY: install_xiplot setup_build build_xiplot build_plugins bundle_plugins build_webdash deploy serve run all clean nuke
 
 all: run
 
@@ -25,21 +27,19 @@ build_xiplot:
 	cp -r data ../dist/ &&  \
 	ls ../dist/data > ../dist/assets/data.ls
 
-setup_plugins:
-	cd xiplot && \
-	mkdir -p plugins && \
-	rm -f plugins/*.whl
-
-build_test_plugin:
-	cd xiplot/test_plugin && \
-	rm -rf dist && \
-	pip install build && \
-	python3 -m build && \
-	cp dist/xiplot_test_plugin-*.*.*-py3-none-any.whl ../plugins
+build_plugins:
+	pip install build
+	for PLUGIN in $(BUNDLED_PLUGINS) ; do \
+		cd $$PLUGIN && \
+		rm -rf dist && \
+		python3 -m build  ; \
+	done
 
 bundle_plugins:
-	mkdir dist/plugins
-	find xiplot/plugins -name \*.whl -exec cp {} dist/plugins \;
+	mkdir -p dist/plugins
+	for PLUGIN in $(BUNDLED_PLUGINS) ; do \
+		find $$PLUGIN/dist -name \*-py3-none-any.whl -exec cp {} dist/plugins \; ; \
+	done
 	ls dist/plugins > dist/assets/plugins.ls
 
 build_webdash:
@@ -50,9 +50,9 @@ serve:
 	cd dist && \
 	python3 -m http.server
 
-deploy: install_xiplot setup_build build_xiplot setup_plugins bundle_plugins build_webdash
+deploy: install_xiplot setup_build build_xiplot build_plugins bundle_plugins build_webdash
 
-run: install_xiplot setup_build build_xiplot setup_plugins build_test_plugin bundle_plugins build_webdash serve
+run: deploy serve
 
 clean:
 	rm -rf dist
