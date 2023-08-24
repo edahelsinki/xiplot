@@ -20,4 +20,4 @@ jobs:
       - name: Build the WASM version
         run: |
           pip install --upgrade pip
-          make deploy
+          make -B deploy
