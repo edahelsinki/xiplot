@@ -6,9 +6,9 @@ import pyodide_js
 import micropip
 
 
-MOCKED_PACKAGES = {"jsbeautifier": "1.14.7",}
+MOCKED_PACKAGES = {"jsbeautifier": "1.14.9",}
 REQUIRED_PACKAGES = ["flask==2.1.2","dash==2.6.2","dash_extensions==0.1.4","dash_mantine_components==0.10.2",]
-XIPLOT_WHEEL = "xiplot-0.2.0-py3-none-any.whl"
+XIPLOT_WHEEL = "xiplot-0.3.1-py3-none-any.whl"
 
 
 bootstrap_dash_app = lambda _: NotImplementedError("Call `setup_bootstrap` first!")
