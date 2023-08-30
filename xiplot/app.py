@@ -40,6 +40,7 @@ class XiPlot:
                 [
                     html.Div(
                         [
+                            app_links(),
                             app_logo(),
                             dcc.Tabs(
                                 [
@@ -121,3 +122,23 @@ class XiPlot:
 
 def app_logo():
     return html.Div([html.H1("χiplot")], id="logo", className="logo")
+
+
+def app_links():
+    return html.Div(
+        [
+            html.A(
+                html.Img(src="assets/book.svg", alt="Documentation"),
+                href="https://github.com/edahelsinki/xiplot/blob/main/docs/README.md",
+                title="Documentation",
+                target="_blank",
+            ),
+            html.A(
+                html.Img(src="assets/github.svg", alt="GitHub"),
+                href="https://github.com/edahelsinki/xiplot",
+                title="GitHub",
+                target="_blank",
+            ),
+        ],
+        className="links",
+    )
