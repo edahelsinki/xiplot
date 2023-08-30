@@ -9,6 +9,7 @@ from dash_extensions.enrich import CycleBreakerInput
 from xiplot.plots.barplot import Barplot
 from xiplot.plots.heatmap import Heatmap
 from xiplot.plots.histogram import Histogram
+from xiplot.plots.lineplot import Lineplot
 from xiplot.plots.scatterplot import Scatterplot
 from xiplot.plots.smiles import Smiles
 from xiplot.plots.table import Table
@@ -25,7 +26,15 @@ class Plots(Tab):
     def get_plot_types():
         return {
             p.name(): p
-            for p in [Scatterplot, Histogram, Heatmap, Barplot, Table, Smiles]
+            for p in [
+                Scatterplot,
+                Histogram,
+                Barplot,
+                Lineplot,
+                Heatmap,
+                Table,
+                Smiles,
+            ]
             + [plot for (_, _, plot) in get_plugins_cached("plot")]
         }
 

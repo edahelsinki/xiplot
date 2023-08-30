@@ -275,14 +275,39 @@ def get_numeric_columns(df, columns=None):
     Return only columns, which are numeric
 
     Parameters:
-
         df: pandas.DataFrame
         columns: columns of the data frame
 
     Returns:
-
         columns: numeric columns
     """
     if columns is not None:
         df = df[columns]
     return df.select_dtypes("number").columns.to_list()
+
+
+def get_default_xy_columns(columns):
+    """Get default values for x_axis and y_axis from a list of column names.
+
+    Args:
+        columns: List of column names.
+
+    Returns:
+        (x_axis, y_axis): Tuple of column names.
+    """
+    if len(columns) == 0:
+        return None, None
+    x_axis = columns[0]
+    y_axis = columns[min(1, len(columns) - 1)]
+
+    for c in columns:
+        if x_axis is None and ("x" in c or "1" in c or "X" in c):
+            x_axis = c
+            break
+
+    for c in columns:
+        if y_axis is None and ("y" in c or "2" in c or "Y" in c):
+            y_axis = c
+            break
+
+    return x_axis, y_axis
