@@ -1,8 +1,27 @@
 # Plugin documentation
 
-Check out the example plugin package [`test_plugin`](../../test_plugin/) for getting a better grasp of creating your own plugin packages.
+&chi;iplot supports plugins for extending the functionality.
+Plugins works in both the local server version and the WASM version.
 
-## Package: Read unsupported file extension
+## Install plugins for the local server version
+
+1. Install the plugins in the same Python environment as &chi;iplot (e.g. using `pip install ...`).
+2. Restart the &chi;iplot server (if it is running).
+
+## Install plugins for the WASM version
+
+1. Go to the "Plugins" tab.
+2. Write the name of the plugin, or select one from the list.
+3. Click "Install" and wait for the installation to complete.
+4. Click the "Reload &chi;iplot" button to load all new plugins.
+
+
+# Create plugins
+
+Check out the [`test_plugin`](../../test_plugin/) or [filetypes plugin](../../plugin_xiplot_filetypes) for getting a better grasp of creating your own plugin packages.
+Below are instructions for creating different types of plugins.
+
+## Read unsupported file extension
 
 A plugin package for reading data file with unsupported extensions. ([example](../../test_plugin/xiplot_test_plugin/__init__.py#L5-L10))
 
@@ -50,7 +69,7 @@ There are few steps to register a plugin package for reading unsupported data fi
 3. Run &chi;iplot normally with `python3 -m xiplot` and you are able to render your data file with the new file extension by uploading the file or by putting the file to `data` directory.
 
 
-## Package: Write unsupported data file extension
+## Write unsupported data file extension
 
 A plugin package for writing and downloading unsupported file extensions. ([example](../../test_plugin/xiplot_test_plugin/__init__.py#L13-L17))
 
@@ -104,7 +123,7 @@ The registeration steps are similar to the registeration of the previous plugin 
 3. Run &chi;iplot normally with `python3 -m xiplot` and you are able to download the loaded data into the data file with your new extension.
 
 
-## Package: New plot type
+## New plot type
 
 A plugin package for rendering a new plot type. ([example](../../test_plugin/xiplot_test_plugin/__init__.py#L45-L72))
 
@@ -180,7 +199,7 @@ The plugin API requires a class with a classmethod `name` and two static methods
 3. Run &chi;iplot normally with `python3 -m xiplot` and you are able to download the loaded data into the data file with your new extension.
 
 
-## Package: Add a html component to the global layout
+## Add a html component to the global layout
 
 A plugin package for adding new html component to the global layout on &chi;iplot. ([example](../../test_plugin/xiplot_test_plugin/__init__.py#L20-L31))
 
@@ -228,7 +247,7 @@ The registeration steps are similar to the registeration of the previous plugin 
 3. Run &chi;iplot normally with `python3 -m xiplot` and you are able to download the loaded data into the data file with your new extension.
 
 
-## Package: Add @app.callback decorators
+## Add @app.callback decorators
 
 A plugin package for adding @app.callback decorators of `dash.Dash` instance. The main use case would be to add user interactive actions, which are not inside of plots' instances. ([example](../../test_plugin/xiplot_test_plugin/__init__.py#L34-L42))
 
