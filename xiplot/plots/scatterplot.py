@@ -20,7 +20,7 @@ from xiplot.utils.auxiliary import (
 )
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import ColumnDropdown, PdfButton, PlotData
-from xiplot.utils.dataframe import get_default_xy_columns, get_numeric_columns
+from xiplot.utils.dataframe import get_default_column, get_numeric_columns
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.scatterplot import get_row
 
@@ -341,9 +341,9 @@ class Scatterplot(APlot):
         )
         num_columns = get_numeric_columns(df, columns)
 
-        x_axis, y_axis = get_default_xy_columns(num_columns)
-        x_axis = config.get("axes", dict()).get("x", x_axis)
-        y_axis = config.get("axes", dict()).get("y", y_axis)
+        axes = config.get("axes", dict())
+        x_axis = axes.get("x", get_default_column(num_columns, "x"))
+        y_axis = axes.get("y", get_default_column(num_columns, "y"))
         if x_axis is None or y_axis is None:
             raise Exception("The dataframe contains no numeric columns")
 

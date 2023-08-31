@@ -107,7 +107,7 @@ class ColumnDropdown(dcc.Dropdown):
     def get_columns(
         cls,
         df: pd.DataFrame,
-        aux: pd.DataFrame,
+        aux: Optional[pd.DataFrame] = None,
         options: List[str] = [],
         numeric: bool = False,
         category: bool = False,
@@ -116,7 +116,7 @@ class ColumnDropdown(dcc.Dropdown):
 
         Args:
             df: Data frame.
-            aux: Auxiliary data frame.
+            aux: Auxiliary data frame. Defaults to None.
             options: Additional options to add to the column names. Defaults to [].
             numeric: Only select numeric columns. Defaults to False.
             category: Only select categorical (and integer, and object) columns.
@@ -125,6 +125,8 @@ class ColumnDropdown(dcc.Dropdown):
         Returns:
             List of column names
         """
+        if aux is None:
+            aux = pd.DataFrame()
         if numeric:
             return (
                 options
@@ -381,6 +383,7 @@ try:
             index: str,
             plot_name: str,
             children: str = "Download as pdf",
+            className: str = "pdf_button",
             **kwargs: Any,
         ):
             """Create a button for donwloading plots as pdf.
@@ -396,7 +399,9 @@ try:
             id2 = generate_id(type(self), index, "download")
             id2["plot"] = plot_name
             children = [children, dcc.Download(id=id2)]
-            super().__init__(children=children, id=id, **kwargs)
+            super().__init__(
+                children=children, id=id, className=className, **kwargs
+            )
 
         @classmethod
         def register_callback(

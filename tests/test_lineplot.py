@@ -1,16 +1,18 @@
-import time
-
 import dash
 import pandas as pd
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 
-from tests.util_test import render_plot, start_server
+from tests.util_test import (
+    click_pdf_button,
+    render_plot,
+    select_dropdown,
+    start_server,
+)
 from xiplot.plots.lineplot import Lineplot
 from xiplot.utils.auxiliary import get_selected
 
 (
-    tmp,
+    render,
     handle_hover_events,
     handle_click_events,
 ) = Lineplot.register_callbacks(dash.Dash(__name__), lambda x: x, lambda x: x)
@@ -22,31 +24,22 @@ def test_lineplot_browser(dash_duo):
 
     # Check render
     plot = driver.find_element(By.CLASS_NAME, "dash-graph")
-    assert "Lineplot" in plot.get_attribute("outerHTML")
+    assert "Lineplot" in plot.get_attribute("id")
     dropdowns = driver.find_element(By.ID, "plots").find_elements(
         By.CLASS_NAME, "dash-dropdown"
     )
     assert len(dropdowns) == 6
 
     # Change axis
-    dropdowns[0].click()
-    x = dropdowns[0].find_element(
-        By.XPATH, "//div[2]/div[1]/div[1]/div[1]/div[2]/input"
-    )
-    x.send_keys("mpg")
-    x.send_keys(Keys.RETURN)
-    time.sleep(0.5)
+    select_dropdown(dropdowns[0], "mpg")
     assert "mpg" in driver.find_element(By.CLASS_NAME, "xtitle").text
 
     # Change color
-    dropdowns[4].click()
-    color = dropdowns[4].find_element(
-        By.XPATH, "//div[2]/div[1]/div[1]/div[1]/div[2]/input"
-    )
-    color.send_keys("cylinders")
-    color.send_keys(Keys.RETURN)
-    time.sleep(0.5)
+    select_dropdown(dropdowns[4], "cylinders")
     assert "cylinders" in driver.find_element(By.CLASS_NAME, "dash-graph").text
+
+    # Download pdf
+    click_pdf_button(driver)
 
     # Close browser
     assert dash_duo.get_logs() == [], "browser console should contain no error"
@@ -54,7 +47,7 @@ def test_lineplot_browser(dash_duo):
 
 
 def test_lineplot_create():
-    fig = tmp(
+    fig = render(
         "col1",
         "col2",
         "Clusters",

@@ -28,7 +28,7 @@ from xiplot.utils.dataframe import get_default_column
 from xiplot.utils.layouts import layout_wrapper
 
 
-class Lineplot(APlot):
+class Boxplot(APlot):
     @classmethod
     def register_callbacks(cls, app, df_from_store, df_to_store):
         PdfButton.register_callback(app, cls.name(), cls.get_id(MATCH))
@@ -37,6 +37,7 @@ class Lineplot(APlot):
             Output(cls.get_id(MATCH), "figure"),
             Input(cls.get_id(MATCH, "x_axis"), "value"),
             Input(cls.get_id(MATCH, "y_axis"), "value"),
+            Input(cls.get_id(MATCH, "plot"), "value"),
             Input(cls.get_id(MATCH, "color"), "value"),
             Input(ID_HOVERED, "data"),
             Input("data_frame_store", "data"),
@@ -47,6 +48,7 @@ class Lineplot(APlot):
         def render(
             x_axis,
             y_axis,
+            plot,
             color,
             hover,
             df,
@@ -58,6 +60,7 @@ class Lineplot(APlot):
                 decode_aux(aux),
                 x_axis,
                 y_axis,
+                plot,
                 color,
                 hover,
                 template,
@@ -97,11 +100,12 @@ class Lineplot(APlot):
                 "x_axis": Input(cls.get_id(MATCH, "x_axis"), "value"),
                 "y_axis": Input(cls.get_id(MATCH, "y_axis"), "value"),
                 "color": Input(cls.get_id(MATCH, "color"), "value"),
+                "plot": Input(cls.get_id(MATCH, "plot"), "value"),
             },
         )
 
         ColumnDropdown.register_callback(
-            app, cls.get_id(ALL, "x_axis"), df_from_store, numeric=True
+            app, cls.get_id(ALL, "x_axis"), df_from_store, category=True
         )
         ColumnDropdown.register_callback(
             app, cls.get_id(ALL, "y_axis"), df_from_store, numeric=True
@@ -110,7 +114,7 @@ class Lineplot(APlot):
             app, cls.get_id(ALL, "color"), df_from_store, category=True
         )
 
-        return render, handle_hover_events, handle_click_events
+        return render
 
     @staticmethod
     def render(
@@ -118,6 +122,7 @@ class Lineplot(APlot):
         aux,
         x_axis,
         y_axis,
+        plot="Box plot",
         color=None,
         hover=None,
         template=None,
@@ -127,20 +132,42 @@ class Lineplot(APlot):
         df = merge_df_aux(df, aux).reset_index(names="__Xiplot_index__")
         if color not in df.columns:
             color = None
-        fig = px.line(
-            df.sort_values(by=x_axis),
-            x=x_axis,
-            y=y_axis,
-            color=color,
-            color_discrete_map=cluster_colours(),
-            custom_data=["__Xiplot_index__"],
-            template=template,
-        )
-        if hover is not None:
-            fig.add_vline(
-                df[x_axis][hover],
-                line=dict(color="rgba(0.5,0.5,0.5,0.5)", dash="dash"),
+        if plot == "Box plot":
+            fig = px.box(
+                df,
+                x=x_axis,
+                y=y_axis,
+                color=color,
+                notched=True,
+                custom_data=["__Xiplot_index__"],
+                color_discrete_map=cluster_colours(),
+                template=template,
             )
+            fig.update_traces(dict(boxmean=True))
+        elif plot == "Violin plot":
+            fig = px.violin(
+                df,
+                x=x_axis,
+                y=y_axis,
+                color=color,
+                custom_data=["__Xiplot_index__"],
+                color_discrete_map=cluster_colours(),
+                template=template,
+            )
+        elif plot == "Strip chart":
+            fig = px.strip(
+                df,
+                x=x_axis,
+                y=y_axis,
+                color=color,
+                color_discrete_map=cluster_colours(),
+                custom_data=["__Xiplot_index__"],
+                template=template,
+            )
+        else:
+            return placeholder_figure("Unsupported plot type")
+
+        if hover is not None:
             fig.add_hline(
                 df[y_axis][hover],
                 line=dict(color="rgba(0.5,0.5,0.5,0.5)", dash="dash"),
@@ -167,9 +194,10 @@ class Lineplot(APlot):
         num_columns = ColumnDropdown.get_columns(df, numeric=True)
         cat_columns = ColumnDropdown.get_columns(df, category=True)
 
-        x_axis = config.get("x_axis", get_default_column(num_columns, "x"))
+        x_axis = config.get("x_axis", get_default_column(cat_columns, "x"))
         y_axis = config.get("y_axis", get_default_column(num_columns, "y"))
         color = config.get("color", CLUSTER_COLUMN_NAME)
+        plot = config.get("plot", "Box plot")
 
         return [
             dcc.Graph(id=cls.get_id(index)),
@@ -197,12 +225,22 @@ class Lineplot(APlot):
                 layout_wrapper(
                     component=ColumnDropdown(
                         cls.get_id(index, "color"),
-                        options=cat_columns,
+                        options=columns,
                         value=color,
                         clearable=True,
                     ),
                     css_class="dash-dropdown",
                     title="Groups",
+                ),
+                layout_wrapper(
+                    component=dcc.Dropdown(
+                        id=cls.get_id(index, "plot"),
+                        options=["Box plot", "Violin plot", "Strip chart"],
+                        value=plot,
+                        clearable=False,
+                    ),
+                    css_class="dash-dropdown",
+                    title="Plot type",
                 ),
             ),
         ]

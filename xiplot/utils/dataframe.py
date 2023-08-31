@@ -3,7 +3,16 @@ import tarfile
 from collections import OrderedDict
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterator, Optional, Tuple
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Literal,
+    Optional,
+    Tuple,
+)
 
 import pandas as pd
 
@@ -286,28 +295,28 @@ def get_numeric_columns(df, columns=None):
     return df.select_dtypes("number").columns.to_list()
 
 
-def get_default_xy_columns(columns):
+def get_default_column(
+    columns: List[str], axis: Literal["x", "y"]
+) -> Optional[str]:
     """Get default values for x_axis and y_axis from a list of column names.
 
     Args:
         columns: List of column names.
+        axis: Is this the "x" or "y" axis.
 
     Returns:
-        (x_axis, y_axis): Tuple of column names.
+        Column name.
     """
     if len(columns) == 0:
-        return None, None
-    x_axis = columns[0]
-    y_axis = columns[min(1, len(columns) - 1)]
+        return None
+    if axis == "x":
+        for c in columns:
+            if "x" in c or "1" in c or "X" in c:
+                return c
+        return columns[0]
 
-    for c in columns:
-        if x_axis is None and ("x" in c or "1" in c or "X" in c):
-            x_axis = c
-            break
-
-    for c in columns:
-        if y_axis is None and ("y" in c or "2" in c or "Y" in c):
-            y_axis = c
-            break
-
-    return x_axis, y_axis
+    else:
+        for c in columns:
+            if "y" in c or "2" in c or "Y" in c:
+                return c
+        return columns[min(1, len(columns) - 1)]

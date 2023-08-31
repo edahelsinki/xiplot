@@ -7,6 +7,7 @@ from dash import ALL, Input, Output, State, ctx, dcc, html
 from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.plots.barplot import Barplot
+from xiplot.plots.boxplot import Boxplot
 from xiplot.plots.heatmap import Heatmap
 from xiplot.plots.histogram import Histogram
 from xiplot.plots.lineplot import Lineplot
@@ -32,6 +33,7 @@ class Plots(Tab):
                 Barplot,
                 Lineplot,
                 Heatmap,
+                Boxplot,
                 Table,
                 Smiles,
             ]
