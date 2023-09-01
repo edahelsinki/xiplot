@@ -5,7 +5,13 @@ from dash import ALL, MATCH, Input, Output, ctx, dcc
 from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
-from xiplot.utils.auxiliary import decode_aux, get_clusters, merge_df_aux
+from xiplot.plugin import ID_HOVERED
+from xiplot.utils.auxiliary import (
+    SELECTED_COLUMN_NAME,
+    decode_aux,
+    get_clusters,
+    merge_df_aux,
+)
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import (
     ClusterDropdown,
@@ -26,12 +32,13 @@ class Histogram(APlot):
             Output({"type": "histogram", "index": MATCH}, "figure"),
             Input(cls.get_id(MATCH, "x_axis_dropdown"), "value"),
             Input(ClusterDropdown.get_id(MATCH), "value"),
+            Input(ID_HOVERED, "data"),
             Input("data_frame_store", "data"),
             Input("auxiliary_store", "data"),
             Input("plotly-template", "data"),
             prevent_initial_call=False,
         )
-        def tmp(x_axis, selected_clusters, df, aux, template=None):
+        def tmp(x_axis, selected_clusters, hover, df, aux, template=None):
             # Try branch for testing
             try:
                 if ctx.triggered_id == "data_frame_store":
@@ -44,6 +51,7 @@ class Histogram(APlot):
             return Histogram.render(
                 x_axis,
                 selected_clusters,
+                hover,
                 df_from_store(df),
                 decode_aux(aux),
                 template,
@@ -69,7 +77,7 @@ class Histogram(APlot):
         return [tmp]
 
     @staticmethod
-    def render(x_axis, selected_clusters, df, aux, template=None):
+    def render(x_axis, selected_clusters, hover, df, aux, template=None):
         df = merge_df_aux(df, aux)
         clusters = get_clusters(aux, df.shape[0])
         if type(selected_clusters) == str:
@@ -117,6 +125,18 @@ class Histogram(APlot):
                 tickformat=".2%",
             ),
         )
+
+        if hover is not None:
+            fig_property.add_vline(
+                df[x_axis][hover],
+                line=dict(color="rgba(0.5,0.5,0.5,0.5)", dash="dash"),
+                layer="below",
+            )
+        if SELECTED_COLUMN_NAME in aux:
+            for x in df[x_axis][aux[SELECTED_COLUMN_NAME]]:
+                fig_property.add_vline(
+                    x, line=dict(color="black", width=0.5), layer="below"
+                )
 
         return fig_property
 

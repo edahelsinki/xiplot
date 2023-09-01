@@ -8,7 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from tests.util_test import render_plot, start_server
 from xiplot.plots.barplot import Barplot
 
-tmp = Barplot.register_callbacks(
+render = Barplot.register_callbacks(
     dash.Dash(__name__), lambda x: x, lambda x: x
 )[0]
 
@@ -121,6 +121,6 @@ def test_teba004_set_order(dash_duo):
 
 def test_create_barplot():
     df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
-    output = tmp("col1", "col2", ["all"], "reldiff", df, pd.DataFrame())
+    output = render("col1", "col2", ["all"], "reldiff", 1, df, pd.DataFrame())
     fig = output[0]
     assert str(type(fig)) == "<class 'plotly.graph_objs._figure.Figure'>"

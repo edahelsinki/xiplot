@@ -139,7 +139,7 @@ class Boxplot(APlot):
                 y=y_axis,
                 color=color,
                 notched=True,
-                custom_data=["__Xiplot_index__"],
+                custom_data="__Xiplot_index__",
                 color_discrete_map=cluster_colours(),
                 template=template,
             )
@@ -150,7 +150,7 @@ class Boxplot(APlot):
                 x=x_axis,
                 y=y_axis,
                 color=color,
-                custom_data=["__Xiplot_index__"],
+                custom_data="__Xiplot_index__",
                 color_discrete_map=cluster_colours(),
                 template=template,
             )
@@ -161,7 +161,7 @@ class Boxplot(APlot):
                 y=y_axis,
                 color=color,
                 color_discrete_map=cluster_colours(),
-                custom_data=["__Xiplot_index__"],
+                custom_data="__Xiplot_index__",
                 template=template,
             )
         else:
@@ -171,22 +171,13 @@ class Boxplot(APlot):
             fig.add_hline(
                 df[y_axis][hover],
                 line=dict(color="rgba(0.5,0.5,0.5,0.5)", dash="dash"),
+                layer="below",
             )
         if SELECTED_COLUMN_NAME in aux:
-            trace = px.scatter(
-                df[aux[SELECTED_COLUMN_NAME]], x=x_axis, y=y_axis, symbol=color
-            )
-            trace.update_traces(
-                hoverinfo="skip",
-                hovertemplate=None,
-                marker=dict(
-                    size=15,
-                    color=(
-                        "#DDD" if template and "dark" in template else "#333"
-                    ),
-                ),
-            )
-            fig.add_traces(trace.data)
+            for x in df[y_axis][aux[SELECTED_COLUMN_NAME]]:
+                fig.add_hline(
+                    x, line=dict(color="black", width=0.5), layer="below"
+                )
         return fig
 
     @classmethod

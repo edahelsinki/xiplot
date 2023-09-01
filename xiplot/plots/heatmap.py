@@ -4,6 +4,7 @@ from dash import MATCH, Input, Output, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
+from xiplot.plugin import ID_HOVERED
 from xiplot.utils.auxiliary import decode_aux, merge_df_aux
 from xiplot.utils.cluster import KMeans
 from xiplot.utils.components import (
@@ -26,12 +27,13 @@ class Heatmap(APlot):
             Output({"type": "heatmap", "index": MATCH}, "figure"),
             Input({"type": "heatmap_cluster_amount", "index": MATCH}, "value"),
             Input(cls.get_id(MATCH, "columns_dropdown"), "value"),
+            Input(ID_HOVERED, "data"),
             Input("data_frame_store", "data"),
             Input("auxiliary_store", "data"),
             Input("plotly-template", "data"),
             prevent_initial_call=False,
         )
-        def tmp(n_clusters, features, df, aux, template=None):
+        def tmp(n_clusters, features, hover, df, aux, template=None):
             # Try branch for testing
             try:
                 if ctx.triggered_id == "data_frame_store":
@@ -44,6 +46,7 @@ class Heatmap(APlot):
             return Heatmap.render(
                 n_clusters,
                 features,
+                hover,
                 df_from_store(df),
                 decode_aux(aux),
                 template,
@@ -72,29 +75,35 @@ class Heatmap(APlot):
         return [tmp]
 
     @staticmethod
-    def render(n_clusters, features, df, aux, template=None):
+    def render(n_clusters, features, hover, df, aux, template=None):
         km = KMeans(n_clusters=n_clusters, random_state=42)
         df = merge_df_aux(df, aux)
-        dff = df.dropna()
 
-        features = get_columns_by_regex(dff.columns.to_list(), features)
-
+        features = get_columns_by_regex(df.columns.to_list(), features)
         features = features if features else df.columns.to_list()
-        features = get_numeric_columns(dff, features)
-
-        km.fit(dff[features])
-
-        cluster_centers = km.cluster_centers_
+        features = get_numeric_columns(df, features)
+        dff = df[features].dropna()
+        km.fit(dff)
 
         fig = px.imshow(
-            cluster_centers,
+            km.cluster_centers_,
             x=features,
-            y=[str(n + 1) for n in range(n_clusters)],
+            y=list(range(1, n_clusters + 1)),
             color_continuous_scale="RdBu",
             origin="lower",
             aspect="auto",
             template=template,
         )
+
+        if hover is not None:
+            # Due to dropna
+            index = dff.index.searchsorted(hover)
+            if index < len(dff.index) and dff.index[index] == hover:
+                fig.add_hline(
+                    km.labels_[index] + 1,
+                    line=dict(color="rgba(0.5,0.5,0.5,0.5)", dash="dash"),
+                )
+
         return fig
 
     @classmethod

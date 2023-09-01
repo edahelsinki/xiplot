@@ -8,7 +8,7 @@ from selenium.webdriver.common.keys import Keys
 from tests.util_test import render_plot, start_server
 from xiplot.plots.histogram import Histogram
 
-tmp = Histogram.register_callbacks(
+render = Histogram.register_callbacks(
     dash.Dash(__name__), lambda x: x, lambda x: x
 )[0]
 
@@ -67,7 +67,7 @@ def test_tehi003_clear_clusters(dash_duo):
 
 def test_create_histogram():
     df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
-    output = tmp("col1", "all", df, pd.DataFrame())
+    output = render("col1", "all", 1, df, pd.DataFrame())
     fig = output
 
     assert str(type(fig)) == "<class 'plotly.graph_objs._figure.Figure'>"

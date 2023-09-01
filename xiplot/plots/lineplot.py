@@ -140,10 +140,12 @@ class Lineplot(APlot):
             fig.add_vline(
                 df[x_axis][hover],
                 line=dict(color="rgba(0.5,0.5,0.5,0.5)", dash="dash"),
+                layer="below",
             )
             fig.add_hline(
                 df[y_axis][hover],
                 line=dict(color="rgba(0.5,0.5,0.5,0.5)", dash="dash"),
+                layer="below",
             )
         if SELECTED_COLUMN_NAME in aux:
             trace = px.scatter(
