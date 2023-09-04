@@ -283,9 +283,10 @@ class Barplot(APlot):
                 )
 
             if SELECTED_COLUMN_NAME in aux:
+                color = "#DDD" if template and "dark" in template else "#333"
                 for x in df[y_axis][aux[SELECTED_COLUMN_NAME]]:
                     fig.add_hline(
-                        x, line=dict(color="black", width=0.5), layer="below"
+                        x, line=dict(color=color, width=0.5), layer="below"
                     )
 
         return fig

@@ -8,6 +8,7 @@ from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.plots.barplot import Barplot
 from xiplot.plots.boxplot import Boxplot
+from xiplot.plots.distplot import Distplot
 from xiplot.plots.heatmap import Heatmap
 from xiplot.plots.histogram import Histogram
 from xiplot.plots.lineplot import Lineplot
@@ -30,6 +31,7 @@ class Plots(Tab):
             for p in [
                 Scatterplot,
                 Histogram,
+                Distplot,
                 Barplot,
                 Lineplot,
                 Heatmap,
