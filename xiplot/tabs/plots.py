@@ -30,12 +30,12 @@ class Plots(Tab):
             p.name(): p
             for p in [
                 Scatterplot,
+                Lineplot,
                 Histogram,
                 Distplot,
                 Barplot,
-                Lineplot,
-                Heatmap,
                 Boxplot,
+                Heatmap,
                 Table,
                 Smiles,
             ]
