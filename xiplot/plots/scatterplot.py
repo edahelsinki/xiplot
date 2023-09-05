@@ -1,7 +1,6 @@
 import json
 
 import dash
-import jsonschema
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -322,6 +321,8 @@ class Scatterplot(APlot):
 
     @classmethod
     def create_layout(cls, index, df, columns, config=dict()):
+        import jsonschema
+
         jsonschema.validate(
             instance=config,
             schema=dict(

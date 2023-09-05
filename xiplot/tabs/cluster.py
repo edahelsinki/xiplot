@@ -3,7 +3,6 @@ import uuid
 
 import dash
 import dash_mantine_components as dmc
-import jsonschema
 import pandas as pd
 from dash import Input, Output, State, ctx, dcc, html
 from dash_extensions.enrich import CycleBreakerInput
@@ -236,6 +235,8 @@ class Cluster(Tab):
                     dash.no_update,
                     dash.no_update,
                 )
+
+            import jsonschema
 
             try:
                 jsonschema.validate(

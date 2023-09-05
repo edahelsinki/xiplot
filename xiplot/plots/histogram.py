@@ -1,4 +1,3 @@
-import jsonschema
 import pandas as pd
 import plotly.express as px
 from dash import ALL, MATCH, Input, Output, ctx, dcc
@@ -143,6 +142,8 @@ class Histogram(APlot):
 
     @classmethod
     def create_layout(cls, index, df, columns, config=dict()):
+        import jsonschema
+
         jsonschema.validate(
             instance=config,
             schema=dict(

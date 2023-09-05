@@ -1,4 +1,3 @@
-import jsonschema
 import plotly.express as px
 from dash import MATCH, Input, Output, ctx, dcc, html
 from dash.exceptions import PreventUpdate
@@ -108,6 +107,8 @@ class Heatmap(APlot):
 
     @classmethod
     def create_layout(cls, index, df, columns, config=dict()):
+        import jsonschema
+
         jsonschema.validate(
             instance=config,
             schema=dict(

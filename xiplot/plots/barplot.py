@@ -4,7 +4,6 @@ from itertools import product
 
 import dash
 import dash_mantine_components as dmc
-import jsonschema
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -293,6 +292,8 @@ class Barplot(APlot):
 
     @classmethod
     def create_layout(cls, index, df, columns, config=dict()):
+        import jsonschema
+
         x_columns = ColumnDropdown.get_columns(
             df, pd.DataFrame(), category=True
         )

@@ -2,7 +2,6 @@ import uuid
 
 import dash
 import dash_mantine_components as dmc
-import jsonschema
 from dash import ALL, Input, Output, State, ctx, dcc, html
 from dash_extensions.enrich import CycleBreakerInput
 
@@ -145,8 +144,9 @@ class Plots(Tab):
                         dash.no_update,
                     )
                 else:
-                    children = []
+                    import jsonschema
 
+                    children = []
                     try:
                         jsonschema.validate(
                             instance=meta,
@@ -196,6 +196,8 @@ class Plots(Tab):
                 columns = df.columns.to_list()
 
                 notifications = []
+
+                import jsonschema
 
                 for index, config in plots.items():
                     plot_type = config["type"]

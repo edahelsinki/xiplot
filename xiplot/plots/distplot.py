@@ -25,7 +25,6 @@ from xiplot.utils.components import (
     PdfButton,
     PlotData,
 )
-from xiplot.utils.dataframe import get_default_column
 from xiplot.utils.layouts import layout_wrapper
 
 
