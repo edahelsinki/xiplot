@@ -148,16 +148,16 @@ class Lineplot(APlot):
                 layer="below",
             )
         if SELECTED_COLUMN_NAME in aux:
-            trace = px.scatter(
-                df[aux[SELECTED_COLUMN_NAME]], x=x_axis, y=y_axis, symbol=color
-            )
-            color = "#DDD" if template and "dark" in template else "#333"
-            trace.update_traces(
-                hoverinfo="skip",
-                hovertemplate=None,
-                marker=dict(size=15, color=color),
-            )
-            fig.add_traces(trace.data)
+            df2 = df[aux[SELECTED_COLUMN_NAME]]
+            if not df2.empty:
+                trace = px.scatter(df2, x=x_axis, y=y_axis)
+                color = "#DDD" if template and "dark" in template else "#333"
+                trace.update_traces(
+                    hoverinfo="skip",
+                    hovertemplate=None,
+                    marker=dict(size=15, color=color),
+                )
+                fig.add_traces(trace.data)
         return fig
 
     @classmethod
