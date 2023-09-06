@@ -30,6 +30,10 @@ from xiplot.utils.layouts import layout_wrapper
 
 class Distplot(APlot):
     @classmethod
+    def name(cls):
+        return "Distribution plot"
+
+    @classmethod
     def register_callbacks(cls, app, df_from_store, df_to_store):
         PdfButton.register_callback(app, cls.name(), cls.get_id(MATCH))
 

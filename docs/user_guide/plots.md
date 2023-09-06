@@ -43,6 +43,16 @@ the top of the data table. Clicked points are displayed larger than the other po
 See the ![clustering.md](clustering.md)
 
 
+# Line plot
+
+![lineplot](../images/lineplot.png)
+
+The line plot draws a line on a 2D plane.
+
+There are three dropdowns; two for the axes to select the (numerical) variables and one to select the (optional, categorical) color groups.
+You can hover and click on the plot just like in the [scatterplot](#scatterplot).
+
+
 # Histogram
 
 ## Control of histogram
@@ -56,17 +66,21 @@ The second one is a multi-selectable dropdown, in which the user can select mult
 ![histogram](../images/histogram_cluster_comparison.png)
 
 
+# Distribution plot
+
+![distribution plot](../images/distribution_plot.png)
+
+The distribution plot shows a smoothed density distribution of a variable.
+
+There are two dropdowns; one for the (numerical) x-axis and one for the (optional, categorical) color groups.
+You can hover and click on the markers below, just like in the [scatterplot](#scatterplot).
+
+
 # Heatmap
 
-On the WASM version, if the user has not created any clusters before displaying a heatmap, it will take longer, since the `KMeans` package is lazy loaded, when the user is creating clusters for the first time.
-
-
-
-## Control of heatmap
+![heatmap](../images/heatmap.png)
 
 There is a slider in the control of a heatmap. It changes the amount of clusters to set. The default value is 2.
-
-![heatmap](../images/heatmap.png)
 
 
 # Barplot
@@ -88,6 +102,16 @@ The fourth dropdown changes the order of the bar groups.
 
 "total" is the sum of the values of the bar groups. Ten highest total bar groups are displayed.
 ![barplot_total](../images/barplot_total.png)
+
+
+# Box plot
+
+![box plot](../images/boxplot.png)
+
+The box plot shows the distribution of a variable in a box, violin, or strip plot.
+
+There are four dropdowns; one (numerical) variable for the the y-axis, one (optional, categorical) variable for the x-axis, one (optional, categorical) variable for the color groups, and one for the type of distribution plot ("Box plot", "Violin plot", or "Strip chart").
+On the strip char you can hover and click on the points, just like in the [scatterplot](#scatterplot).
 
 
 # Table
