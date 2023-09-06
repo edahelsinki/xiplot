@@ -397,8 +397,8 @@ class Cluster(Tab):
         ):
             return dash.no_update
 
-        from sklearn.preprocessing import StandardScaler
         from sklearn.impute import SimpleImputer
+        from sklearn.preprocessing import StandardScaler
 
         scaler = StandardScaler()
         imputer = SimpleImputer(strategy="mean")

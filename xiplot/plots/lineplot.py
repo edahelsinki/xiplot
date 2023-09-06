@@ -68,19 +68,22 @@ class Lineplot(APlot):
                 for p in hover:
                     if p is not None:
                         return p["points"][0]["customdata"][0]
-            except KeyError:
+            except (KeyError, TypeError):
                 raise PreventUpdate()
             raise PreventUpdate()
 
         @app.callback(
-            Output(ID_HOVERED, "data"), Input(cls.get_id(ALL), "hoverData")
+            Output(ID_HOVERED, "data"),
+            Output(cls.get_id(ALL), "hoverData"),
+            Input(cls.get_id(ALL), "hoverData"),
         )
         def handle_hover_events(hover):
-            return get_row(hover)
+            return get_row(hover), [None] * len(hover)
 
         @app.callback(
             Output(ID_AUXILIARY, "data"),
             Output(ID_CLICKED, "data"),
+            Output(cls.get_id(ALL), "clickData"),
             Input(cls.get_id(ALL), "clickData"),
             State(ID_AUXILIARY, "data"),
         )
@@ -88,7 +91,7 @@ class Lineplot(APlot):
             row = get_row(click)
             if aux is None:
                 return dash.no_update, row
-            return toggle_selected(aux, row), row
+            return toggle_selected(aux, row), row, [None] * len(click)
 
         PlotData.register_callback(
             cls.name(),

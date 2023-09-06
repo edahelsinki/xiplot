@@ -20,7 +20,7 @@ from xiplot.utils.auxiliary import get_selected
 
 def test_distplot_browser(dash_duo):
     driver = start_server(dash_duo)
-    render_plot(dash_duo, driver, "Distplot")
+    render_plot(dash_duo, driver, Distplot.name())
 
     # Check render
     plot = driver.find_element(By.CLASS_NAME, "dash-graph")
@@ -60,7 +60,7 @@ def test_distplot_create():
 
 def test_distplot_click():
     click = [{"points": [{"customdata": 0}]}]
-    aux, row = handle_click_events(click, pd.DataFrame(index=range(2)))
+    aux, row, _ = handle_click_events(click, pd.DataFrame(index=range(2)))
 
     assert all(get_selected(aux) == [True, False])
     assert row == 0
@@ -68,4 +68,4 @@ def test_distplot_click():
 
 def test_distplot_hover():
     hover = [{"points": [{"customdata": 1}]}]
-    assert handle_hover_events(hover) == 1
+    assert handle_hover_events(hover)[0] == 1

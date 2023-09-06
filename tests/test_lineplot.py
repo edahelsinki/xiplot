@@ -61,7 +61,7 @@ def test_lineplot_create():
 
 def test_lineplot_click():
     click = [{"points": [{"customdata": [0]}]}]
-    aux, row = handle_click_events(click, pd.DataFrame(index=range(2)))
+    aux, row, _ = handle_click_events(click, pd.DataFrame(index=range(2)))
 
     assert all(get_selected(aux) == [True, False])
     assert row == 0
@@ -69,4 +69,4 @@ def test_lineplot_click():
 
 def test_lineplot_hover():
     hover = [{"points": [{"customdata": [1]}]}]
-    assert handle_hover_events(hover) == 1
+    assert handle_hover_events(hover)[0] == 1
