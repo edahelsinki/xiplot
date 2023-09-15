@@ -1,6 +1,6 @@
 BUNDLED_PLUGINS := xiplot/plugin_xiplot_filetypes
 
-.PHONY: install_xiplot setup_build build_xiplot build_plugins bundle_plugins build_webdash deploy serve run all clean nuke
+.PHONY: install_xiplot update_xiplot setup_build build_xiplot build_plugins bundle_plugins build_webdash deploy serve run all clean nuke
 
 all: run
 
@@ -8,6 +8,9 @@ install_xiplot: xiplot/.gitignore
 
 xiplot/.gitignore:
 	git submodule init xiplot && \
+	git submodule update --depth=1 --remote xiplot
+
+update_xiplot:
 	git submodule update --depth=1 --remote xiplot
 
 setup_build:
