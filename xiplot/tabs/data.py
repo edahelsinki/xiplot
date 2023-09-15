@@ -6,7 +6,6 @@ from pathlib import Path
 
 import dash
 import dash_mantine_components as dmc
-import jsonschema
 from dash import ALL, Input, Output, State, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 from dash_extensions.enrich import ServersideOutput
@@ -306,8 +305,9 @@ class Data(Tab):
 
             if meta.get("plots") is None:
                 meta["plots"] = OrderedDict()
-
             meta["session"] = str(uuid.uuid4())
+
+            import jsonschema
 
             try:
                 jsonschema.validate(

@@ -4,7 +4,6 @@ from itertools import product
 
 import dash
 import dash_mantine_components as dmc
-import jsonschema
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -12,7 +11,13 @@ from dash import MATCH, Input, Output, ctx, dcc, html
 from dash.exceptions import PreventUpdate
 
 from xiplot.plots import APlot
-from xiplot.utils.auxiliary import decode_aux, get_clusters, merge_df_aux
+from xiplot.plugin import ID_HOVERED
+from xiplot.utils.auxiliary import (
+    SELECTED_COLUMN_NAME,
+    decode_aux,
+    get_clusters,
+    merge_df_aux,
+)
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import (
     ClusterDropdown,
@@ -38,6 +43,7 @@ class Barplot(APlot):
             Input(cls.get_id(MATCH, "y_axis_dropdown"), "value"),
             Input(ClusterDropdown.get_id(MATCH), "value"),
             Input({"type": "order_dropdown", "index": MATCH}, "value"),
+            Input(ID_HOVERED, "data"),
             Input("data_frame_store", "data"),
             Input("auxiliary_store", "data"),
             Input("plotly-template", "data"),
@@ -48,6 +54,7 @@ class Barplot(APlot):
             y_axis,
             selected_clusters,
             order,
+            hover,
             df,
             aux,
             template=None,
@@ -67,6 +74,7 @@ class Barplot(APlot):
                         y_axis,
                         selected_clusters,
                         order,
+                        hover,
                         df_from_store(df),
                         decode_aux(aux),
                         template,
@@ -121,6 +129,7 @@ class Barplot(APlot):
         y_axis,
         selected_clusters,
         order,
+        hover,
         df,
         aux,
         template=None,
@@ -264,10 +273,27 @@ class Barplot(APlot):
             yaxis=dict(fixedrange=True),
         )
 
+        if y_axis != "frequency":
+            if hover is not None:
+                fig.add_hline(
+                    df[y_axis][hover],
+                    line=dict(color="rgba(0.5,0.5,0.5,0.5)", dash="dash"),
+                    layer="below",
+                )
+
+            if SELECTED_COLUMN_NAME in aux:
+                color = "#DDD" if template and "dark" in template else "#333"
+                for x in df[y_axis][aux[SELECTED_COLUMN_NAME]]:
+                    fig.add_hline(
+                        x, line=dict(color=color, width=0.5), layer="below"
+                    )
+
         return fig
 
     @classmethod
     def create_layout(cls, index, df, columns, config=dict()):
+        import jsonschema
+
         x_columns = ColumnDropdown.get_columns(
             df, pd.DataFrame(), category=True
         )

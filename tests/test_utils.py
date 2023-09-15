@@ -1,6 +1,6 @@
 import pandas as pd
 
-from xiplot.utils.auxiliary import decode_aux, encode_aux
+from xiplot.utils.auxiliary import decode_aux, encode_aux, toggle_selected
 from xiplot.utils.components import ColumnDropdown
 from xiplot.utils.regex import dropdown_regex, get_columns_by_regex
 
@@ -40,3 +40,5 @@ def test_aux():
         {"a": [1, 2, 3], "b": [1.0, 2.3, 3.2], "c": ["a", "b", "a"]}
     )
     assert df.equals(decode_aux(encode_aux(df)))
+    df = toggle_selected(df, [])
+    assert df.equals(toggle_selected(toggle_selected(df, 1), [1]))

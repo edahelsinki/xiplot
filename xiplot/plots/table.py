@@ -1,4 +1,3 @@
-import jsonschema
 import numpy as np
 import pandas as pd
 from dash import (
@@ -237,9 +236,10 @@ class Table(APlot):
 
     @classmethod
     def create_new_layout(cls, index, df, columns, config=dict()):
+        import jsonschema
+
         df = df.rename_axis("index_copy")
         columns = df.columns.to_list()
-
         jsonschema.validate(
             instance=config,
             schema=dict(

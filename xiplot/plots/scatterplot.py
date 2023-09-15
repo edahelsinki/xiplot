@@ -1,7 +1,6 @@
 import json
 
 import dash
-import jsonschema
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -20,7 +19,7 @@ from xiplot.utils.auxiliary import (
 )
 from xiplot.utils.cluster import cluster_colours
 from xiplot.utils.components import ColumnDropdown, PdfButton, PlotData
-from xiplot.utils.dataframe import get_numeric_columns
+from xiplot.utils.dataframe import get_default_column, get_numeric_columns
 from xiplot.utils.layouts import layout_wrapper
 from xiplot.utils.scatterplot import get_row
 
@@ -322,6 +321,8 @@ class Scatterplot(APlot):
 
     @classmethod
     def create_layout(cls, index, df, columns, config=dict()):
+        import jsonschema
+
         jsonschema.validate(
             instance=config,
             schema=dict(
@@ -341,35 +342,15 @@ class Scatterplot(APlot):
         )
         num_columns = get_numeric_columns(df, columns)
 
-        try:
-            x_axis = config["axes"]["x"]
-        except Exception:
-            x_axis = None
-
-        try:
-            y_axis = config["axes"]["y"]
-        except Exception:
-            y_axis = None
+        axes = config.get("axes", dict())
+        x_axis = axes.get("x", get_default_column(num_columns, "x"))
+        y_axis = axes.get("y", get_default_column(num_columns, "y"))
+        if x_axis is None or y_axis is None:
+            raise Exception("The dataframe contains no numeric columns")
 
         scatter_colour = config.get("colour", CLUSTER_COLUMN_NAME)
         scatter_symbol = config.get("symbol", CLUSTER_COLUMN_NAME)
         jitter_slider = config.get("jitter", 0.0)
-
-        for c in num_columns:
-            if x_axis is None and ("x-" in c or " 1" in c):
-                x_axis = c
-
-            if y_axis is None and ("y-" in c or " 2" in c):
-                y_axis = c
-
-        if x_axis is None and len(num_columns) > 0:
-            x_axis = num_columns[0]
-
-        if y_axis is None and len(num_columns) > 0:
-            y_axis = num_columns[min(1, len(num_columns) - 1)]
-
-        if x_axis is None or y_axis is None:
-            raise Exception("The dataframe contains no numeric columns")
 
         df["__Auxiliary__"] = [{"index": i} for i in range(len(df))]
 

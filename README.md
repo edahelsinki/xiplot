@@ -10,7 +10,7 @@
 
 &chi;iplot can be run as a local server or as a [WASM-based browser version](https://edahelsinki.fi/xiplot). 
 
-You can find more details in the [user guide](docs/user_guide) and [the paper](https://arxiv.org/abs/2306.12110).
+You can find more details in the [user guide](docs/user_guide/README.md) and [the paper](https://arxiv.org/abs/2306.12110).
 For a quick demonstration see [the video](https://helsinkifi-my.sharepoint.com/:v:/g/personal/tanakaki_ad_helsinki_fi/EcIIGy0bfP5FlW-0Lr4AMEYBbKoyuo6u7px3zu_K5Vk4xw?e=TPGGf8&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZyIsInJlZmVycmFsQXBwUGxhdGZvcm0iOiJXZWIiLCJyZWZlcnJhbE1vZGUiOiJ2aWV3In19) or try the [WASM version](https://edahelsinki.fi/xiplot).
 
 ## Screenshot

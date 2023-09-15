@@ -3,7 +3,6 @@ import uuid
 
 import dash
 import dash_mantine_components as dmc
-import jsonschema
 import pandas as pd
 from dash import Input, Output, State, ctx, dcc, html
 from dash_extensions.enrich import CycleBreakerInput
@@ -237,6 +236,8 @@ class Cluster(Tab):
                     dash.no_update,
                 )
 
+            import jsonschema
+
             try:
                 jsonschema.validate(
                     instance=meta,
@@ -396,15 +397,18 @@ class Cluster(Tab):
         ):
             return dash.no_update
 
+        from sklearn.impute import SimpleImputer
         from sklearn.preprocessing import StandardScaler
 
         scaler = StandardScaler()
+        imputer = SimpleImputer(strategy="mean")
 
         columns = get_numeric_columns(df)
         new_features = get_columns_by_regex(columns, features)
-        scale = scaler.fit_transform(df[new_features])
+        x = scaler.fit_transform(df[new_features])
+        x = imputer.fit_transform(x)
 
-        km = KMeans(n_clusters=int(n_clusters)).fit_predict(scale)
+        km = KMeans(n_clusters=int(n_clusters)).fit_predict(x)
         kmeans_col = [f"c{c+1}" for c in km]
 
         notifications.append(

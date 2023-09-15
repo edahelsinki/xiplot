@@ -53,3 +53,19 @@ def render_plot(dash_duo, driver, plot_name):
 
     plot_add = driver.find_element(By.ID, "new_plot-button")
     plot_add.click()
+
+
+def select_dropdown(dropdown, input):
+    dropdown.click()
+    color = dropdown.find_element(
+        By.XPATH, "//div[2]/div[1]/div[1]/div[1]/div[2]/input"
+    )
+    color.send_keys(input)
+    color.send_keys(Keys.RETURN)
+    time.sleep(0.5)
+
+
+def click_pdf_button(driver):
+    pdf = driver.find_element(By.CLASS_NAME, "pdf_button")
+    driver.execute_script("arguments[0].click();", pdf)
+    time.sleep(0.1)

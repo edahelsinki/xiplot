@@ -1,5 +1,4 @@
 import dash
-import jsonschema
 import pandas as pd
 from dash import MATCH, Input, Output, State, dcc, html
 
@@ -102,6 +101,8 @@ async function svgFromSMILES(smiles) {
 
     @classmethod
     def create_layout(cls, index, df: pd.DataFrame, columns, config=dict()):
+        import jsonschema
+
         jsonschema.validate(
             instance=config,
             schema=dict(

@@ -2,13 +2,15 @@ import uuid
 
 import dash
 import dash_mantine_components as dmc
-import jsonschema
 from dash import ALL, Input, Output, State, ctx, dcc, html
 from dash_extensions.enrich import CycleBreakerInput
 
 from xiplot.plots.barplot import Barplot
+from xiplot.plots.boxplot import Boxplot
+from xiplot.plots.distplot import Distplot
 from xiplot.plots.heatmap import Heatmap
 from xiplot.plots.histogram import Histogram
+from xiplot.plots.lineplot import Lineplot
 from xiplot.plots.scatterplot import Scatterplot
 from xiplot.plots.smiles import Smiles
 from xiplot.plots.table import Table
@@ -25,7 +27,17 @@ class Plots(Tab):
     def get_plot_types():
         return {
             p.name(): p
-            for p in [Scatterplot, Histogram, Heatmap, Barplot, Table, Smiles]
+            for p in [
+                Scatterplot,
+                Lineplot,
+                Histogram,
+                Distplot,
+                Barplot,
+                Boxplot,
+                Heatmap,
+                Table,
+                Smiles,
+            ]
             + [plot for (_, _, plot) in get_plugins_cached("plot")]
         }
 
@@ -132,8 +144,9 @@ class Plots(Tab):
                         dash.no_update,
                     )
                 else:
-                    children = []
+                    import jsonschema
 
+                    children = []
                     try:
                         jsonschema.validate(
                             instance=meta,
@@ -183,6 +196,8 @@ class Plots(Tab):
                 columns = df.columns.to_list()
 
                 notifications = []
+
+                import jsonschema
 
                 for index, config in plots.items():
                     plot_type = config["type"]

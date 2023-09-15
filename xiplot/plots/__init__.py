@@ -74,7 +74,7 @@ class APlot(ABC):
         cls,
         index: Any,
         df: pd.DataFrame,
-        columns: Any,
+        columns: Optional[List[str]] = None,
         config: Dict[str, Any] = dict(),
     ) -> html.Div:
         """Overide this method to create a layout for your plot.

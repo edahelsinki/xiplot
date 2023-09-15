@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Sequence, Union
 
 import pandas as pd
 
@@ -42,6 +42,33 @@ def get_selected(aux: pd.DataFrame, n: Optional[int] = None) -> pd.Series:
     if n is None:
         n = aux.shape[0]
     return pd.Series([False]).repeat(n).reset_index(drop=True)
+
+
+def toggle_selected(
+    aux: pd.DataFrame, rows: Sequence[int], n: Optional[int] = None
+) -> pd.DataFrame:
+    """Toggle rows in the selected column in the auxiliary data.
+
+    Args:
+        aux: Auxiliary data frame.
+        rows: Rows to toggle.
+        n: Column size if missing. Defaults to `aux.shape[0]`.
+
+    Returns:
+        Updated auxiliary data frame.
+    """
+    encode = not isinstance(aux, pd.DataFrame)
+    if encode:
+        aux = decode_aux(aux)
+    selected = get_selected(aux, n)
+    if isinstance(rows, int):
+        rows = (rows,)
+    for row in rows:
+        selected[row] = not selected[row]
+    aux[SELECTED_COLUMN_NAME] = selected
+    if encode:
+        aux = encode_aux(aux)
+    return aux
 
 
 def decode_aux(aux: str) -> pd.DataFrame:
