@@ -121,7 +121,8 @@ class Distplot(APlot):
         hover=None,
         template=None,
     ):
-        df = merge_df_aux(df, aux).reset_index(names="__Xiplot_index__")
+        df = merge_df_aux(df, aux)
+        df["__Xiplot_index__"] = range(df.shape[0])
         if variable not in df.columns:
             return placeholder_figure("Please select a variable")
         if color not in df.columns:
