@@ -125,9 +125,9 @@ class Lineplot(APlot):
         hover=None,
         template=None,
     ):
-        if x_axis is None or y_axis is None:
-            return placeholder_figure("Please select x and y axis")
         df = merge_df_aux(df, aux).reset_index(names="__Xiplot_index__")
+        if x_axis not in df.columns or y_axis not in df.columns:
+            return placeholder_figure("Please select x and y axis")
         if color not in df.columns:
             color = None
         fig = px.line(
