@@ -55,12 +55,12 @@ async def setup_bootstrap():
         )
 
         # Asynchronously install sklearn (it will be unavailable the first couple of seconds after xiplot has loaded)
+        packages = "'" + "','".join(DELAYED_PACKAGES.values()) + "'"
+        modules = "import " + ",".join(DELAYED_PACKAGES.keys())
         app._inline_scripts.append(
             "setTimeout("
-            + 'async () => await window.web_dash.worker_manager.executeWithAnyResponse("micropip.install('
-            + [f"'{p}'" for p in DELAYED_PACKAGES].join(",")
-            + ')", {},)'
-            + '.then(() => window.web_dash.worker_manager.executeWithAnyResponse("import sklearn", {}))'
+            + f'async () => await window.web_dash.worker_manager.executeWithAnyResponse("micropip.install({packages})", {{}},)'
+            + f'.then(() => window.web_dash.worker_manager.executeWithAnyResponse("{modules}", {{}}))'
             + ", 5)"
         )
 

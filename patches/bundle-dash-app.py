@@ -156,15 +156,14 @@ rep = f"REQUIRED_PACKAGES = [{required_packages}]"
 content = re.sub(reg, rep, content)
 
 # Packages that are loaded after xiplot has started
-delayed_packages = ["scikit-learn"]
+delayed_packages = {"sklearn": "scikit-learn"}
 for package in ["jsonschema"]:
     try:
-        delayed_packages.append(f"{package}=={version(package)}")
+        delayed_packages[package] = f"{package}=={version(package)}"
     except:
         print("Could not find version for", package)
-delayed_packages = '"' + '","'.join(delayed_packages) + '"'
 reg = 'DELAYED_PACKAGES = (".+")'
-rep = f"DELAYED_PACKAGES = [{delayed_packages}]"
+rep = f"DELAYED_PACKAGES = {str(delayed_packages)}"
 content = re.sub(reg, rep, content)
 
 whl = sorted(dist.glob("xiplot-*-py3-none-any.whl"))
