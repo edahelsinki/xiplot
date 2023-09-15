@@ -162,6 +162,8 @@ for package in ["jsonschema"]:
         delayed_packages[package] = f"{package}=={version(package)}"
     except:
         print("Could not find version for", package)
+for mod in delayed_packages.keys():
+    assert mod not in sys.modules, f"Importing xiplot should not import {mod} "
 reg = 'DELAYED_PACKAGES = (".+")'
 rep = f"DELAYED_PACKAGES = {str(delayed_packages)}"
 content = re.sub(reg, rep, content)
