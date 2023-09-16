@@ -8,7 +8,8 @@ import micropip
 
 MOCKED_PACKAGES = {"jsbeautifier": "1.14.9",}
 REQUIRED_PACKAGES = ["flask==2.1.2","dash==2.6.2","dash_extensions==0.1.4","dash_mantine_components==0.10.2",]
-XIPLOT_WHEEL = "xiplot-0.3.1-py3-none-any.whl"
+DELAYED_PACKAGES = {'sklearn': 'scikit-learn', 'jsonschema': 'jsonschema==4.6.2'}
+XIPLOT_WHEEL = "xiplot-0.4.0-py3-none-any.whl"
 
 
 bootstrap_dash_app = lambda _: NotImplementedError("Call `setup_bootstrap` first!")
@@ -54,10 +55,12 @@ async def setup_bootstrap():
         )
 
         # Asynchronously install sklearn (it will be unavailable the first couple of seconds after xiplot has loaded)
+        packages = "'" + "','".join(DELAYED_PACKAGES.values()) + "'"
+        modules = "import " + ",".join(DELAYED_PACKAGES.keys())
         app._inline_scripts.append(
             "setTimeout("
-            + "async () => await window.web_dash.worker_manager.executeWithAnyResponse(\"micropip.install('scikit-learn')\", {},)"
-            + '.then(() => window.web_dash.worker_manager.executeWithAnyResponse("import sklearn", {}))'
+            + f'async () => await window.web_dash.worker_manager.executeWithAnyResponse("micropip.install({packages})", {{}},)'
+            + f'.then(() => window.web_dash.worker_manager.executeWithAnyResponse("{modules}", {{}}))'
             + ", 5)"
         )
 

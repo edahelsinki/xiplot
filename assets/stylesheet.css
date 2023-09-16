@@ -93,6 +93,30 @@ body {
     margin: 0.2rem;
 }
 
+.links {
+    position: absolute;
+    text-align: right;
+    right: 10px;
+    right: var(--panel-padding);
+}
+
+.links img {
+    height: 2.0rem;
+    margin: 5px;
+}
+
+.links img:hover {
+    filter: invert(0.4)
+}
+
+[data-theme="dark"] .links img {
+    filter: invert(1)
+}
+
+[data-theme="dark"] .links img:hover {
+    filter: invert(0.7)
+}
+
 #plots {
     display: flex;
     flex-direction: row;
