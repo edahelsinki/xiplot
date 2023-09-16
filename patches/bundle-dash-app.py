@@ -155,6 +155,19 @@ reg = 'REQUIRED_PACKAGES = (".+")'
 rep = f"REQUIRED_PACKAGES = [{required_packages}]"
 content = re.sub(reg, rep, content)
 
+# Packages that are loaded after xiplot has started
+delayed_packages = {"sklearn": "scikit-learn"}
+for package in ["jsonschema"]:
+    try:
+        delayed_packages[package] = f"{package}=={version(package)}"
+    except:
+        print("Could not find version for", package)
+for mod in delayed_packages.keys():
+    assert mod not in sys.modules, f"Importing xiplot should not import {mod} "
+reg = 'DELAYED_PACKAGES = (".+")'
+rep = f"DELAYED_PACKAGES = {str(delayed_packages)}"
+content = re.sub(reg, rep, content)
+
 whl = sorted(dist.glob("xiplot-*-py3-none-any.whl"))
 assert len(whl) > 0, f"Could not find the xiplot wheel in {str(dist)}"
 reg = 'XIPLOT_WHEEL = "(.+)"'

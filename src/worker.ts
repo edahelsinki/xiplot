@@ -32,7 +32,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-importScripts("https://cdn.jsdelivr.net/pyodide/v0.23.0/full/pyodide.js");
+importScripts("https://cdn.jsdelivr.net/pyodide/v0.24.0/full/pyodide.js");
 
 /**
  * Handler receiving message events from the WorkerManager.
@@ -98,7 +98,6 @@ onmessage = async (event: MessageEvent) => {
  * The global Pyodide interpreter interface.
  */
 const maybe_pyodide: Promise<PyodideInterface> = loadPyodide({
-  homedir: "/",
   fullStdLib: false,
   stdout: postConsoleMessage,
   stderr: postConsoleError,
@@ -211,7 +210,6 @@ function postConsoleError(consoleError: string) {
 
 declare function loadPyodide(options?: {
   indexURL?: string;
-  homedir?: string;
   fullStdLib?: boolean;
   stdout?: (msg: string) => void;
   stderr?: (msg: string) => void;

@@ -8,6 +8,7 @@ import micropip
 
 MOCKED_PACKAGES = "THIS_VALUE_SHOULD_HAVE_BEEN_FILLED_WHEN_BUNDLING_XIPLOT"
 REQUIRED_PACKAGES = "THIS_VALUE_SHOULD_HAVE_BEEN_FILLED_WHEN_BUNDLING_XIPLOT"
+DELAYED_PACKAGES = "THIS_VALUE_SHOULD_HAVE_BEEN_FILLED_WHEN_BUNDLING_XIPLOT"
 XIPLOT_WHEEL = "THIS_VALUE_SHOULD_HAVE_BEEN_FILLED_WHEN_BUNDLING_XIPLOT"
 
 
@@ -54,10 +55,12 @@ async def setup_bootstrap():
         )
 
         # Asynchronously install sklearn (it will be unavailable the first couple of seconds after xiplot has loaded)
+        packages = "'" + "','".join(DELAYED_PACKAGES.values()) + "'"
+        modules = "import " + ",".join(DELAYED_PACKAGES.keys())
         app._inline_scripts.append(
             "setTimeout("
-            + "async () => await window.web_dash.worker_manager.executeWithAnyResponse(\"micropip.install('scikit-learn')\", {},)"
-            + '.then(() => window.web_dash.worker_manager.executeWithAnyResponse("import sklearn", {}))'
+            + f'async () => await window.web_dash.worker_manager.executeWithAnyResponse("micropip.install({packages})", {{}},)'
+            + f'.then(() => window.web_dash.worker_manager.executeWithAnyResponse("{modules}", {{}}))'
             + ", 5)"
         )
 
