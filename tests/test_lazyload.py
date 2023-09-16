@@ -14,11 +14,11 @@ def test_ensure_lazyload():
     # imported, so that they can be lazily loaded in the WASM version.
     # This test starts a new Python (multi-)process using "spawn" to check the
     # imports in a clean environment.
-    modules = ["sklearn", "jsonschema"]
+    modules = ["sklearn", "jsonschema", "plotly.figure_factory"]
     ctx = multiprocessing.get_context("spawn")
     q = ctx.Queue()
     p = ctx.Process(target=check_loaded, args=(q, modules))
     p.start()
     for mod, loaded in zip(modules, q.get()):
-        assert not loaded, f"{mod} should not be imported by default"
+        assert not loaded, f"{mod} should be lazily loaded"
     p.join()
