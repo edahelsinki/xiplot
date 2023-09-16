@@ -132,7 +132,8 @@ class Boxplot(APlot):
     ):
         if y_axis is None:
             return placeholder_figure("Please select y axis")
-        df = merge_df_aux(df, aux).reset_index(names="__Xiplot_index__")
+        df = merge_df_aux(df, aux)
+        df["__Xiplot_index__"] = range(df.shape[0])
         if x_axis not in df.columns:
             return placeholder_figure("Please select x axis")
         if color not in df.columns:

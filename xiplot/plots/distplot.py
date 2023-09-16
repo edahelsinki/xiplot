@@ -1,6 +1,5 @@
 import dash
 import plotly.express as px
-import plotly.figure_factory as ff
 from dash import ALL, MATCH, Input, Output, State, dcc
 from dash.exceptions import PreventUpdate
 
@@ -31,7 +30,7 @@ from xiplot.utils.layouts import layout_wrapper
 class Distplot(APlot):
     @classmethod
     def name(cls):
-        return "Distribution plot"
+        return "Density plot"
 
     @classmethod
     def register_callbacks(cls, app, df_from_store, df_to_store):
@@ -121,7 +120,13 @@ class Distplot(APlot):
         hover=None,
         template=None,
     ):
-        df = merge_df_aux(df, aux).reset_index(names="__Xiplot_index__")
+        # `plotly.figure_factory` checks if scipy is installed and caches the
+        # result. This causes issues if scipy is lazily loaded in WASM.
+        import scipy  # noqa: F401, isort: skip
+        import plotly.figure_factory as ff
+
+        df = merge_df_aux(df, aux)
+        df["__Xiplot_index__"] = range(df.shape[0])
         if variable not in df.columns:
             return placeholder_figure("Please select a variable")
         if color not in df.columns:
