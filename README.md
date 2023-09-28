@@ -10,8 +10,11 @@
 
 &chi;iplot can be run as a local server or as a [WASM-based browser version](https://edahelsinki.fi/xiplot). 
 
-You can find more details in the [user guide](docs/user_guide/README.md) and [the paper](https://arxiv.org/abs/2306.12110).
-For a quick demonstration see [the video](https://helsinkifi-my.sharepoint.com/:v:/g/personal/tanakaki_ad_helsinki_fi/EcIIGy0bfP5FlW-0Lr4AMEYBbKoyuo6u7px3zu_K5Vk4xw?e=TPGGf8&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZyIsInJlZmVycmFsQXBwUGxhdGZvcm0iOiJXZWIiLCJyZWZlcnJhbE1vZGUiOiJ2aWV3In19) or try the [WASM version](https://edahelsinki.fi/xiplot).
+You can find more details in the [user guide](docs/user_guide/README.md) and the paper:
+
+> Tanaka, A., Tyree, J., Björklund, A., Mäkelä, J., Puolamäki, K., 2023. &chi;iplot: Web-First Visualisation Platform for Multidimensional Data, in: De Francisci Morales, G., Perlich, C., Ruchansky, N., Kourtellis, N., Baralis, E., Bonchi, F. (Eds.), Machine Learning and Knowledge Discovery in Databases: Applied Data Science and Demo Track, Lecture Notes in Computer Science. Springer Nature Switzerland, Cham, pp. 335–339. <https://doi.org/10.1007/978-3-031-43430-3_26>
+
+For a quick demonstration, see [the video](https://helsinkifi-my.sharepoint.com/:v:/g/personal/tanakaki_ad_helsinki_fi/EcIIGy0bfP5FlW-0Lr4AMEYBbKoyuo6u7px3zu_K5Vk4xw?e=TPGGf8&nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZyIsInJlZmVycmFsQXBwUGxhdGZvcm0iOiJXZWIiLCJyZWZlcnJhbE1vZGUiOiJ2aWV3In19) or try the [WASM version](https://edahelsinki.fi/xiplot).
 
 ## Screenshot
 
