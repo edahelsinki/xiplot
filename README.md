@@ -7,8 +7,7 @@
 ## Description
 
 &chi;iplot is built on top of the [`dash`](https://github.com/plotly/dash) framework. The goal of the &chi;iplot is to explore new insights from the collected data and to make data exploring user-friendly and intuitive.
-
-&chi;iplot can be run as a local server or as a [WASM-based browser version](https://edahelsinki.fi/xiplot). 
+&chi;iplot can be used without installation with the [WASM-based browser version](https://edahelsinki.fi/xiplot).
 
 You can find more details in the [user guide](docs/user_guide/README.md) and in the paper:
 
@@ -23,19 +22,22 @@ For a quick demonstration, see [the video](https://helsinkifi-my.sharepoint.com/
 ![Screenshot of xiplot](docs/images/cluster_by_drawing.png#gh-light-mode-only)
 ![Screenshot of xiplot](docs/images/dark_mode.png#gh-dark-mode-only)
 
-## Dependencies
+## Installation free
 
-Install the dependencies by running `pip install -r requirements.txt`
+You can try out the installation free WASM version of &chi;iplot at [edahelsinki.fi/xiplot](https://edahelsinki.fi/xiplot). Note that all data processing happens locally in **your** browser nothing is sent to a server.
 
-## Execution
+Please refer to the [wasm](https://github.com/edahelsinki/xiplot/tree/wasm#readme) branch for more information on how the WASM version is implemented
 
-### Server version
+## Installation
 
-Run `python3 -m xiplot` at the root directory.
+&chi;iplot can also be installed locally with: `pip install xiplot`.
+To start the local server run `xiplot` in a terminal (with same Python environment venv/conda/... in the PATH).
 
-### Serverless WASM version
+Or to use the latest, in-development, version clone this repository.
+To install the dependencies run `pip install -e .` or `pip install -r requirements.txt`.
+To start the local server run `python -m xiplot`.
 
-You can try out the serverless WASM version of &chi;iplot at [edahelsinki.fi/xiplot](https://edahelsinki.fi/xiplot). Please refer to the [wasm](https://github.com/edahelsinki/xiplot/tree/wasm#readme) branch for more information on how the WASM version is implemented.
+For more options run `xiplot --help`.
 
 ## Funding
 
