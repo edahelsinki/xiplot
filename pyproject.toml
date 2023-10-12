@@ -1,6 +1,6 @@
 [project]
 name = "xiplot"
-version = "0.4.0"
+version = "0.4.1"
 authors = [
     { name = "Akihiro Tanaka", email = "akihiro.fin@gmail.com" },
     { name = "Juniper Tyree", email = "juniper.tyree@helsinki.fi" },
