@@ -146,7 +146,13 @@ content = re.sub(reg, rep, content)
 # Packages that require a specific version, either due to bundled javascript
 # files (dash, dash_*) or micropip:s rudimentary dependency resolving (flask)
 required_packages = ""
-for package in ["flask", "dash", "dash_extensions", "dash_mantine_components"]:
+for package in [
+    "flask",
+    "dash",
+    "dash_extensions",
+    "dash_mantine_components",
+    "Werkzeug",
+]:
     try:
         required_packages += f'"{package}=={version(package)}",'
     except:
