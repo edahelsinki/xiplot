@@ -30,6 +30,7 @@ dependencies = [
     "plotly >= 5.9.0",
     "scikit-learn >= 1.0; platform_system!='Emscripten'",
     "xiplot_filetypes == 1.0; platform_system!='Emscripten'",
+    "Werkzeug < 3.0.0",
 ]
 
 [project.optional-dependencies]
