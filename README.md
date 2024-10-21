@@ -9,7 +9,7 @@
 &chi;iplot is built on top of the [`dash`](https://github.com/plotly/dash) framework. The goal of the &chi;iplot is to explore new insights from the collected data and to make data exploring user-friendly and intuitive.
 &chi;iplot can be used without installation with the [WASM-based browser version](https://edahelsinki.fi/xiplot).
 
-You can find more details in the [user guide](docs/user_guide/README.md) and in the paper:
+You can find more details in the [user guide](docs/README.md) and in the paper:
 
 > Tanaka, A., Tyree, J., Björklund, A., Mäkelä, J., Puolamäki, K. (2023).  
 > __&chi;iplot: Web-First Visualisation Platform for Multidimensional Data.__  
