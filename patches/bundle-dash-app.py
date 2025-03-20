@@ -145,7 +145,7 @@ content = re.sub(reg, rep, content)
 
 # Packages that require a specific version, either due to bundled javascript
 # files (dash, dash_*) or micropip:s rudimentary dependency resolving (flask)
-required_packages = ""
+required_packages = "Flask-Compress==1.14,"
 for package in [
     "flask",
     "dash",
