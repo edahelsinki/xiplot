@@ -7,7 +7,7 @@ import micropip
 
 
 MOCKED_PACKAGES = {"jsbeautifier": "1.14.9",}
-REQUIRED_PACKAGES = ["flask==2.1.2","dash==2.6.2","dash_extensions==0.1.4","dash_mantine_components==0.10.2","Werkzeug==2.3.7",]
+REQUIRED_PACKAGES = ["flask==2.1.2","dash==2.6.2","dash_extensions==0.1.4","dash_mantine_components==0.10.2","Werkzeug==2.3.7","Flask-Compress==1.14",]
 DELAYED_PACKAGES = {'sklearn': 'scikit-learn', 'jsonschema': 'jsonschema==4.6.2'}
 XIPLOT_WHEEL = "xiplot-0.4.1-py3-none-any.whl"
 
